@@ -62,14 +62,68 @@ class Action
   def disable?(a)
     @disables.include? a
   end
+
+  def ==(a)
+    @name == a.name
+  end
 end
 
 class Word
+  include Enumerable
+
+  attr_reader :actions
+
   def initialize(actions)
     @actions = actions
   end
 
-  def influence?
+  def influence?(w)
+    ret = false
+
+    @actions.each do |a|
+      w.each do |b|
+	ret = (a.simulate? b) || (b.disable? a)
+	break if ret
+      end
+    end
+
+    ret
+  end
+
+  def feasible?
+  end
+
+  def weak_equal?(w)
+    ret = false
+
+    if length == w.length
+      [0...length].each do |idx|
+      end
+    end
+
+    ret
+  end
+
+  def head(size)
+    @actions[0...size]
+  end
+
+  def tail(size)
+    @actions[(length-size)...length]
+  end
+
+  def length
+    @actions.length
+  end
+
+  def each
+    @actions.each do |action|
+      yield action
+    end
+  end
+
+  def ==(w)
+    @actions == w.actions
   end
 end
 
@@ -127,4 +181,12 @@ def dump_actions(actions)
 end
 
 actions = mk_actions relations
-actions.dump
+x1   = Word.new [actions[:x1]]
+x1x2 = Word.new [actions[:x1], actions[:x2]]
+y1y2 = Word.new [actions[:y1], actions[:y2]]
+
+puts x1x2.influence? y1y2
+puts x1.influence? y1y2
+
+pp (x1x2.head 1).map{|a| a.name}
+pp (x1x2.tail 1).map{|a| a.name}
