@@ -1,5 +1,43 @@
 require 'pp'
 
+class ActionTable
+  def initialize
+    @actions = {}
+  end
+
+  def add(action)
+    @actions[action.name] = action
+  end
+
+  def [](name)
+    @actions[name]
+  end
+
+  def dump
+    order = @actions.map{|k, v| k}
+
+    header = '   '
+    order.each{|o| header += "#{o.to_s} "}
+    puts header
+
+    order.each do |osrc|
+      src = @actions[osrc]
+
+      line = "#{osrc} "
+      order.each do |odst|
+	dst = @actions[odst]
+	if src.simulate? dst then line += '▷' 
+	elsif src.disable? dst then line += '◀' 
+	else line += ' '
+	end
+	line += '  '
+      end
+
+      puts line
+    end
+  end
+end
+
 class Action
   attr_reader :name
 
@@ -27,6 +65,12 @@ class Action
 end
 
 class Word
+  def initialize(actions)
+    @actions = actions
+  end
+
+  def influence?
+  end
 end
 
 relations = {
@@ -39,9 +83,9 @@ relations = {
 }
 
 def mk_actions(relations)
-  actions = {}
+  actions = ActionTable.new
 
-  relations.each{|k, v| actions[k] = Action.new k}
+  relations.each{|k, v| actions.add Action.new k}
   relations.each do |k, v|
     src = actions[k]
 
@@ -83,4 +127,4 @@ def dump_actions(actions)
 end
 
 actions = mk_actions relations
-dump_actions actions
+actions.dump
