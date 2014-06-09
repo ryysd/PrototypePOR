@@ -9,6 +9,20 @@ class ActionTable
     @actions[action.name] = action
   end
 
+  def create(name)
+    add Action.new name until @actions.has_key? name
+    @actions[name]
+  end
+
+  def create!(name)
+    throw 'action #{name} is already existing.' if @actions.has_key? name
+    add Action.new name
+  end
+
+  def []=(name, action)
+    @actions[name] = action
+  end
+
   def [](name)
     @actions[name]
   end
@@ -35,6 +49,90 @@ class ActionTable
 
       puts line
     end
+  end
+end
+
+class StateSpace
+  def initialize
+    @states = {}
+    @init = nil
+  end
+
+  def add(state)
+    @states[state.name] = state
+  end
+
+  def create(name)
+    add State.new name until @states.has_key? name
+    @states[name]
+  end
+
+  def create!(name)
+    throw 'state #{name} is already existing.' if @states.has_key? name
+    add State.new name
+  end
+
+  def create_as_init(name)
+    register_as_init create name
+  end
+
+  def register_as_init(state)
+    @init = state
+  end
+
+  def []=(name, state)
+    @states[name] = state
+  end
+
+  def [](name)
+    @states[name]
+  end
+
+  def dump
+    stack = [@init]
+    visited = []
+
+    until stack.empty?
+      s = stack.pop
+      next if visited.include? s
+      visited.push s
+
+      s.successors.each do |succ|
+	p "#{s.name} -> #{succ.name}"
+	stack.push succ
+      end
+    end
+  end
+end
+
+class State
+  attr_reader :name
+
+  def initialize(name, transitions = [])
+    @name = name
+    @transitions = transitions
+  end
+
+  def successors
+    @transitions.map{|t| t.dst}
+  end
+
+  def enable_actions
+    @transitions.map{|t| t.action}
+  end
+
+  def []=(action, dst)
+    @transitions.push Transition.new self, action, dst
+  end
+end
+
+class Transition
+  attr_reader :src, :action, :dst
+
+  def initialize(src, action, dst)
+    @src = src
+    @dst = dst
+    @action = action
   end
 end
 
@@ -161,6 +259,43 @@ class Vector
   end
 end
 
+class SimulationDisablingFileParser
+  def self.parse(file_name)
+    actions = ActionTable.new
+
+    (File.open file_name).readlines.each do |line|
+      case line.chomp.strip
+      when /(\w+)\s+(simulate|disable)\s+(\w+)/ 
+	l = actions.create $1
+	r = actions.create $3
+	$2 == 'simulate' ? (l.simulate r) : (l.disable r)
+      end
+    end
+
+    actions
+  end
+end
+
+class TransitonFileParser
+  def self.parse(file_name, actions)
+    states = StateSpace.new
+
+    (File.open file_name).readlines.each do |line|
+      case line.chomp.strip
+      when /(\w+)-(\w+)->(\w+)/ 
+	l = states.create $1
+	r = states.create $3
+	action = actions.create $2
+	l[action] = r
+      when /init\s*:\s*(\w+)/
+	states.create_as_init $1
+      end
+    end
+
+    states
+  end
+end
+
 relations = {
   x1: {x1: :d , x2: :s , x0: nil, y1: nil, y2: nil, y0: :d},
   x2: {x1: nil, x2: :d , x0: :s , y1: nil, y2: :d , y0: nil},
@@ -173,7 +308,7 @@ relations = {
 def mk_actions(relations)
   actions = ActionTable.new
 
-  relations.each{|k, v| actions.add Action.new k}
+  relations.each{|k, v| actions.create k}
   relations.each do |k, v|
     src = actions[k]
 
@@ -188,30 +323,6 @@ def mk_actions(relations)
   end
 
   actions
-end
-
-def dump_actions(actions)
-  order = actions.map{|k, v| k}
-
-  header = '   '
-  order.each{|o| header += "#{o.to_s} "}
-  puts header
-
-  order.each do |osrc|
-    src = actions[osrc]
-
-    line = "#{osrc} "
-    order.each do |odst|
-      dst = actions[odst]
-      if src.simulate? dst then line += '▷' 
-      elsif src.disable? dst then line += '◀' 
-      else line += ' '
-      end
-      line += '  '
-    end
-
-    puts line
-  end
 end
 
 actions = mk_actions relations
@@ -237,3 +348,7 @@ pp (x1.prime_cause actions[:x2]).map{|p| p.name}
 pp (x1x2.prime_cause actions[:x0]).map{|p| p.name}
 pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
 pp (x1.prime_cause actions[:y2]).map{|p| p.name}
+
+action_table = SimulationDisablingFileParser.parse './input/sample.sd'
+ss = TransitonFileParser.parse './input/sample.tr', action_table
+ss.dump
