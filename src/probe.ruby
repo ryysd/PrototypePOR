@@ -63,6 +63,10 @@ class Action
     @disables.include? a
   end
 
+  def influence?(a)
+    (simulate? a) || (a.disable? self)
+  end
+
   def ==(a)
     @name == a.name
   end
@@ -90,18 +94,33 @@ class Word
     ret
   end
 
+  def prime_cause(a)
+    def _prime_cause_rec(a, actions)
+      t = actions.pop
+      v = (t.influence? a) || (actions.any?{|rest| t.influence? rest}) ? t : nil
+      actions.empty? ? [v] : ((_prime_cause_rec a, actions).push v)
+    end
+
+    (_prime_cause_rec a, @actions.clone).compact
+  end
+
   def feasible?
   end
 
   def weak_equal?(w)
-    ret = false
+  end
 
-    if length == w.length
-      [0...length].each do |idx|
+  def weak_difference(w)
+    words = []
+
+    diff = []
+    [0...length].each do |idx|
+      if self[idx] == w[idx] && !diff.empty? then words.push diff
+      else diff.push self[idx]
       end
     end
 
-    ret
+    words
   end
 
   def head(size)
@@ -109,7 +128,7 @@ class Word
   end
 
   def tail(size)
-    @actions[(length-size)...length]
+    self[(length-size)...length]
   end
 
   def length
@@ -124,6 +143,21 @@ class Word
 
   def ==(w)
     @actions == w.actions
+  end
+
+  def +(w)
+    Word.new @actions + w.actions
+  end
+
+  def [](idx)
+    @actions[idx]
+  end
+end
+
+class Vector
+  def initialize(state, word)
+    @state = state
+    @word = word
   end
 end
 
@@ -181,12 +215,25 @@ def dump_actions(actions)
 end
 
 actions = mk_actions relations
+x1   = Word.new [actions[:x0]]
 x1   = Word.new [actions[:x1]]
-x1x2 = Word.new [actions[:x1], actions[:x2]]
-y1y2 = Word.new [actions[:y1], actions[:y2]]
+x2   = Word.new [actions[:x2]]
+y1   = Word.new [actions[:y0]]
+y1   = Word.new [actions[:y1]]
+y2   = Word.new [actions[:y2]]
+x1y1 = x1 + y1
+x1x2 = x1 + x2
+y1y2 = y1 + y2
+x1x2y1 = x1x2 + y1
+x1y1x2 = x1y1 + x2
 
 puts x1x2.influence? y1y2
 puts x1.influence? y1y2
 
-pp (x1x2.head 1).map{|a| a.name}
-pp (x1x2.tail 1).map{|a| a.name}
+x1x2y1.weak_equal? x1y1x2
+
+pp (x1y1.prime_cause actions[:y2]).map{|p| p.name}
+pp (x1.prime_cause actions[:x2]).map{|p| p.name}
+pp (x1x2.prime_cause actions[:x0]).map{|p| p.name}
+pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
+pp (x1.prime_cause actions[:y2]).map{|p| p.name}
