@@ -1,3 +1,13 @@
-init: s0
-s0-a->s1
-s1-b->s2
+init: s
+s - x1 -> q1
+s - y1 -> q2
+q1- x2 -> q3
+q1- y1 -> q4
+q2- x1 -> q4
+q2 -y2 -> q5
+q3 - x0 -> s
+q3 - y1 -> q6
+q4 - x2 -> q6
+q4 - y2 -> q7
+q5 - y0 -> s
+q5 - x1 -> q7

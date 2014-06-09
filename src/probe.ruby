@@ -95,6 +95,24 @@ class StateSpace
     @states[name]
   end
 
+  def dump_dot
+    stack = [@init]
+    visited = []
+
+    puts 'digraph ss {'
+    until stack.empty?
+      s = stack.pop
+      next if visited.include? s
+      visited.push s
+
+      s.transitions.each do |t|
+	puts "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"];"
+	stack.push t.dst
+      end
+    end
+    puts '}'
+  end
+
   def dump
     stack = [@init]
     visited = []
@@ -113,7 +131,7 @@ class StateSpace
 end
 
 class State
-  attr_reader :name
+  attr_reader :name, :transitions
 
   def initialize(name, transitions = [])
     @name = name
@@ -291,7 +309,7 @@ class TransitonFileParser
 
     (File.open file_name).readlines.each do |line|
       case line.chomp.strip
-      when /(\w+)-(\w+)->(\w+)/ 
+      when /(\w+)\s*-\s*(\w+)\s*->\s*(\w+)/ 
 	l = states.create $1.to_sym
 	r = states.create $3.to_sym
 	action = actions.create $2.to_sym
@@ -361,4 +379,5 @@ pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
 pp (x1.prime_cause actions[:y2]).map{|p| p.name}
 
 #action_table = SimulationDisablingFileParser.parse './input/sample.sd'
-#ss = TransitonFileParser.parse './input/sample.tr', action_table
+ss = TransitonFileParser.parse './input/sample.tr', actions
+ss.dump_dot
