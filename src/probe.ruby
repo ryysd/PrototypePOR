@@ -27,6 +27,13 @@ class ActionTable
     @actions[name]
   end
 
+  def dump_sd
+    @actions.each do |name, action|
+      action.simulates.each{|target| puts "#{action.name} simulate #{target.name}"}
+      action.disables.each{|target| puts "#{action.name} disable #{target.name}"}
+    end
+  end
+
   def dump
     order = @actions.map{|k, v| k}
 
@@ -137,7 +144,7 @@ class Transition
 end
 
 class Action
-  attr_reader :name
+  attr_reader :name, :simulates, :disables
 
   def initialize(name)
     @name = name
@@ -266,9 +273,11 @@ class SimulationDisablingFileParser
     (File.open file_name).readlines.each do |line|
       case line.chomp.strip
       when /(\w+)\s+(simulate|disable)\s+(\w+)/ 
-	l = actions.create $1
-	r = actions.create $3
+	l = actions.create $1.to_sym
+	r = actions.create $3.to_sym
 	$2 == 'simulate' ? (l.simulate r) : (l.disable r)
+      when /order\s*:\s*([\w,]+)/
+	($1.split ',').each{|s| actions.create s.to_sym}
       end
     end
 
@@ -283,12 +292,12 @@ class TransitonFileParser
     (File.open file_name).readlines.each do |line|
       case line.chomp.strip
       when /(\w+)-(\w+)->(\w+)/ 
-	l = states.create $1
-	r = states.create $3
-	action = actions.create $2
+	l = states.create $1.to_sym
+	r = states.create $3.to_sym
+	action = actions.create $2.to_sym
 	l[action] = r
       when /init\s*:\s*(\w+)/
-	states.create_as_init $1
+	states.create_as_init $1.to_sym
       end
     end
 
@@ -296,36 +305,38 @@ class TransitonFileParser
   end
 end
 
-relations = {
-  x1: {x1: :d , x2: :s , x0: nil, y1: nil, y2: nil, y0: :d},
-  x2: {x1: nil, x2: :d , x0: :s , y1: nil, y2: :d , y0: nil},
-  x0: {x1: :s , x2: nil, x0: :d , y1: nil, y2: :s , y0: :s},
-  y1: {x1: nil, x2: nil, x0: :d , y1: :d , y2: :s , y0: nil},
-  y2: {x1: nil, x2: :d , x0: nil, y1: nil, y2: :d , y0: :s},
-  y0: {x1: nil, x2: :s , x0: :s , y1: :s , y2: nil, y0: :d}
-}
-
-def mk_actions(relations)
-  actions = ActionTable.new
-
-  relations.each{|k, v| actions.create k}
-  relations.each do |k, v|
-    src = actions[k]
-
-    v.each do |nk, nv|
-      dst = actions[nk]
-      case nv
-      when :d then src.disable dst
-      when :s then src.simulate dst
-      when nil
-      end
-    end
-  end
-
-  actions
-end
-
-actions = mk_actions relations
+#relations = {
+#  x1: {x1: :d , x2: :s , x0: nil, y1: nil, y2: nil, y0: :d},
+#  x2: {x1: nil, x2: :d , x0: :s , y1: nil, y2: :d , y0: nil},
+#  x0: {x1: :s , x2: nil, x0: :d , y1: nil, y2: :s , y0: :s},
+#  y1: {x1: nil, x2: nil, x0: :d , y1: :d , y2: :s , y0: nil},
+#  y2: {x1: nil, x2: :d , x0: nil, y1: nil, y2: :d , y0: :s},
+#  y0: {x1: nil, x2: :s , x0: :s , y1: :s , y2: nil, y0: :d}
+#}
+#
+#def mk_actions(relations)
+#  actions = ActionTable.new
+#
+#  relations.each{|k, v| actions.create k}
+#  relations.each do |k, v|
+#    src = actions[k]
+#
+#    v.each do |nk, nv|
+#      dst = actions[nk]
+#      case nv
+#      when :d then src.disable dst
+#      when :s then src.simulate dst
+#      when nil
+#      end
+#    end
+#  end
+#
+#  actions
+#end
+#actions = mk_actions relations
+#
+actions = SimulationDisablingFileParser.parse './input/sample.sd'
+actions.dump
 x1   = Word.new [actions[:x0]]
 x1   = Word.new [actions[:x1]]
 x2   = Word.new [actions[:x2]]
@@ -349,6 +360,5 @@ pp (x1x2.prime_cause actions[:x0]).map{|p| p.name}
 pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
 pp (x1.prime_cause actions[:y2]).map{|p| p.name}
 
-action_table = SimulationDisablingFileParser.parse './input/sample.sd'
-ss = TransitonFileParser.parse './input/sample.tr', action_table
-ss.dump
+#action_table = SimulationDisablingFileParser.parse './input/sample.sd'
+#ss = TransitonFileParser.parse './input/sample.tr', action_table
