@@ -205,16 +205,12 @@ class Word
   end
 
   def influence?(w)
-    ret = false
-
     @actions.each do |a|
       w.each do |b|
-	ret = (a.simulate? b) || (b.disable? a)
-	break if ret
+	return true if (a.simulate? b) || (b.disable? a)
       end
     end
-
-    ret
+    false
   end
 
   def prime_cause(a)
@@ -228,6 +224,31 @@ class Word
   end
 
   def feasible?
+    @actions.each.with_index do |a, idx_a|
+      @actions.drop(idx_a+1).each.with_index do |b, idx_b|
+	if a.disable? b
+	  re_enabled = false
+	  v = @actions.slice idx_a, idx_a+idx_b+1
+	  v.each do |c|
+	    if (a.simulate? c) && (c.simulate? b)
+	      re_enabled = true
+	      break
+	    end
+	  end
+	  return false until re_enabled
+	end
+      end
+    end
+
+    (0...length).each do |idx|
+      break if idx+1 >= length
+
+      v1 = self[0..idx]
+      v2 = self[idx+1...length]
+      return false if (v2.influence? v1) && (!v1.influence? v2)
+    end
+
+    true
   end
 
   def weak_equal?(w)
@@ -245,6 +266,13 @@ class Word
     end
 
     true
+  end
+
+  def weak_prefixes
+  end
+
+  def weak_prefix?(w)
+    weak_prefixes.include? w
   end
 
   def weak_difference(w)
@@ -287,7 +315,9 @@ class Word
   end
 
   def [](idx)
-    @actions[idx]
+    if idx.is_a? Range then Word.new @actions[idx]
+    else @actions[idx]
+    end
   end
 end
 
@@ -391,6 +421,9 @@ y1y2 = y1 + y2
 x1x2y1 = x1x2 + y1
 x1y1x2 = x1y1 + x2
 x2x1y1 = x2 + x1 + y1
+
+puts x1x2y1.feasible?
+puts x2x1y1.feasible?
 
 puts x1x2.influence? y1y2
 puts x1.influence? y1y2
