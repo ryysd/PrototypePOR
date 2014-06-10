@@ -243,8 +243,8 @@ class Word
     (0...length-1).each do |idx|
       head = self[0..idx]
       tail = self[idx+1...length]
-      (0...tail.length).each do |idx_t|
-	(0...head.length).each do |idx_h|
+      (0...head.length).each do |idx_h|
+	(0...tail.length).each do |idx_t|
 	  v1 = head[head.length-idx_h-1...head.length]
 	  v2 = tail[0..idx_t]
 	  return false if (v2.influence? v1) && (!v1.influence? v2)
