@@ -190,6 +190,10 @@ class Action
     (simulate? a) || (a.disable? self)
   end
 
+  def independent?(a)
+    !simulate? a
+  end
+
   def ==(a)
     @name == a.name
   end
@@ -236,13 +240,23 @@ class Word
     end
 
     # for all sub-words v1・v2 of w, if v2 influence v1 then v1 influence v2;
-    (0...length).each do |idx|
-      break if idx+1 >= length
-
-      v1 = self[0..idx]
-      v2 = self[idx+1...length]
-      return false if (v2.influence? v1) && (!v1.influence? v2)
+    (0...length-1).each do |idx|
+      head = self[0..idx]
+      tail = self[idx+1...length]
+      (0...tail.length).each do |idx_t|
+	(0...head.length).each do |idx_h|
+	  v1 = head[head.length-idx_h-1...head.length]
+	  v2 = tail[0..idx_t]
+	  return false if (v2.influence? v1) && (!v1.influence? v2)
+	end
+      end
     end
+
+    #(0...length-1).each do |idx|
+    #  v1 = self[0..idx]
+    #  v2 = self[idx+1...length]
+    #  return false if (v2.influence? v1) && (!v1.influence? v2)
+    #end
 
     true
   end
@@ -254,11 +268,9 @@ class Word
     return self[0] == w[0] if length == 1
 
     skip = -1
-    @actions.each.with_index do |a, idx|
-      next if idx == skip
-      next if self[idx] == w[idx]
+    (0...length-1).each do |idx|
+      next if idx == skip || self[idx] == w[idx]
 
-      return false if idx+1 >= length
       return false if !(self[idx+1] == w[idx] && self[idx] == w[idx+1] && !(self[idx].influence? self[idx+1]))
       skip = idx+1
     end
@@ -286,6 +298,20 @@ class Word
     words
   end
 
+  # permutation of independent actions
+  def permutation
+    permutations = []
+    (0...length-1).each do |idx|
+      if @actions[idx].independent? @actions[idx+1]
+	perm = @actions.clone
+	perm[idx] = @actions[idx+1]
+	perm[idx+1] = @actions[idx]
+	permutations.push Word.new perm
+      end
+    end
+    permutations
+  end
+
   def head(size)
     @actions[0...size]
   end
@@ -299,6 +325,12 @@ class Word
   end
 
   def each
+    @actions.each do |action|
+      yield action
+    end
+  end
+
+  def map
     @actions.each do |action|
       yield action
     end
@@ -405,12 +437,62 @@ end
 #end
 #actions = mk_actions relations
 #
+
+class ColoredString
+  def self.color_string(code, string)
+    "\e[#{code}m#{string}\e[0m"
+  end
+
+  def self.green(string)
+    ColoredString.color_string(32, string)
+  end
+
+  def self.red(string)
+    ColoredString.color_string(31, string)
+  end
+
+  def self.blue(string)
+    ColoredString.color_string(34, string)
+  end
+end
+
+class TestPrinter
+  def self.test_start(test_name)
+    puts ColoredString.green "############################# #{test_name} #############################"
+  end
+
+  def self.test_end
+    puts ColoredString.green "##########################################################"
+    puts
+  end
+
+  def self.test_case_start(test_case_name)
+    puts
+    puts ColoredString.blue "# #{test_case_name} ---"
+  end
+
+  def self.test_case_end
+    puts ColoredString.blue "# ---"
+    puts
+  end
+
+  def self.print_result(result)
+    if result == true then puts ColoredString.green result 
+    elsif result == false then puts ColoredString.red result 
+    else puts result
+    end
+  end
+end
+
+class DebugPrinter
+end
+
 actions = SimulationDisablingFileParser.parse './input/sample.sd'
 actions.dump
-x1   = Word.new [actions[:x0]]
+x0   = Word.new [actions[:x0]]
 x1   = Word.new [actions[:x1]]
 x2   = Word.new [actions[:x2]]
-y1   = Word.new [actions[:y0]]
+y0   = Word.new [actions[:y0]]
 y1   = Word.new [actions[:y1]]
 y2   = Word.new [actions[:y2]]
 x1y1 = x1 + y1
@@ -419,7 +501,94 @@ y1y2 = y1 + y2
 x1x2y1 = x1x2 + y1
 x1y1x2 = x1y1 + x2
 x2x1y1 = x2 + x1 + y1
+x1x0x2 = x1 + x0 + x2
+x1x2x0 = x1 + x2 + x0
+x2x1 = x2 + x1
+y2y1 = y2 + y1
+x1x2x0y2y1 = x1+x2+x0+y2+y1
 
+# おかしい
+# x1x0x2がfeasibleなのもおかしいが、互いにfeasibleなwordに関して、weak equalがsynmetricじゃないのもおかしい
+# 追記: 修正した
+# TestPrinter.print_result x1x0x2.feasible?
+# TestPrinter.print_result x1x2x0.feasible?
+# TestPrinter.print_result x1x0x2.weak_equal? x1x2x0
+# TestPrinter.print_result x1x2x0.weak_equal? x1x0x2
+
+TestPrinter.print_result x1x2x0y2y1.feasible?
+
+
+all_actions = [:x1, :x2, :x0, :y1, :y2, :y0]
+all_words = []
+(1..all_actions.length).each do |idx|
+  sub_word = all_actions[0...idx]
+  sub_word.permutation.each{|perm| all_words.push Word.new perm.map{|p| actions[p]}}
+end
+feasible_words = all_words.select{|w| w.feasible?}
+
+unique_feasible_words = []
+work = feasible_words.clone
+
+until work.empty?
+  target = work.shift
+  work.reject!{|w| target.weak_equal? w}
+  unique_feasible_words.push target
+end
+
+# word test start
+TestPrinter.test_start 'word test'
+
+TestPrinter.test_case_start 'number of all feasible words:'
+puts feasible_words.length
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'all feasible words:'
+feasible_words.each{|w| w.actions.each{|a| print a.name}; puts}
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'number of unique feasible words:'
+puts unique_feasible_words.length
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'unique feasible words:'
+unique_feasible_words.each{|w| w.actions.each{|a| print a.name}; puts}
+TestPrinter.test_case_end
+
+# RODO: 全てのfeasibleなword w、vに対して、w weak equal vならばv weak equal wであることをtest 
+TestPrinter.test_case_start 'all unique feasible words are weak equal each other:'
+TestPrinter.print_result unique_feasible_words.permutation(2).all?{|a,b| 
+  print "#{a.actions.map{|act| act.name}} weak_equal? #{b.actions.map{|act| act.name}}: " 
+  TestPrinter.print_result a.weak_equal? b
+  print "#{b.actions.map{|act| act.name}} weak_equal? #{a.actions.map{|act| act.name}}: "
+  TestPrinter.print_result b.weak_equal? a
+  result = (a.weak_equal? b) == (b.weak_equal? a)
+  result
+}
+TestPrinter.test_case_end
+
+TestPrinter.test_end
+# word test end
+
+
+# permutation test start
+TestPrinter.test_start 'permutation test'
+
+TestPrinter.test_case_start 'permutation of x1y1x2:'
+x1y1x2.permutation.each{|perm| p perm.actions.map{|v| v.name}}
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'all permutations weak equal origin:'
+TestPrinter.print_result x1y1x2.permutation.all?{|perm| perm.weak_equal? x1y1x2}
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'all permutations is feasible:'
+TestPrinter.print_result x1y1x2.permutation.all?{|perm| perm.feasible?}
+TestPrinter.test_case_end
+
+TestPrinter.test_end
+# permutation test end
+
+puts
 puts x1x2y1.feasible?
 puts x2x1y1.feasible?
 
