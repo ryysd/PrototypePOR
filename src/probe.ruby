@@ -231,6 +231,20 @@ class Word
   end
 
   def weak_equal?(w)
+    return false if length != w.length
+    return self[0] == w[0] if length == 1
+
+    skip = -1
+    @actions.each.with_index do |a, idx|
+      next if idx == skip
+      next if self[idx] == w[idx]
+
+      return false if idx+1 >= length
+      return false if !(self[idx+1] == w[idx] && self[idx] == w[idx+1] && !(self[idx].influence? self[idx+1]))
+      skip = idx+1
+    end
+
+    true
   end
 
   def weak_difference(w)
@@ -281,6 +295,16 @@ class Vector
   def initialize(state, word)
     @state = state
     @word = word
+  end
+end
+
+class Reducer
+  def initialize(states, actions)
+    @states = states
+    @actions = actions
+  end
+
+  def calc_probe_set(v)
   end
 end
 
@@ -366,11 +390,14 @@ x1x2 = x1 + x2
 y1y2 = y1 + y2
 x1x2y1 = x1x2 + y1
 x1y1x2 = x1y1 + x2
+x2x1y1 = x2 + x1 + y1
 
 puts x1x2.influence? y1y2
 puts x1.influence? y1y2
 
-x1x2y1.weak_equal? x1y1x2
+puts x1x2y1.weak_equal? x1y1x2
+puts x1x2y1.weak_equal? x2x1y1
+p x2.influence? x1
 
 pp (x1y1.prime_cause actions[:y2]).map{|p| p.name}
 pp (x1.prime_cause actions[:x2]).map{|p| p.name}
