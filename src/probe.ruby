@@ -223,23 +223,19 @@ class Word
     (_prime_cause_rec a, @actions.clone).compact
   end
 
+  # Definition1: word feasibility
   def feasible?
+    # for all sub-words a·v·b of w,if a disable b then exist c in Av :a simulate c simulate b;
     @actions.each.with_index do |a, idx_a|
       @actions.drop(idx_a+1).each.with_index do |b, idx_b|
 	if a.disable? b
-	  re_enabled = false
 	  v = @actions.slice idx_a, idx_a+idx_b+1
-	  v.each do |c|
-	    if (a.simulate? c) && (c.simulate? b)
-	      re_enabled = true
-	      break
-	    end
-	  end
-	  return false until re_enabled
+	  return false until v.any?{|c| (a.simulate? c) && (c.simulate? b)}
 	end
       end
     end
 
+    # for all sub-words v1・v2 of w, if v2 influence v1 then v1 influence v2;
     (0...length).each do |idx|
       break if idx+1 >= length
 
@@ -251,6 +247,8 @@ class Word
     true
   end
 
+  # Definition2: equality up to permutation of independent actions
+  # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
   def weak_equal?(w)
     return false if length != w.length
     return self[0] == w[0] if length == 1
