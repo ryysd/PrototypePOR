@@ -60,9 +60,9 @@ class Word
 
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
-  def weak_equal?(w, dump = false)
-    return false if length != w.length || self == w
-    return self[0] == w[0] if length == 1
+  def weak_equal?(other, dump = false)
+    return false if length != other.length || self == other
+    return self[0] == other[0] if length == 1
 
     def _remove_duplicate_head(a, b, idx = 0)
       a[idx] == b[idx] ? (_remove_duplicate_head a, b, idx + 1) : [(a.drop idx), (b.drop idx)]
@@ -72,10 +72,10 @@ class Word
       a[a.length - idx - 1] == b[b.length - idx - 1] ? (_remove_duplicate_tail a, b, idx + 1) : [(a.take a.length - idx), (b.take b.length - idx)]
     end
 
-    tmp = _remove_duplicate_head self, w
-    tmp = _remove_duplicate_tail tmp[0], tmp[1]
-    ab = tmp[0]
-    ba = tmp[1]
+    abw_baw = _remove_duplicate_head self, other
+    ab_ba = _remove_duplicate_tail abw_baw[0], abw_baw[1]
+    ab = ab_ba[0]
+    ba = ab_ba[1]
 
     (0...ab.length).each do |idx|
       length_a = idx + 1
@@ -88,16 +88,6 @@ class Word
     end
 
     false
-
-    #skip = -1
-    #(0...length-1).each do |idx|
-    #  next if idx == skip || self[idx] == w[idx]
-
-    #  return false if !(self[idx+1] == w[idx] && self[idx] == w[idx+1] && !(self[idx].influence? self[idx+1]))
-    #  skip = idx+1
-    #end
-
-    #true
   end
 
   def hard_prefix
