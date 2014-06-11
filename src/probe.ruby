@@ -278,7 +278,25 @@ class Word
     true
   end
 
-  def weak_prefixes
+  def hard_prefix
+    (0...length).map{|idx| self[0..idx]}
+  end
+
+  def weak_prefix
+    weak_prefixes = []
+    hard_prefixes = (0...length-1).map{|idx| [self[0..idx], self[idx+1...length]]}
+    hard_prefixes.each do |vu|
+      v = vu[0]
+      u = vu[1]
+
+      weak_prefixes.push v
+      v.permutation.each do |perm|
+	perm_vu = perm + u
+	weak_prefixes.push perm if (perm_vu.weak_equal? self)
+      end
+    end
+
+    weak_prefixes
   end
 
   def weak_prefix?(w)
@@ -348,6 +366,10 @@ class Word
     if idx.is_a? Range then Word.new @actions[idx]
     else @actions[idx]
     end
+  end
+
+  def to_s
+    "[#{@actions.map{|a| a.name}.join ' '}]"
   end
 end
 
@@ -507,6 +529,8 @@ x2x1 = x2 + x1
 y2y1 = y2 + y1
 x1x2x0y2y1 = x1+x2+x0+y2+y1
 
+x1y1x2.weak_prefix.each{|w| puts w.to_s}
+
 # おかしい
 # x1x0x2がfeasibleなのもおかしいが、互いにfeasibleなwordに関して、weak equalがsynmetricじゃないのもおかしい
 # 追記: 修正した
@@ -554,13 +578,14 @@ TestPrinter.test_case_start 'unique feasible words:'
 unique_feasible_words.each{|w| w.actions.each{|a| print a.name}; puts}
 TestPrinter.test_case_end
 
-# RODO: 全てのfeasibleなword w、vに対して、w weak equal vならばv weak equal wであることをtest 
 TestPrinter.test_case_start 'all unique feasible words are weak equal each other:'
-TestPrinter.print_result unique_feasible_words.permutation(2).all?{|a,b| 
-  print "#{a.actions.map{|act| act.name}} weak_equal? #{b.actions.map{|act| act.name}}: " 
-  TestPrinter.print_result a.weak_equal? b
-  print "#{b.actions.map{|act| act.name}} weak_equal? #{a.actions.map{|act| act.name}}: "
-  TestPrinter.print_result b.weak_equal? a
+TestPrinter.print_result feasible_words.permutation(2).all?{|a,b| 
+  if (a.weak_equal? b)
+    print "#{a.actions.map{|act| act.name}} weak_equal? #{b.actions.map{|act| act.name}}: " 
+    TestPrinter.print_result a.weak_equal? b
+    print "#{b.actions.map{|act| act.name}} weak_equal? #{a.actions.map{|act| act.name}}: "
+    TestPrinter.print_result b.weak_equal? a
+  end
   result = (a.weak_equal? b) == (b.weak_equal? a)
   result
 }
