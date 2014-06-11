@@ -5,40 +5,6 @@ require_relative 'util/transition_file_parser'
 require_relative 'util/colored_string'
 require_relative 'util/test_printer'
 
-#relations = {
-#  x1: {x1: :d , x2: :s , x0: nil, y1: nil, y2: nil, y0: :d},
-#  x2: {x1: nil, x2: :d , x0: :s , y1: nil, y2: :d , y0: nil},
-#  x0: {x1: :s , x2: nil, x0: :d , y1: nil, y2: :s , y0: :s},
-#  y1: {x1: nil, x2: nil, x0: :d , y1: :d , y2: :s , y0: nil},
-#  y2: {x1: nil, x2: :d , x0: nil, y1: nil, y2: :d , y0: :s},
-#  y0: {x1: nil, x2: :s , x0: :s , y1: :s , y2: nil, y0: :d}
-#}
-#
-#def mk_actions(relations)
-#  actions = ActionTable.new
-#
-#  relations.each{|k, v| actions.create k}
-#  relations.each do |k, v|
-#    src = actions[k]
-#
-#    v.each do |nk, nv|
-#      dst = actions[nk]
-#      case nv
-#      when :d then src.disable dst
-#      when :s then src.simulate dst
-#      when nil
-#      end
-#    end
-#  end
-#
-#  actions
-#end
-#actions = mk_actions relations
-#
-
-class DebugPrinter
-end
-
 actions = SimulationDisablingFileParser.parse './input/sample.sd'
 actions.dump
 x0   = Word.new [actions[:x0]]
@@ -61,16 +27,7 @@ x1x2x0y2y1 = x1+x2+x0+y2+y1
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
-# おかしい
-# x1x0x2がfeasibleなのもおかしいが、互いにfeasibleなwordに関して、weak equalがsynmetricじゃないのもおかしい
-# 追記: 修正した
-# TestPrinter.print_result x1x0x2.feasible?
-# TestPrinter.print_result x1x2x0.feasible?
-# TestPrinter.print_result x1x0x2.weak_equal? x1x2x0
-# TestPrinter.print_result x1x2x0.weak_equal? x1x0x2
-
 TestPrinter.print_result x1x2x0y2y1.feasible?
-
 
 all_actions = [:x1, :x2, :x0, :y1, :y2, :y0]
 all_words = []
