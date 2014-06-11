@@ -31,11 +31,12 @@ x0x1x2y1 = x0 + x1 + x2 + y1
 x0x2x1y1 = x0 + x2 + x1 + y1
 x0x1y1x2 = x0 + x1 + y1 + x2
 x0y1x1x2 = x0 + y1 + x1 + x2
+x1x2y1y2 = x1x2y1 + y2
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
 ss = TransitonFileParser.parse './input/sample.tr', actions
-TestPrinter.print_result x1x2x0y2y1.feasible?
+TestPrinter.print_result !(x1x2x0y2y1.feasible?)
 
 all_actions = [:x1, :x2, :x0, :y1, :y2, :y0]
 all_words = []
@@ -57,6 +58,14 @@ end
 # word test start
 TestPrinter.test_start 'word test'
 
+TestPrinter.test_case_start 'y1y2 is feasible:'
+TestPrinter.print_result y1y2.feasible?
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'x1x2y1y2 is not feasible:'
+TestPrinter.print_result !(x1x2y1y2.feasible?)
+TestPrinter.test_case_end
+
 TestPrinter.test_case_start 'x1x2y1 is weak equal y1x1x2:'
 TestPrinter.print_result x1x2y1.weak_equal? y1x1x2
 TestPrinter.test_case_end
@@ -67,6 +76,10 @@ TestPrinter.test_case_end
 
 TestPrinter.test_case_start 'x0x1x2y1 is not weak equal x0x2x1y1:'
 TestPrinter.print_result !(x0x1x2y1.weak_equal? x0x2x1y1)
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'x1x2 is not weak equal x1x2:'
+TestPrinter.print_result !(x1x2.weak_equal? x1x2)
 TestPrinter.test_case_end
 
 TestPrinter.test_case_start 'number of all feasible words:'

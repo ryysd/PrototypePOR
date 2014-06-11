@@ -61,9 +61,8 @@ class Word
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
   def weak_equal?(w, dump = false)
-    return false if length != w.length
+    return false if length != w.length || self == w
     return self[0] == w[0] if length == 1
-    return true if self == w
 
     def _remove_duplicate_head(a, b, idx = 0)
       a[idx] == b[idx] ? (_remove_duplicate_head a, b, idx + 1) : [(a.drop idx), (b.drop idx)]
@@ -114,7 +113,7 @@ class Word
       end
     end
 
-    weak_prefixes
+    weak_prefixes.uniq
   end
 
   def weak_prefix?(w)
@@ -178,7 +177,15 @@ class Word
   end
 
   def ==(w)
-    to_s == w.to_s
+    @actions == w.actions
+  end
+
+  def hash
+    to_s.hash
+  end
+
+  def eql?(w)
+    hash == w.hash
   end
 
   def +(w)
