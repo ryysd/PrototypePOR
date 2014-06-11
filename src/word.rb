@@ -16,6 +16,10 @@ class Word
     false
   end
 
+  def independent?(w)
+    !influence w
+  end
+
   def prime_cause(a)
     def _prime_cause_rec(a, actions)
       t = actions.pop
@@ -50,12 +54,6 @@ class Word
 	end
       end
     end
-
-    #(0...length-1).each do |idx|
-    #  v1 = self[0..idx]
-    #  v2 = self[idx+1...length]
-    #  return false if (v2.influence? v1) && (!v1.influence? v2)
-    #end
 
     true
   end
