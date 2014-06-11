@@ -3,4 +3,7 @@ class Vector
     @state = state
     @word = word
   end
+
+  def fresh_missed_action(actions)
+  end
 end

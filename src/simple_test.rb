@@ -24,9 +24,11 @@ x1x2x0 = x1 + x2 + x0
 x2x1 = x2 + x1
 y2y1 = y2 + y1
 x1x2x0y2y1 = x1+x2+x0+y2+y1
+x1x2x0y1y2y0 = x1+x2+x0+y1+y2 + y0
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
+ss = TransitonFileParser.parse './input/sample.tr', actions
 TestPrinter.print_result x1x2x0y2y1.feasible?
 
 all_actions = [:x1, :x2, :x0, :y1, :y2, :y0]
@@ -100,6 +102,18 @@ TestPrinter.test_case_end
 TestPrinter.test_end
 # permutation test end
 
+# state test start
+TestPrinter.test_start 'state test'
+
+TestPrinter.test_case_start 'x1x2x0y1y2y0 is enable at s'
+TestPrinter.print_result ss[:s].enable? x1x2x0y1y2y0
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'x1x2x0y2y1 is not enable at s'
+TestPrinter.print_result !(ss[:s].enable? x1x2x0y2y1)
+TestPrinter.test_case_end
+
+TestPrinter.test_end
 puts
 puts x1x2y1.feasible?
 puts x2x1y1.feasible?
@@ -118,5 +132,4 @@ pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
 pp (x1.prime_cause actions[:y2]).map{|p| p.name}
 
 #action_table = SimulationDisablingFileParser.parse './input/sample.sd'
-ss = TransitonFileParser.parse './input/sample.tr', actions
 ss.dump_dot

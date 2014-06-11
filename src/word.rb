@@ -139,6 +139,10 @@ class Word
     @actions.length
   end
 
+  def empty?
+    @actions.empty?
+  end
+
   def each
     @actions.each do |action|
       yield action
