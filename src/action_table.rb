@@ -1,4 +1,6 @@
 class ActionTable
+  include Enumerable
+
   def initialize
     @actions = {}
   end
@@ -23,6 +25,12 @@ class ActionTable
 
   def [](name)
     @actions[name]
+  end
+
+  def each
+    @actions.each do |name, action|
+      yield action
+    end
   end
 
   def dump_sd

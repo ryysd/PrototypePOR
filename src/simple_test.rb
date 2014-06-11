@@ -17,14 +17,20 @@ x1y1 = x1 + y1
 x1x2 = x1 + x2
 y1y2 = y1 + y2
 x1x2y1 = x1x2 + y1
+y1x1x2 = y1 + x1x2
 x1y1x2 = x1y1 + x2
 x2x1y1 = x2 + x1 + y1
 x1x0x2 = x1 + x0 + x2
 x1x2x0 = x1 + x2 + x0
 x2x1 = x2 + x1
 y2y1 = y2 + y1
+x1y1y2 = x1 + y1+ y2
 x1x2x0y2y1 = x1+x2+x0+y2+y1
 x1x2x0y1y2y0 = x1+x2+x0+y1+y2 + y0
+x0x1x2y1 = x0 + x1 + x2 + y1
+x0x2x1y1 = x0 + x2 + x1 + y1
+x0x1y1x2 = x0 + x1 + y1 + x2
+x0y1x1x2 = x0 + y1 + x1 + x2
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
@@ -50,6 +56,18 @@ end
 
 # word test start
 TestPrinter.test_start 'word test'
+
+TestPrinter.test_case_start 'x1x2y1 is weak equal y1x1x2:'
+TestPrinter.print_result x1x2y1.weak_equal? y1x1x2
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'x0x1y1x2 is weak equal x0y1x1x2:'
+TestPrinter.print_result x0x1y1x2.weak_equal? x0y1x1x2
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'x0x1x2y1 is not weak equal x0x2x1y1:'
+TestPrinter.print_result !(x0x1x2y1.weak_equal? x0x2x1y1)
+TestPrinter.test_case_end
 
 TestPrinter.test_case_start 'number of all feasible words:'
 puts feasible_words.length
@@ -83,12 +101,33 @@ TestPrinter.test_case_end
 TestPrinter.test_end
 # word test end
 
+# action test start
+TestPrinter.test_start 'action test'
+
+TestPrinter.test_case_start 'prime cause of x1y1y2 of y2 is y1:'
+TestPrinter.print_result (actions[:y2].prime_cause x1y1).to_s
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'all permutations weak equal origin:'
+TestPrinter.print_result x1y1x2.permutation.all?{|perm| perm.weak_equal? x1y1x2}
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'all permutations is feasible:'
+TestPrinter.print_result x1y1x2.permutation.all?{|perm| perm.feasible?}
+TestPrinter.test_case_end
+
+TestPrinter.test_end
+# action test end
 
 # permutation test start
 TestPrinter.test_start 'permutation test'
 
 TestPrinter.test_case_start 'permutation of x1y1x2:'
 x1y1x2.permutation.each{|perm| p perm.actions.map{|v| v.name}}
+TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'permutation of x1x2y1:'
+x1x2y1.permutation.each{|perm| p perm.actions.map{|v| v.name}}
 TestPrinter.test_case_end
 
 TestPrinter.test_case_start 'all permutations weak equal origin:'
@@ -114,6 +153,19 @@ TestPrinter.print_result !(ss[:s].enable? x1x2x0y2y1)
 TestPrinter.test_case_end
 
 TestPrinter.test_end
+# state test end
+
+# vector test start
+TestPrinter.test_start 'vector test'
+
+TestPrinter.test_case_start 'missed action of (s, x1x2y1) is y1y2'
+ma = (Vector.new ss[:s], x1x2y1).missed_action actions
+TestPrinter.print_result ma.map {|w| w.to_s}
+TestPrinter.test_case_end
+
+TestPrinter.test_end
+# vector test end
+
 puts
 puts x1x2y1.feasible?
 puts x2x1y1.feasible?
@@ -125,11 +177,11 @@ puts x1x2y1.weak_equal? x1y1x2
 puts x1x2y1.weak_equal? x2x1y1
 p x2.influence? x1
 
-pp (x1y1.prime_cause actions[:y2]).map{|p| p.name}
-pp (x1.prime_cause actions[:x2]).map{|p| p.name}
-pp (x1x2.prime_cause actions[:x0]).map{|p| p.name}
-pp (x1x2.prime_cause actions[:y1]).map{|p| p.name}
-pp (x1.prime_cause actions[:y2]).map{|p| p.name}
+#pp (actions[:y2].prime_cause x1y1).map{|p| p.name}
+#pp (actions[:x2].prime_cause x1).map{|p| p.name}
+#pp (actions[:x0].prime_cause x1x2).map{|p| p.name}
+#pp (actions[:y1].prime_cause x1x2).map{|p| p.name}
+#pp (actions[:y2].prime_cause x1).map{|p| p.name}
 
 #action_table = SimulationDisablingFileParser.parse './input/sample.sd'
 ss.dump_dot

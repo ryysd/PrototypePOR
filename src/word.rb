@@ -20,16 +20,6 @@ class Word
     !influence w
   end
 
-  def prime_cause(a)
-    def _prime_cause_rec(a, actions)
-      t = actions.pop
-      v = (t.influence? a) || (actions.any?{|rest| t.influence? rest}) ? t : nil
-      actions.empty? ? [v] : ((_prime_cause_rec a, actions).push v)
-    end
-
-    (_prime_cause_rec a, @actions.clone).compact
-  end
-
   # Definition1: word feasibility
   def feasible?
     # for all sub-words a·v·b of w,if a disable b then exist c in Av :a simulate c simulate b;
@@ -58,21 +48,57 @@ class Word
     true
   end
 
+  #def prime_cause(a)
+  #  def _prime_cause_rec(a, actions)
+  #    t = actions.pop
+  #    v = (t.influence? a) || (actions.any?{|rest| t.influence? rest}) ? t : nil
+  #    actions.empty? ? [v] : ((_prime_cause_rec a, actions).push v)
+  #  end
+
+  #  Word.new (_prime_cause_rec a, @actions.clone).compact
+  #end
+
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
-  def weak_equal?(w)
+  def weak_equal?(w, dump = false)
     return false if length != w.length
     return self[0] == w[0] if length == 1
+    return true if self == w
 
-    skip = -1
-    (0...length-1).each do |idx|
-      next if idx == skip || self[idx] == w[idx]
-
-      return false if !(self[idx+1] == w[idx] && self[idx] == w[idx+1] && !(self[idx].influence? self[idx+1]))
-      skip = idx+1
+    def _remove_duplicate_head(a, b, idx = 0)
+      a[idx] == b[idx] ? (_remove_duplicate_head a, b, idx + 1) : [(a.drop idx), (b.drop idx)]
     end
 
-    true
+    def _remove_duplicate_tail(a, b, idx = 0)
+      a[a.length - idx - 1] == b[b.length - idx - 1] ? (_remove_duplicate_tail a, b, idx + 1) : [(a.take a.length - idx), (b.take b.length - idx)]
+    end
+
+    tmp = _remove_duplicate_head self, w
+    tmp = _remove_duplicate_tail tmp[0], tmp[1]
+    ab = tmp[0]
+    ba = tmp[1]
+
+    (0...ab.length).each do |idx|
+      length_a = idx + 1
+      length_b = ab.length - length_a
+
+      a = ab[0, length_a]
+      b = ab[-length_b, length_b]
+
+      return true if (a == ba[-length_a, length_a] && b == ba[0, length_b]) && !((Word.new a).influence? (Word.new b))
+    end
+
+    false
+
+    #skip = -1
+    #(0...length-1).each do |idx|
+    #  next if idx == skip || self[idx] == w[idx]
+
+    #  return false if !(self[idx+1] == w[idx] && self[idx] == w[idx+1] && !(self[idx].influence? self[idx+1]))
+    #  skip = idx+1
+    #end
+
+    #true
   end
 
   def hard_prefix
@@ -81,15 +107,10 @@ class Word
 
   def weak_prefix
     weak_prefixes = []
-    hard_prefixes = (0...length-1).map{|idx| [self[0..idx], self[idx+1...length]]}
-    hard_prefixes.each do |vu|
-      v = vu[0]
-      u = vu[1]
 
-      weak_prefixes.push v
-      v.permutation.each do |perm|
-	perm_vu = perm + u
-	weak_prefixes.push perm if (perm_vu.weak_equal? self)
+    permutation.each do |perm|
+      (0...perm.length-1).each do |length|
+	weak_prefixes.push perm[0..length]
       end
     end
 
@@ -115,16 +136,17 @@ class Word
 
   # permutation of independent actions
   def permutation
-    permutations = []
-    (0...length-1).each do |idx|
-      if @actions[idx].independent? @actions[idx+1]
-	perm = @actions.clone
-	perm[idx] = @actions[idx+1]
-	perm[idx+1] = @actions[idx]
-	permutations.push Word.new perm
-      end
-    end
-    permutations
+    @actions.permutation.map{|perm| Word.new perm}.select{|w| w.feasible? && (w.weak_equal? self)}
+    #permutations = []
+    #(0...length-1).each do |idx|
+    #  if @actions[idx].independent? @actions[idx+1]
+    #    perm = @actions.clone
+    #    perm[idx] = @actions[idx+1]
+    #    perm[idx+1] = @actions[idx]
+    #    permutations.push Word.new perm
+    #  end
+    #end
+    #permutations
   end
 
   def head(size)
@@ -156,10 +178,11 @@ class Word
   end
 
   def ==(w)
-    @actions == w.actions
+    to_s == w.to_s
   end
 
   def +(w)
+    w = Word.new [w] if w.is_a? Action
     Word.new @actions + w.actions
   end
 
