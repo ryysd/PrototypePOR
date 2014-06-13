@@ -4,6 +4,10 @@ class Vector
     @word = word
   end
 
+  def after
+    @state.after @word
+  end
+
   def missed_action(actions)
     missed_actions = []
 

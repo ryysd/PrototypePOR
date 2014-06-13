@@ -38,6 +38,8 @@ x1y1x2.weak_prefix.each{|w| puts w.to_s}
 ss = TransitonFileParser.parse './input/sample.tr', actions
 TestPrinter.print_result !(x1x2x0y2y1.feasible?)
 
+reducer = Reducer.new ss, actions
+
 all_actions = [:x1, :x2, :x0, :y1, :y2, :y0]
 all_words = []
 (1..all_actions.length).each do |idx|
@@ -178,6 +180,18 @@ TestPrinter.test_case_end
 
 TestPrinter.test_end
 # vector test end
+
+# reducer test start
+TestPrinter.test_start 'reducer test'
+
+sx1 = Vector.new ss[:s], x1
+TestPrinter.test_case_start 'probe set of (s, x1):'
+TestPrinter.print_result (reducer.probe_set sx1).map{|a| a.name}
+TestPrinter.test_case_end
+
+TestPrinter.test_end
+# reducer test end
+
 
 puts
 puts x1x2y1.feasible?
