@@ -23,4 +23,7 @@ class Reducer
 
     p += new_probe_set
   end
+
+  def reduce
+  end
 end

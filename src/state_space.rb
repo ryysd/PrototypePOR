@@ -1,6 +1,7 @@
 class StateSpace
   def initialize
     @states = {}
+    @transitions = {}
     @init = nil
   end
 

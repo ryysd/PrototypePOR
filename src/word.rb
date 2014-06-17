@@ -91,7 +91,7 @@ class Word
   end
 
   def hard_prefix
-    (0...length).map{|idx| self[0..idx]}
+    (0...length-1).map{|idx| self[0..idx]}
   end
 
   def weak_prefix
