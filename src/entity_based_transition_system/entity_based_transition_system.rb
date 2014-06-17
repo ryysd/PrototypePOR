@@ -152,7 +152,7 @@ class StateSpace
 	transition = Transition.new state, action, succ
 	unless @transitions.has_key? transition.name
 	  @transitions[transition.name] = transition
-	  #puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
+	  puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
 	end
       end
     end
@@ -169,8 +169,8 @@ class Dumper
   def self.dump_action_relations(actions)
     actions.each do |a|
       actions.each do |b|
-	puts "#{a.name} simulate #{b.name}" if a.simulate? a
-	puts "#{a.name} disable #{b.name}" if a.disable? a
+	puts "#{a.name} simulate #{b.name}" if a.simulate? b
+	puts "#{a.name} disable #{b.name}" if a.disable? b
       end
     end
   end

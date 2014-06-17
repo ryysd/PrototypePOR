@@ -1,11 +1,15 @@
 require 'pp'
 require_relative 'reducer'
+require_relative 'por_env'
 require_relative 'util/simulation_disabling_file_parser'
 require_relative 'util/transition_file_parser'
 require_relative 'util/colored_string'
 require_relative 'util/test_printer'
 
-actions = SimulationDisablingFileParser.parse './input/sample.sd'
+env = POREnv.new
+
+actions = SimulationDisablingFileParser.parse env.relation_file
+#actions = SimulationDisablingFileParser.parse './input/sample2.sd'
 actions.dump
 x0   = Word.new [actions[:x0]]
 x1   = Word.new [actions[:x1]]
@@ -35,7 +39,7 @@ x1x2y1y2 = x1x2y1 + y2
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
-ss = TransitonFileParser.parse './input/sample.tr', actions
+ss = TransitonFileParser.parse env.lts_file, actions
 TestPrinter.print_result !(x1x2x0y2y1.feasible?)
 
 reducer = Reducer.new ss, actions

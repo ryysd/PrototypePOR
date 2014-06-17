@@ -53,7 +53,8 @@ class ActionTable
       line = "#{osrc} "
       order.each do |odst|
 	dst = @actions[odst]
-	if src.simulate? dst then line += '▷' 
+	if (src.simulate? dst) && (src.disable? dst) then line += '×'
+	elsif src.simulate? dst then line += '▷' 
 	elsif src.disable? dst then line += '◀' 
 	else line += ' '
 	end
