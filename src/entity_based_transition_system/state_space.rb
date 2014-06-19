@@ -1,7 +1,7 @@
 require 'pp'
 
 class StateSpace
-  attr_reader :transitions
+  attr_reader :actions, :transitions, :init
 
   def initialize(init, actions)
     @states = {}
@@ -33,7 +33,7 @@ class StateSpace
 	transition = Transition.new state, action, succ
 	unless @transitions.has_key? transition.name
 	  @transitions[transition.name] = transition
-	  puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
+	  #puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
 	end
       end
     end
