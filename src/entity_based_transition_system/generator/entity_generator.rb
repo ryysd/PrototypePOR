@@ -1,8 +1,24 @@
 require 'pp'
 require 'json'
+require 'optparse'
 require_relative '../entity'
 require_relative '../state'
 require_relative '../action'
+
+class StateSpace
+  def initialize(entities:, init_entities:, actions:, states:, init_state:)
+    @entities = entities
+    @init_entities = init_entities
+    @actions = actions
+    @states = states
+    @init_state = init_state
+  end
+
+  def to_json
+    actions = @actions.inject({}){|h, (name, a)| h[name] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
+    JSON.generate ({init: @init_entities, actions: actions})
+  end
+end
 
 class EntityGenerator
   def initialize(entity_num:, max_action_num:, init_num:, max_state_num:, max_edge_num_per_state:, max_creator_size:1024, max_reader_size:1024, max_eraser_size:1024, max_embargoes_size:1024)
@@ -33,11 +49,13 @@ class EntityGenerator
     register_state state.successor action
   end
 
-  def generate
+  def generate(dump_enabled = false)
     entities = (0...@entity_num).map{|e| Entity.new "e#{e}"}
     init_entities = entities.sample @init_num
-    work_queue = [(register_state State.new init_entities)]
+    init_state = (register_state State.new init_entities)
+    work_queue = [init_state]
 
+    puts "strict digraph {" if dump_enabled
     until work_queue.empty? || @actions.length >= @max_action_num
       state = work_queue.pop
       state.visited = true
@@ -58,12 +76,21 @@ class EntityGenerator
 	succ = register_state state.successor action
 
 	work_queue.push succ unless succ.visited
-	#puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
-	puts "#{state.name}->#{succ.name};"
+	puts "  #{state.name}->#{succ.name};" if dump_enabled
       end
     end
+    puts "}" if dump_enabled
+
+    StateSpace.new entities: entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
   end
 end
 
+#class GeneratorEnv
+#  def initialize
+#    @action_file = ARGV.getopts '', 'o-act'
+#  end
+#end
+
 generator = EntityGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
-generator.generate
+ss = generator.generate false
+puts ss.to_json
