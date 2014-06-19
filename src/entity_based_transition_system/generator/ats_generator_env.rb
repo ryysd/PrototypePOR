@@ -1,6 +1,6 @@
 require 'optparse'
 
-class EBTSEnv
+class ATSGeneratorEnv
   attr_reader :action_file
 
   def initialize

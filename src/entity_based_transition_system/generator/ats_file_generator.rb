@@ -1,11 +1,11 @@
 require 'json'
+require_relative './ats_generator_env'
 require_relative '../action'
 require_relative '../state'
 require_relative '../transition'
 require_relative '../state_space'
 require_relative '../entity'
 require_relative '../entity_table'
-require_relative '../ebt_env'
 
 class ATSFileGenerator
   def self.generate_transitions(transitions)
@@ -45,6 +45,6 @@ class ATSFileGenerator
   end
 end
 
-env = EBTSEnv.new
+env = ATSGeneratorEnv.new
 json = JSON.load File.read env.action_file
 puts ATSFileGenerator.generate json
