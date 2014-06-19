@@ -1,4 +1,6 @@
 class StateSpace
+  attr_reader :init
+
   def initialize
     @states = {}
     @transitions = {}
@@ -33,6 +35,10 @@ class StateSpace
 
   def [](name)
     @states[name]
+  end
+
+  def each
+    @states.each{|name, s| yield s}
   end
 
   def dump_dot

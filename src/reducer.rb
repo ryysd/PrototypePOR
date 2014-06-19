@@ -14,6 +14,8 @@ class Reducer
   end
 
   def probe_set(v)
+    return [] if v.after.enable_actions.empty?
+
     new_probe_set = []
     @probe_set[v] = [] unless @probe_set.has_key? v
 
@@ -25,5 +27,36 @@ class Reducer
   end
 
   def reduce
+    @states.each{|s| s.reduced = true}
+    @actions.each{|a| a.reduced = true}
+    visited = []
+
+    work_queue = [(Vector.new @states.init, Word.new([]))]
+
+    until work_queue.empty?
+      vector = work_queue.pop
+      state = vector.after
+
+      puts "(#{vector.state.name}, #{vector.word.to_s})"
+      unless visited.include? state
+        pp state.name
+	visited.push state
+
+	(vector.missed_action @actions).each do |vm|
+	  v = vm[0...vm.length-1]
+
+	  v.weak_prefix.each do |w|
+	    pp vector.state.after w
+	    visited.push vector.state.after w
+	  end
+	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])
+	  work_queue.push Vector.new (@states.init), vm
+	end
+
+	(probe_set vector).each do |p|
+	  work_queue.push Vector.new @states.init, vector.word + p
+	end
+      end
+    end
   end
 end

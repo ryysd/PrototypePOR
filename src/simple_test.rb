@@ -189,9 +189,16 @@ TestPrinter.test_end
 TestPrinter.test_start 'reducer test'
 
 sx1 = Vector.new ss[:s], x1
+sx1x2y1 = Vector.new ss[:s], x1x2y1
 TestPrinter.test_case_start 'probe set of (s, x1):'
 TestPrinter.print_result (reducer.probe_set sx1).map{|a| a.name}
 TestPrinter.test_case_end
+
+TestPrinter.test_case_start 'probe set of (s, x1x2y1):'
+TestPrinter.print_result (reducer.probe_set sx1x2y1).map{|a| a.name}
+TestPrinter.test_case_end
+
+reducer.reduce
 
 TestPrinter.test_end
 # reducer test end
