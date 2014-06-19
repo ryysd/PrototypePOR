@@ -37,18 +37,20 @@ class Reducer
       vector = work_queue.pop
       state = vector.after
 
+      puts '----------------------------------------------'
       puts "(#{vector.state.name}, #{vector.word.to_s})"
       unless visited.include? state
-        pp state.name
+        puts state.name
 	visited.push state
 
 	(vector.missed_action @actions).each do |vm|
 	  v = vm[0...vm.length-1]
 
 	  v.weak_prefix.each do |w|
-	    pp vector.state.after w
+	    puts vector.state.after w
 	    visited.push vector.state.after w
 	  end
+	  puts "ma: #{vm.to_s}"
 	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])
 	  work_queue.push Vector.new (@states.init), vm
 	end
@@ -57,6 +59,8 @@ class Reducer
 	  work_queue.push Vector.new @states.init, vector.word + p
 	end
       end
+      puts '----------------------------------------------'
+      puts
     end
   end
 end
