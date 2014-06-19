@@ -1,6 +1,6 @@
 require 'json'
 
-class LTSFileReader
+class ATSFileReader
   def self.create_action_table(data)
     action_table = ActionTable.new
 
@@ -36,8 +36,8 @@ class LTSFileReader
 
   def self.read(file_name)
     json = JSON.load File.read file_name
-    action_table = LTSFileReader.create_action_table json['actions']
-    state_space = LTSFileReader.create_state_space json['lts'], action_table
+    action_table = ATSFileReader.create_action_table json['actions']
+    state_space = ATSFileReader.create_state_space json['lts'], action_table
 
     {action_table: action_table, state_space: state_space}
   end

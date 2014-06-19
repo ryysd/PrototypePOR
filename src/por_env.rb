@@ -1,12 +1,11 @@
 require 'optparse'
 
 class POREnv 
-  attr_reader :relation_file, :lts_file
+  attr_reader :ats_file
 
   def initialize
-    params = ARGV.getopts '', 'rel:', 'lts:'
+    params = ARGV.getopts '', 'ats:'
     pp params
-    @relation_file = params['rel']
-    @lts_file = params['lts']
+    @ats_file = params['ats']
   end
 end

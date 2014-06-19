@@ -1,15 +1,15 @@
 require 'pp'
 require_relative 'reducer'
 require_relative 'por_env'
-require_relative 'util/lts_file_reader'
+require_relative 'util/ats_file_reader'
 require_relative 'util/colored_string'
 require_relative 'util/test_printer'
 
 
 env = POREnv.new
-lts = LTSFileReader.read './input/sample.lts.json'
+ats = ATSFileReader.read env.ats_file
 
-actions = lts[:action_table]#SimulationDisablingFileParser.parse env.relation_file
+actions = ats[:action_table]#SimulationDisablingFileParser.parse env.relation_file
 #actions = SimulationDisablingFileParser.parse './input/sample2.sd'
 actions.dump
 x0   = Word.new [actions[:x0]]
@@ -40,7 +40,7 @@ x1x2y1y2 = x1x2y1 + y2
 
 x1y1x2.weak_prefix.each{|w| puts w.to_s}
 
-ss = lts[:state_space]#TransitonFileParser.parse env.lts_file, actions
+ss = ats[:state_space]#TransitonFileParser.parse env.lts_file, actions
 TestPrinter.print_result !(x1x2x0y2y1.feasible?)
 
 reducer = Reducer.new ss, actions
