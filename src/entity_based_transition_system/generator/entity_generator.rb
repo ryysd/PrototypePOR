@@ -85,12 +85,6 @@ class EntityGenerator
   end
 end
 
-#class GeneratorEnv
-#  def initialize
-#    @action_file = ARGV.getopts '', 'o-act'
-#  end
-#end
-
 generator = EntityGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
 ss = generator.generate false
 puts ss.to_json
