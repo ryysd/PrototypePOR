@@ -16,8 +16,8 @@ por.rb generates two dot files from ATS file.
     ruby ./src/entity_based_transition_system/generator/ats_file_generator.rb --act [act_file]
 ats_file_generator.rb generates ATS file from ACT file.
 
-### entity_generator.rb ###
-    ruby ./src/entity_based_transition_system/generator/entity_generator.rb
+### act_file_generator.rb ###
+    ruby ./src/entity_based_transition_system/generator/act_file_generator.rb
 entity_generator.rb generates ACT file.
 
 file format

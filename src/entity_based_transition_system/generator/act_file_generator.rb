@@ -20,7 +20,7 @@ class StateSpace
   end
 end
 
-class ACTFileGenerator
+class EntityGenerator
   def initialize(entity_num:, max_action_num:, init_num:, max_state_num:, max_edge_num_per_state:, max_creator_size:1024, max_reader_size:1024, max_eraser_size:1024, max_embargoes_size:1024)
     @entity_num = entity_num
     @max_action_num = max_action_num
@@ -85,6 +85,6 @@ class ACTFileGenerator
   end
 end
 
-generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
+generator = EntityGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
 ss = generator.generate false
 puts ss.to_json
