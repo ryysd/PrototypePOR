@@ -48,16 +48,6 @@ class Word
     true
   end
 
-  #def prime_cause(a)
-  #  def _prime_cause_rec(a, actions)
-  #    t = actions.pop
-  #    v = (t.influence? a) || (actions.any?{|rest| t.influence? rest}) ? t : nil
-  #    actions.empty? ? [v] : ((_prime_cause_rec a, actions).push v)
-  #  end
-
-  #  Word.new (_prime_cause_rec a, @actions.clone).compact
-  #end
-
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
   def weak_equal?(other, dump = false)
@@ -126,16 +116,6 @@ class Word
   # permutation of independent actions
   def permutation
     @actions.permutation.map{|perm| Word.new perm}.select{|w| w.feasible? && (w.weak_equal? self)}
-    #permutations = []
-    #(0...length-1).each do |idx|
-    #  if @actions[idx].independent? @actions[idx+1]
-    #    perm = @actions.clone
-    #    perm[idx] = @actions[idx+1]
-    #    perm[idx+1] = @actions[idx]
-    #    permutations.push Word.new perm
-    #  end
-    #end
-    #permutations
   end
 
   def head(size)
