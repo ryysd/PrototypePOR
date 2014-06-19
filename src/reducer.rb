@@ -5,6 +5,7 @@ require_relative 'vector'
 require_relative 'state'
 require_relative 'transition'
 require_relative 'state_space'
+require_relative './util/debug'
 
 class Reducer
   def initialize(states, actions)
@@ -28,14 +29,13 @@ class Reducer
   end
 
   def visit(state)
-    puts state.name
+    Debug.puts state.name
     state.reduced = false
     @visited.push state
   end
 
   def reduce
     @states.each{|s| s.reduced = true}
-    #@actions.each{|a| a.reduced = true}
     @visited = []
 
     work_queue = [(Vector.new @states.init, Word.new([]))]
@@ -44,8 +44,8 @@ class Reducer
       vector = work_queue.pop
       state = vector.after
 
-      puts '----------------------------------------------'
-      puts "(#{vector.state.name}, #{vector.word.to_s})"
+      Debug.puts '----------------------------------------------'
+      Debug.puts "(#{vector.state.name}, #{vector.word.to_s})"
       unless @visited.include? state
 	visit state
   
@@ -55,7 +55,8 @@ class Reducer
 	  v.hard_prefix.each do |w|
 	    visit vector.state.after w
 	  end
-	  puts "ma: #{vm.to_s}"
+	  Debug.puts "ma: #{vm.to_s}"
+
 	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])
 	  work_queue.push Vector.new (@states.init), vm
 	end
@@ -64,8 +65,8 @@ class Reducer
 	  work_queue.push Vector.new @states.init, vector.word + p
 	end
       end
-      puts '----------------------------------------------'
-      puts
+      Debug.puts '----------------------------------------------'
+      Debug.puts
     end
   end
 end
