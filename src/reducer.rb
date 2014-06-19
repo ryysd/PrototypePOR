@@ -11,6 +11,7 @@ class Reducer
     @states = states
     @actions = actions
     @probe_set = {}
+    @visited = []
   end
 
   def probe_set(v)
@@ -26,10 +27,16 @@ class Reducer
     p += new_probe_set
   end
 
+  def visit(state)
+    puts state.name
+    state.reduced = false
+    @visited.push state
+  end
+
   def reduce
     @states.each{|s| s.reduced = true}
-    @actions.each{|a| a.reduced = true}
-    visited = []
+    #@actions.each{|a| a.reduced = true}
+    @visited = []
 
     work_queue = [(Vector.new @states.init, Word.new([]))]
 
@@ -39,16 +46,14 @@ class Reducer
 
       puts '----------------------------------------------'
       puts "(#{vector.state.name}, #{vector.word.to_s})"
-      unless visited.include? state
-        puts state.name
-	visited.push state
-
+      unless @visited.include? state
+	visit state
+  
 	(vector.missed_action @actions).each do |vm|
 	  v = vm[0...vm.length-1]
 
-	  v.weak_prefix.each do |w|
-	    puts vector.state.after w
-	    visited.push vector.state.after w
+	  v.hard_prefix.each do |w|
+	    visit vector.state.after w
 	  end
 	  puts "ma: #{vm.to_s}"
 	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])

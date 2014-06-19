@@ -51,8 +51,11 @@ class StateSpace
       next if visited.include? s
       visited.push s
 
+      puts "  #{s.name} [color=red, style=bold]" if s.successors.empty?
+      puts "  #{s.name} [style=filled, fillcolor=\"#999999\", fontcolor=white]" if s.reduced
       s.transitions.each do |t|
-	puts "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"];"
+	color = (t.src.reduced || t.dst.reduced) ? ', style=dashed, color="#999999"' : ''
+	puts "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"#{color}];"
 	stack.push t.dst
       end
     end

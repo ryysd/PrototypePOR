@@ -1,12 +1,10 @@
 class Action
   attr_reader :name, :simulates, :disables
-  attr_accessor :reduced
 
   def initialize(name)
     @name = name
     @simulates = []
     @disables = []
-    @reduced = false
   end
 
   def simulate(a)
