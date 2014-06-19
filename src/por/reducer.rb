@@ -5,7 +5,7 @@ require_relative 'vector'
 require_relative 'state'
 require_relative 'transition'
 require_relative 'state_space'
-require_relative './util/debug'
+require_relative '../util/debug'
 
 class Reducer
   def initialize(states, actions)

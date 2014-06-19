@@ -1,9 +1,9 @@
 require 'pp'
 require 'json'
 require 'optparse'
-require_relative '../entity'
-require_relative '../state'
-require_relative '../action'
+require_relative '../entity_based_transition_system/entity'
+require_relative '../entity_based_transition_system/state'
+require_relative '../entity_based_transition_system/action'
 
 class StateSpace
   def initialize(entities:, init_entities:, actions:, states:, init_state:)

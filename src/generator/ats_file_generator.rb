@@ -1,11 +1,11 @@
 require 'json'
 require_relative './ats_generator_env'
-require_relative '../action'
-require_relative '../state'
-require_relative '../transition'
-require_relative '../state_space'
-require_relative '../entity'
-require_relative '../entity_table'
+require_relative '../entity_based_transition_system/action'
+require_relative '../entity_based_transition_system/state'
+require_relative '../entity_based_transition_system/transition'
+require_relative '../entity_based_transition_system/state_space'
+require_relative '../entity_based_transition_system/entity'
+require_relative '../entity_based_transition_system/entity_table'
 
 class ATSFileGenerator
   def self.generate_transitions(transitions)

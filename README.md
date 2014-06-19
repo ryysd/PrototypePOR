@@ -5,7 +5,7 @@ implementation of por using probe set ( http://wwwhome.ewi.utwente.nl/~rensink/p
 usage
 ------
 ### por.rb ###
-    ruby ./src/por.rb --ats [ats_file]
+    ruby ./src/por/por.rb --ats [ats_file]
 
 por.rb generates two dot files from ATS file.
 
@@ -13,11 +13,11 @@ por.rb generates two dot files from ATS file.
 2. reduced_ss.dot: reduced state space
 
 ### ats_file_generator.rb ###
-    ruby ./src/entity_based_transition_system/generator/ats_file_generator.rb --act [act_file]
+    ruby ./src/generator/ats_file_generator.rb --act [act_file]
 ats_file_generator.rb generates ATS file from ACT file.
 
 ### act_file_generator.rb ###
-    ruby ./src/entity_based_transition_system/generator/act_file_generator.rb
+    ruby ./src/generator/act_file_generator.rb
 entity_generator.rb generates ACT file.
 
 file format
