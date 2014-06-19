@@ -1,11 +1,11 @@
-require_relative 'action'
-require_relative 'state'
-require_relative 'transition'
-require_relative 'state_space'
-require_relative 'entity'
-require_relative 'entity_table'
-require_relative 'ebt_env'
-require_relative 'dumper'
+require 'json'
+require_relative '../action'
+require_relative '../state'
+require_relative '../transition'
+require_relative '../state_space'
+require_relative '../entity'
+require_relative '../entity_table'
+require_relative '../ebt_env'
 
 class ATSFileGenerator
   def self.generate_transitions(transitions)
