@@ -1,9 +1,11 @@
 class State
   attr_reader :name, :transitions
+  attr_accessor :reduced
 
   def initialize(name, transitions = [])
     @name = name
     @transitions = transitions
+    @reduced = false
   end
 
   def successors
