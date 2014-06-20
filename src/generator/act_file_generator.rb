@@ -62,7 +62,9 @@ class ACTFileGenerator
       reader = state.entities - creator - eraser
       embargoes = @entities - state.entities - creator
 
-      register_action Action.new '', creator.uniq, reader.uniq, eraser.uniq, embargoes.uniq
+      unless (creator | eraser).empty?
+	register_action Action.new '', creator.uniq, reader.uniq, eraser.uniq, embargoes.uniq
+      end
     end
   end
 
@@ -90,10 +92,12 @@ class ACTFileGenerator
 	rest =  rest - embargoes
 	creator = rest.sample (rand [rest.length, @max_creator_size].min) + 1
 
-	action = register_action Action.new '', creator, reader, eraser, embargoes
-	succ = register_state state.successor action
+	unless (creator | eraser).empty?
+	  action = register_action Action.new '', creator, reader, eraser, embargoes
+	  succ = register_state state.successor action
 
-	work_queue.push succ unless visited.include? succ.name
+	  work_queue.push succ unless visited.include? succ.name
+	end
       end
     end
 
