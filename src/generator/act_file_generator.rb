@@ -18,7 +18,7 @@ class StateSpace
   end
 
   def to_json
-    actions = @actions.inject({}){|h, (name, a)| h[name] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
+    actions = @actions.inject({}){|h, (name, a)| h["a#{h.length}"] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
     JSON.generate ({init: @init_entities, actions: actions})
   end
 end

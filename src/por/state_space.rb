@@ -41,7 +41,7 @@ class StateSpace
     @states.each{|name, s| yield s}
   end
 
-  def dot(label=:simple)
+  def dot(label=true)
     stack = [@init]
     visited = []
 
@@ -53,23 +53,12 @@ class StateSpace
       next if visited.include? s
       visited.push s
 
-      label_index = []
-
       data.push "  #{s.name} [color=red, style=bold]" if s.successors.empty?
       data.push "  #{s.name} [style=filled, fillcolor=\"#999999\", fontcolor=white]" if s.reduced
       s.transitions.each do |t|
 	color = (t.src.reduced || t.dst.reduced) ? 'style=dashed, color="#999999"' : ''
 	edge = "#{t.src.name} -> #{t.dst.name}"
-	case label
-	when :none
-	  data.push "  #{edge} #{t.src.name} -> #{t.dst.name} [#{color}];"
-	when :full
-	  data.push "  #{edge} [label=\"#{t.action.name}\", #{color}];"
-	when :simple
-	  label_index.push t.action.name unless label_index.include? t.action.name
-	  data.push "  #{edge} [label=\"a#{label_index.length}\"#{color}];"
-	end
-
+	data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : "  #{edge} #{t.src.name} -> #{t.dst.name} [#{color}];"
 	stack.push t.dst
       end
     end
