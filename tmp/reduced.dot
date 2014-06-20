@@ -1,25 +1,25 @@
 strict digraph {
-  empty -> empty ;
-  empty -> e1e3 ;
-  empty -> e2e4e5 ;
-  empty -> e1e3 ;
+  empty -> empty [label="a1"];
+  empty -> e1e3 [label="a2"];
+  empty -> e2e4e5 [label="a3"];
+  empty -> e1e3 [label="a4"];
   e1e3 [color=red, style=bold]
-  e2e4e5 -> e1e5 ;
-  e2e4e5 -> e0e2e3e4e5 ;
-  e2e4e5 -> e5 ;
-  e2e4e5 -> e0e2e4 ;
-  e2e4e5 -> e2e5 ;
-  e2e5 -> e0e5 ;
-  e2e5 -> e1e3e4e5 ;
-  e2e5 -> e1e2e3e5 ;
-  e2e5 -> e5 ;
-  e2e5 -> e2e4e5 ;
-  e2e5 -> e0e2e4 ;
-  e0e2e4 -> e1e3 ;
-  e5 -> e1e5 ;
-  e1e5 -> e1e3 ;
-  e1e2e3e5 -> e0e2e3e4e5 ;
-  e0e2e3e4e5 -> e0e2e4 ;
-  e1e3e4e5 -> e0e2e3e4e5 ;
-  e0e5 -> e0e2e3e4e5 ;
+  e2e4e5 -> e1e5 [label="a1"];
+  e2e4e5 -> e0e2e3e4e5 [label="a2"];
+  e2e4e5 -> e5 [label="a3"];
+  e2e4e5 -> e0e2e4 [label="a4"];
+  e2e4e5 -> e2e5 [label="a5"];
+  e2e5 -> e0e5 [label="a1"];
+  e2e5 -> e1e3e4e5 [label="a2"];
+  e2e5 -> e1e2e3e5 [label="a3"];
+  e2e5 -> e5 [label="a4"];
+  e2e5 -> e2e4e5 [label="a5"];
+  e2e5 -> e0e2e4 [label="a6"];
+  e0e2e4 -> e1e3 [label="a1"];
+  e5 -> e1e5 [label="a1"];
+  e1e5 -> e1e3 [label="a1"];
+  e1e2e3e5 -> e0e2e3e4e5 [label="a1"];
+  e0e2e3e4e5 -> e0e2e4 [label="a1"];
+  e1e3e4e5 -> e0e2e3e4e5 [label="a1"];
+  e0e5 -> e0e2e3e4e5 [label="a1"];
 }
