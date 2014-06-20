@@ -134,7 +134,8 @@ env = ACTGeneratorEnv.new
 
 #generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
 #generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 30, max_edge_num_per_state: 5, max_state_num: 300
-generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 10, max_edge_num_per_state: 5, max_state_num: 300
+#generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 10, max_edge_num_per_state: 5, max_state_num: 300
+generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 3, max_edge_num_per_state: 5, max_state_num: 300, max_embargoes_size: 0, max_reader_size: 0, max_creator_size: 1, max_eraser_size: 1
 result = generator.generate
 state_space = result[:state_space]
 dot = result[:dot]

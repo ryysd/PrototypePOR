@@ -1,29 +1,21 @@
 strict digraph {
-  empty -> e5 empty -> e5 [];
-  empty -> e1e2e3 empty -> e1e2e3 [];
-  empty -> e1 empty -> e1 [];
-  empty -> e0e1e2e3e5 empty -> e0e1e2e3e5 [];
-  empty -> e5 empty -> e5 [];
-  e5 -> e1e2e3e5 e5 -> e1e2e3e5 [];
-  e5 -> e1e2e3 e5 -> e1e2e3 [];
-  e1e2e3 -> e5 e1e2e3 -> e5 [];
-  e1e2e3e5 [color=red, style=bold]
-  e0e1e2e3e5 -> e1e2e5 e0e1e2e3e5 -> e1e2e5 [];
-  e0e1e2e3e5 -> e1e2e3 e0e1e2e3e5 -> e1e2e3 [];
-  e0e1e2e3e5 -> e0e2e3e5 e0e1e2e3e5 -> e0e2e3e5 [];
-  e0e1e2e3e5 -> e1 e0e1e2e3e5 -> e1 [];
-  e1 -> e0e1e2e3e5 e1 -> e0e1e2e3e5 [];
-  e0e2e3e5 -> e2e3 e0e2e3e5 -> e2e3 [];
-  e0e2e3e5 -> e0e3e5 e0e2e3e5 -> e0e3e5 [];
-  e0e2e3e5 -> e3e5 e0e2e3e5 -> e3e5 [];
-  e0e2e3e5 -> e0e2e5 e0e2e3e5 -> e0e2e5 [];
-  e0e2e3e5 -> e0e1e3 e0e2e3e5 -> e0e1e3 [];
-  e0e2e3e5 -> e0e1e2e3e5 e0e2e3e5 -> e0e1e2e3e5 [];
-  e0e1e3 -> empty e0e1e3 -> empty [];
-  e0e2e5 -> e0e2e3e5 e0e2e5 -> e0e2e3e5 [];
-  e3e5 -> e1e2e3 e3e5 -> e1e2e3 [];
-  e0e3e5 -> e0e1e3 e0e3e5 -> e0e1e3 [];
-  e2e3 -> e2 e2e3 -> e2 [];
-  e2 [color=red, style=bold]
-  e1e2e5 -> e0e2e5 e1e2e5 -> e0e2e5 [];
+  empty -> e5 [label="a0", ];
+  empty -> e1 [label="a1", ];
+  empty -> e0 [label="a2", ];
+  empty -> e5 [label="a3", ];
+  empty -> e1 [label="a4", ];
+  empty -> e5 [label="a5", ];
+  e5 -> e1e5 [label="a1", ];
+  e5 -> e1 [label="a6", ];
+  e1 -> e0e1 [label="a2", ];
+  e1 -> e1e5 [label="a3", ];
+  e1 -> e0 [label="a7", ];
+  e0 -> e0e5 [label="a0", ];
+  e0 -> e0e1 [label="a1", ];
+  e0 -> e0e1 [label="a4", ];
+  e0 -> empty [label="a8", ];
+  e0e1 [color=red, style=bold]
+  e0e5 -> e0e1e5 [label="a1", ];
+  e0e1e5 [color=red, style=bold]
+  e1e5 [color=red, style=bold]
 }
