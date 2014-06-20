@@ -36,6 +36,7 @@ class ACTFileGenerator
     @max_embargoes_size = max_embargoes_size
     @states = {}
     @actions = {}
+    @entities = []
   end
 
   def register_state(state)
@@ -52,15 +53,27 @@ class ACTFileGenerator
     register_state state.successor action
   end
 
+  def generate_merge_action(state)
+    targets = @states.values.sample 1
+
+    (targets - [state]).each do |target|
+      creator = target.entities - state.entities
+      eraser = state.entities - target.entities
+      reader = state.entities - creator - eraser
+      embargoes = @entities - state.entities - creator
+
+      register_action Action.new '', creator.uniq, reader.uniq, eraser.uniq, embargoes.uniq
+    end
+  end
+
   def generate
-    entities = (0...@entity_num).map{|e| Entity.new "e#{e}"}
-    init_entities = entities.sample @init_num
+    @entities = (0...@entity_num).map{|e| Entity.new "e#{e}"}
+    init_entities = @entities.sample @init_num
     init_state = (register_state State.new init_entities)
     work_queue = [init_state]
     dot = []
     visited = []
 
-    dot.push "strict digraph {"
     until work_queue.empty? || @actions.length >= @max_action_num
       state = work_queue.pop
       visited.push state.name
@@ -71,7 +84,7 @@ class ACTFileGenerator
 	rest = state.entities - reader
 	eraser = rest.sample (rand [rest.length, @max_eraser_size].min) + 1
 
-	rest = entities - reader - eraser - state.entities
+	rest = @entities - reader - eraser - state.entities
 	embargoes = rest.sample (rand [rest.length, @max_embargoes_size].min) + 1
 
 	rest =  rest - embargoes
@@ -81,12 +94,12 @@ class ACTFileGenerator
 	succ = register_state state.successor action
 
 	work_queue.push succ unless visited.include? succ.name
-	dot.push "  #{state.name}->#{succ.name} [label=\"#{action.name}\"];"
       end
     end
-    dot.push "}"
 
-    state_space = StateSpace.new entities: entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
+    @states.values.each{|s| generate_merge_action s}
+
+    state_space = StateSpace.new entities: @entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
     {dot: (dot state_space), state_space: state_space}
   end
 
@@ -115,7 +128,9 @@ end
 
 env = ACTGeneratorEnv.new
 
-generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
+#generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
+#generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 30, max_edge_num_per_state: 5, max_state_num: 300
+generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 10, max_edge_num_per_state: 5, max_state_num: 300
 result = generator.generate
 state_space = result[:state_space]
 dot = result[:dot]
