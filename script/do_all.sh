@@ -5,7 +5,7 @@ echo 'generate ./tmp/input.ats.json...'
 ruby ./src/generator/ats_file_generator.rb --act ./tmp/input.act.json --dot ./tmp/ats.dot > ./tmp/input.ats.json
 
 echo 'generate ./tmp/full.dot...'
-ruby ./src/por/por.rb --ats './tmp/input.ats.json' --full-dot './tmp/full.dot' --reduced-dot './tmp/reduced.dot' --debug
+ruby ./src/por/por.rb --ats './tmp/input.ats.json' --full-dot './tmp/full.dot' --reduced-dot './tmp/reduced.dot'
 
 echo 'generate ./tmp/act.png...'
 dot -Tpng ./tmp/act.dot -o ./tmp/act.png

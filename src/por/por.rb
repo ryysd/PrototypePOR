@@ -15,7 +15,7 @@ Debug.enable if env.debug
 
 unless env.full_dot_file.nil?
   File.open(env.full_dot_file, 'w') do |file|
-    file.write state_space.dot
+    file.write state_space.dot Debug.enable?
   end
 end
 
@@ -24,7 +24,7 @@ unless env.reduced_dot_file.nil?
   reducer.reduce
 
   File.open(env.reduced_dot_file, 'w') do |file|
-    file.write state_space.dot
+    file.write state_space.dot Debug.enable?
   end
 end
 

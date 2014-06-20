@@ -1,6 +1,10 @@
 class Debug
   @@enable = false
 
+  def self.enable?
+    @@enable
+  end
+
   def self.enable
     @@enable = true
   end
