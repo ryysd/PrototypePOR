@@ -7,6 +7,8 @@ require_relative '../entity_based_transition_system/state'
 require_relative '../entity_based_transition_system/action'
 
 class StateSpace
+  attr_reader :init_state 
+
   def initialize(entities:, init_entities:, actions:, states:, init_state:)
     @entities = entities
     @init_entities = init_entities
@@ -21,7 +23,7 @@ class StateSpace
   end
 end
 
-class EntityGenerator
+class ACTFileGenerator
   def initialize(entity_num:, max_action_num:, init_num:, max_state_num:, max_edge_num_per_state:, max_creator_size:1024, max_reader_size:1024, max_eraser_size:1024, max_embargoes_size:1024)
     @entity_num = entity_num
     @max_action_num = max_action_num
@@ -56,11 +58,12 @@ class EntityGenerator
     init_state = (register_state State.new init_entities)
     work_queue = [init_state]
     dot = []
+    visited = []
 
     dot.push "strict digraph {"
     until work_queue.empty? || @actions.length >= @max_action_num
       state = work_queue.pop
-      state.visited = true
+      visited.push state.name
 
       (0...@max_edge_num_per_state).each do |idx|
 	reader = state.entities.sample (rand [state.entities.length, @max_reader_size].min) + 1
@@ -68,29 +71,51 @@ class EntityGenerator
 	rest = state.entities - reader
 	eraser = rest.sample (rand [rest.length, @max_eraser_size].min) + 1
 
-	rest = entities - reader - eraser
+	rest = entities - reader - eraser - state.entities
 	embargoes = rest.sample (rand [rest.length, @max_embargoes_size].min) + 1
 
-	rest -=  embargoes
+	rest =  rest - embargoes
 	creator = rest.sample (rand [rest.length, @max_creator_size].min) + 1
 
 	action = register_action Action.new '', creator, reader, eraser, embargoes
 	succ = register_state state.successor action
 
-	work_queue.push succ unless succ.visited
-	dot.push "  #{state.name}->#{succ.name};"
+	work_queue.push succ unless visited.include? succ.name
+	dot.push "  #{state.name}->#{succ.name} [label=\"#{action.name}\"];"
       end
     end
     dot.push "}"
 
     state_space = StateSpace.new entities: entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
-    {dot: (dot.join "\n"), state_space: state_space}
+    {dot: (dot state_space), state_space: state_space}
+  end
+
+  def dot(state_space)
+    work_queue = [(register_state state_space.init_state)]
+    visited = []
+    dot = []
+
+    dot.push 'strict digraph {'
+    until work_queue.empty?
+      state = work_queue.pop
+      visited.push state.name
+
+      (state.enable_actions @actions.values).each do |action|
+	succ = expand state, action
+	work_queue.push succ unless visited.include? succ.name
+
+	dot.push "  #{state.name}->#{succ.name};"
+      end
+    end
+    dot.push '}'
+
+    @dot = dot.join "\n"
   end
 end
 
 env = ACTGeneratorEnv.new
 
-generator = EntityGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
+generator = ACTFileGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
 result = generator.generate
 state_space = result[:state_space]
 dot = result[:dot]

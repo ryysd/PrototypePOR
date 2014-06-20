@@ -47,7 +47,7 @@ class StateSpace
 
     data = []
 
-    data.push 'digraph ss {'
+    data.push 'strict digraph {'
     until stack.empty?
       s = stack.pop
       next if visited.include? s

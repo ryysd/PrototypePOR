@@ -1,13 +1,14 @@
 require 'pp'
 
 class StateSpace
-  attr_reader :actions, :transitions, :init
+  attr_reader :actions, :transitions, :init, :dot
 
   def initialize(init, actions)
     @states = {}
     @init = init
     @actions = actions
     @transitions = {}
+    @dot = []
   end
 
   def register_state(state)
@@ -21,7 +22,9 @@ class StateSpace
 
   def generate
     work_queue = [(register_state @init)]
+    dot = []
 
+    dot.push 'strict digraph {'
     until work_queue.empty?
       state = work_queue.pop
       state.visited = true
@@ -33,9 +36,13 @@ class StateSpace
 	transition = Transition.new state, action, succ
 	unless @transitions.has_key? transition.name
 	  @transitions[transition.name] = transition
-	  #puts "#{state.name}->#{succ.name} [label=\"#{action.name}\"];"
+	  #dot.push "  #{state.name}->#{succ.name} [label=\"#{action.name}\"];"
+	  dot.push "  #{state.name}->#{succ.name};"
 	end
       end
     end
+    dot.push '}'
+
+    @dot = dot.join "\n"
   end
 end

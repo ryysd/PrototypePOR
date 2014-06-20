@@ -41,10 +41,19 @@ class ATSFileGenerator
     relations = ATSFileGenerator.generate_relations state_space.actions
     transitions = ATSFileGenerator.generate_transitions state_space.transitions
     
-    JSON.generate ({actions: {relations: relations}, lts: {init: state_space.init.name, transitions: transitions}})
+    json = JSON.generate ({actions: {relations: relations}, lts: {init: state_space.init.name, transitions: transitions}})
+    {ats: json, state_space: state_space}
   end
 end
 
 env = ATSGeneratorEnv.new
 json = JSON.load File.read env.action_file
-puts ATSFileGenerator.generate json
+result = ATSFileGenerator.generate json
+puts result[:ats]
+
+unless env.dot_file.nil?
+  File.open(env.dot_file, 'w') do |file|
+    file.write result[:state_space].dot
+  end
+end
+
