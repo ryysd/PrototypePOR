@@ -1,0 +1,43 @@
+strict digraph {
+  empty -> e4e5 [label="a0", ];
+  empty -> e0e1 [label="a1", ];
+  empty -> e0e1e5 [label="a2", ];
+  empty -> e2 [label="a3", style=dashed, color="#999999"];
+  e2 [style=filled, fillcolor="#999999", fontcolor=white]
+  e2 -> e2e4e5 [label="a0", style=dashed, color="#999999"];
+  e2 -> e2e4e5 [label="a4", style=dashed, color="#999999"];
+  e2 -> e2e3 [label="a5", style=dashed, color="#999999"];
+  e2 -> e2e3e4e5 [label="a6", style=dashed, color="#999999"];
+  e2 -> e1e2 [label="a7", style=dashed, color="#999999"];
+  e2 -> e0e1e2e4e5 [label="a8", style=dashed, color="#999999"];
+  e2 -> e1e2 [label="a16", style=dashed, color="#999999"];
+  e1e2 [style=filled, fillcolor="#999999", fontcolor=white]
+  e1e2 -> e2e3e4e5 [label="a20", style=dashed, color="#999999"];
+  e2e3e4e5 [style=filled, fillcolor="#999999", fontcolor=white]
+  e2e3e4e5 -> e2e4e5 [label="a19", style=dashed, color="#999999"];
+  e2e4e5 -> e2e4 [label="a11", ];
+  e2e4e5 -> empty [label="a17", ];
+  e2e4 -> e1e2e4 [label="a7", ];
+  e1e2e4 [color=red, style=bold]
+  e0e1e2e4e5 [style=filled, fillcolor="#999999", fontcolor=white]
+  e0e1e2e4e5 -> e0e2e5 [label="a9", style=dashed, color="#999999"];
+  e0e1e2e4e5 -> e0e4e5 [label="a10", style=dashed, color="#999999"];
+  e0e1e2e4e5 -> e0e1e2e4 [label="a11", style=dashed, color="#999999"];
+  e0e1e2e4e5 -> e1e2e5 [label="a12", style=dashed, color="#999999"];
+  e0e1e2e4e5 -> e0e1 [label="a21", style=dashed, color="#999999"];
+  e0e1 -> e0e4e5 [label="a14", ];
+  e0e4e5 -> e0e1 [label="a23", ];
+  e1e2e5 [style=filled, fillcolor="#999999", fontcolor=white]
+  e1e2e5 -> e2e4e5 [label="a25", style=dashed, color="#999999"];
+  e0e1e2e4 [style=filled, fillcolor="#999999", fontcolor=white]
+  e0e1e2e4 -> e0e2 [label="a9", style=dashed, color="#999999"];
+  e0e1e2e4 -> e0e4e5 [label="a24", style=dashed, color="#999999"];
+  e0e2 [color=red, style=bold]
+  e0e2 [style=filled, fillcolor="#999999", fontcolor=white]
+  e0e2e5 [style=filled, fillcolor="#999999", fontcolor=white]
+  e0e2e5 -> e4e5 [label="a22", style=dashed, color="#999999"];
+  e4e5 -> empty [label="a13", ];
+  e2e3 [style=filled, fillcolor="#999999", fontcolor=white]
+  e2e3 -> e2 [label="a18", style=dashed, color="#999999"];
+  e0e1e5 -> e2e4e5 [label="a15", ];
+}

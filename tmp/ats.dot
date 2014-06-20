@@ -1,0 +1,32 @@
+strict digraph {
+  empty->e4e5;
+  empty->e0e1;
+  empty->e0e1e5;
+  empty->e2;
+  e2->e2e4e5;
+  e2->e2e4e5;
+  e2->e2e3;
+  e2->e2e3e4e5;
+  e2->e1e2;
+  e2->e0e1e2e4e5;
+  e2->e1e2;
+  e1e2->e2e3e4e5;
+  e2e3e4e5->e2e4e5;
+  e2e4e5->e2e4;
+  e2e4e5->empty;
+  e2e4->e1e2e4;
+  e0e1e2e4e5->e0e2e5;
+  e0e1e2e4e5->e0e4e5;
+  e0e1e2e4e5->e0e1e2e4;
+  e0e1e2e4e5->e1e2e5;
+  e0e1e2e4e5->e0e1;
+  e0e1->e0e4e5;
+  e0e4e5->e0e1;
+  e1e2e5->e2e4e5;
+  e0e1e2e4->e0e2;
+  e0e1e2e4->e0e4e5;
+  e0e2e5->e4e5;
+  e4e5->empty;
+  e2e3->e2;
+  e0e1e5->e2e4e5;
+}
