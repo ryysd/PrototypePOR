@@ -29,7 +29,7 @@ class Reducer
   end
 
   def visit(state)
-    Debug.puts state.name
+    Debug.dputs state.name
     state.reduced = false
     @visited.push state
   end
@@ -44,8 +44,8 @@ class Reducer
       vector = work_queue.pop
       state = vector.after
 
-      Debug.puts '----------------------------------------------'
-      Debug.puts "(#{vector.state.name}, #{vector.word.to_s})"
+      Debug.dputs '----------------------------------------------'
+      Debug.dputs "(#{vector.state.name}, #{vector.word.to_s})"
       unless @visited.include? state
 	visit state
   
@@ -55,18 +55,21 @@ class Reducer
 	  v.hard_prefix.each do |w|
 	    visit vector.state.after w
 	  end
-	  Debug.puts "ma: #{vm.to_s}"
+	  Debug.dputs "ma: #{vm.to_s}"
 
 	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])
 	  work_queue.push Vector.new (@states.init), vm
 	end
 
+	Debug.dputs
+	Debug.dputs '### probe set ###'
 	(probe_set vector).each do |p|
 	  work_queue.push Vector.new @states.init, vector.word + p
+	  Debug.dputs p.name
 	end
       end
-      Debug.puts '----------------------------------------------'
-      Debug.puts
+      Debug.dputs '----------------------------------------------'
+      Debug.dputs
     end
   end
 end

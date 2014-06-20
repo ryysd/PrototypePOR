@@ -9,7 +9,7 @@ class Debug
     @@enable = false
   end
 
-  def self.puts(text = '')
+  def self.dputs(text = '')
     puts text if @@enable
   end
 end

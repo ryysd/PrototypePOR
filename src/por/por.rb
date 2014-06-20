@@ -11,6 +11,8 @@ ats = ATSFileReader.read env.ats_file
 actions = ats[:action_table]
 state_space = ats[:state_space]
 
+Debug.enable if env.debug
+
 unless env.full_dot_file.nil?
   File.open(env.full_dot_file, 'w') do |file|
     file.write state_space.dot
