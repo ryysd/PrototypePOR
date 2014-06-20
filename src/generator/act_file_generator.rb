@@ -1,6 +1,7 @@
 require 'pp'
 require 'json'
 require 'optparse'
+require_relative 'act_generator_env'
 require_relative '../entity_based_transition_system/entity'
 require_relative '../entity_based_transition_system/state'
 require_relative '../entity_based_transition_system/action'
@@ -49,13 +50,14 @@ class EntityGenerator
     register_state state.successor action
   end
 
-  def generate(dump_enabled = false)
+  def generate
     entities = (0...@entity_num).map{|e| Entity.new "e#{e}"}
     init_entities = entities.sample @init_num
     init_state = (register_state State.new init_entities)
     work_queue = [init_state]
+    dot = []
 
-    puts "strict digraph {" if dump_enabled
+    dot.push "strict digraph {"
     until work_queue.empty? || @actions.length >= @max_action_num
       state = work_queue.pop
       state.visited = true
@@ -76,15 +78,27 @@ class EntityGenerator
 	succ = register_state state.successor action
 
 	work_queue.push succ unless succ.visited
-	puts "  #{state.name}->#{succ.name};" if dump_enabled
+	dot.push "  #{state.name}->#{succ.name};"
       end
     end
-    puts "}" if dump_enabled
+    dot.push "}"
 
-    StateSpace.new entities: entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
+    state_space = StateSpace.new entities: entities, init_entities:  init_entities, states: @states, actions: @actions, init_state: init_state
+    {dot: (dot.join "\n"), state_space: state_space}
   end
 end
 
+env = ACTGeneratorEnv.new
+
 generator = EntityGenerator.new entity_num: 6, init_num: 0, max_action_num: 100, max_edge_num_per_state: 5, max_state_num: 300
-ss = generator.generate false
-puts ss.to_json
+result = generator.generate
+state_space = result[:state_space]
+dot = result[:dot]
+
+puts state_space.to_json
+
+unless env.dot_file.nil?
+  File.open(env.dot_file, 'w') do |file|
+    file.write dot
+  end
+end
