@@ -41,25 +41,29 @@ class StateSpace
     @states.each{|name, s| yield s}
   end
 
-  def dump_dot
+  def dot
     stack = [@init]
     visited = []
 
-    puts 'digraph ss {'
+    data = []
+
+    data.push 'digraph ss {'
     until stack.empty?
       s = stack.pop
       next if visited.include? s
       visited.push s
 
-      puts "  #{s.name} [color=red, style=bold]" if s.successors.empty?
-      puts "  #{s.name} [style=filled, fillcolor=\"#999999\", fontcolor=white]" if s.reduced
+      data.push "  #{s.name} [color=red, style=bold]" if s.successors.empty?
+      data.push "  #{s.name} [style=filled, fillcolor=\"#999999\", fontcolor=white]" if s.reduced
       s.transitions.each do |t|
 	color = (t.src.reduced || t.dst.reduced) ? ', style=dashed, color="#999999"' : ''
-	puts "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"#{color}];"
+	data.push "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"#{color}];"
 	stack.push t.dst
       end
     end
-    puts '}'
+    data.push '}'
+
+    data.join "\n"
   end
 
   def dump
