@@ -56,8 +56,12 @@ class StateSpace
       data.push "  #{s.name} [color=red, style=bold]" if s.successors.empty?
       data.push "  #{s.name} [style=filled, fillcolor=\"#999999\", fontcolor=white]" if s.reduced
       s.transitions.each do |t|
-	color = (t.src.reduced || t.dst.reduced) ? ', style=dashed, color="#999999"' : ''
-	data.push "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"#{color}];"
+	#color = (t.src.reduced || t.dst.reduced) ? ', style=dashed, color="#999999"' : ''
+	#data.push "  #{t.src.name} -> #{t.dst.name} [label=\"#{t.action.name}\"#{color}];"
+
+	color = (t.src.reduced || t.dst.reduced) ? '[style=dashed, color="#999999"]' : ''
+	data.push "  #{t.src.name} -> #{t.dst.name} #{color};"
+
 	stack.push t.dst
       end
     end
