@@ -1,18 +1,16 @@
 strict digraph {
-  empty->e5;
+  empty->e4;
+  empty->e2;
+  empty->e2;
   empty->e1;
-  empty->e0;
-  empty->e5;
-  empty->e1;
-  empty->e5;
-  e5->e1e5;
-  e5->e1;
-  e1->e0e1;
-  e1->e1e5;
-  e1->e0;
-  e0->e0e5;
-  e0->e0e1;
-  e0->e0e1;
-  e0->empty;
-  e0e5->e0e1e5;
+  e1->e1e4;
+  e1->e1e2;
+  e1->e1e2;
+  e1->e4;
+  e4->e2e4;
+  e4->e2e4;
+  e4->e1e4;
+  e4->empty;
+  e1e4->e1e2e4;
+  e1e4->e1e2e4;
 }
