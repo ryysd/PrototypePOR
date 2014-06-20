@@ -17,7 +17,7 @@ echo 'generate ./tmp/full.png...'
 dot -Tpng ./tmp/full.dot -o ./tmp/full.png
 
 echo 'generate ./tmp/reduced.png...'
-dot -Tpng ./tmp/full.dot -o ./tmp/reduced.png
+dot -Tpng ./tmp/reduced.dot -o ./tmp/reduced.png
 
 #open ./tmp/act.png
 #open ./tmp/ats.png
