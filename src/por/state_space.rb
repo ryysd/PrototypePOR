@@ -29,6 +29,10 @@ class StateSpace
     @init = state
   end
 
+  def length
+    @states.length
+  end
+
   def []=(name, state)
     @states[name] = state
   end
@@ -39,6 +43,10 @@ class StateSpace
 
   def each
     @states.each{|name, s| yield s}
+  end
+
+  def select
+    @states.select{|name, s| yield s}
   end
 
   def dot(label=true)

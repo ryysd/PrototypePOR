@@ -29,6 +29,11 @@ class Reducer
   end
 
   def visit(state)
+    if state.nil?
+      Debug.puts_error 'maybe occur error: nil state is visited.'
+      return
+    end
+
     Debug.dputs state.name
     state.reduced = false
     @visited.push state
@@ -57,8 +62,9 @@ class Reducer
 	  end
 	  Debug.dputs "ma: #{vm.to_s}"
 
-	  #work_queue.push Vector.new (vector.state.after vm), Word.new([])
-	  work_queue.push Vector.new (@states.init), vm
+	  if !@states.init.enable? vm then Debug.puts_error "#{vm.to_s} is not enable at #{@states.init.name}." 
+	  else work_queue.push Vector.new (@states.init), vm
+	  end
 	end
 
 	Debug.dputs
@@ -70,6 +76,11 @@ class Reducer
       end
       Debug.dputs '----------------------------------------------'
       Debug.dputs
+    end
+
+    if Debug.enable?
+      reduced = @states.select{|s| s.reduced}
+      Debug.puts_success "reduced: #{reduced.length}/#{@states.length} (#{reduced.length.to_f/@states.length}%)"
     end
   end
 end
