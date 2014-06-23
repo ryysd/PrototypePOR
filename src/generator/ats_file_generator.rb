@@ -40,8 +40,9 @@ class ATSFileGenerator
     state_space = ATSFileGenerator.generate_state_space data
     relations = ATSFileGenerator.generate_relations state_space.actions
     transitions = ATSFileGenerator.generate_transitions state_space.transitions
+    states = state_space.states.inject({}){|h, (name, s)| h[name] = s.entities.map{|e| e.name}; h}
     
-    json = JSON.generate ({actions: {relations: relations}, lts: {init: state_space.init.name, transitions: transitions}})
+    json = JSON.generate ({actions: {relations: relations}, lts: {init: state_space.init.name, transitions: transitions, states: states}})
     {ats: json, state_space: state_space}
   end
 end

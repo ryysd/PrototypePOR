@@ -1,7 +1,7 @@
 require 'pp'
 
 class StateSpace
-  attr_reader :actions, :transitions, :init, :dot
+  attr_reader :actions, :transitions, :init, :dot, :states
 
   def initialize(init, actions)
     @states = {}
