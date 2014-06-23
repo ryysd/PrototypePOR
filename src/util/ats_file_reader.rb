@@ -3,13 +3,14 @@ require 'json'
 class ATSFileReader
   def self.create_action_table(data)
     action_table = ActionTable.new
+    entities = data['entities'].nil? ? {} : data['entities']
 
-    data['order'].each{|s| action_table.create s.to_sym} unless data['order'].nil?
+    data['order'].each{|s| action_table.create s.to_sym, entities['c'], entities['r'], entities['d'], entities['m']} unless data['order'].nil?
     data['relations'].each do |rel|
       case rel.chomp.strip
       when /(\w+)\s+(s|d)\s+(\w+)/ 
-	l = action_table.create $1.to_sym
-	r = action_table.create $3.to_sym
+	l = action_table.create $1.to_sym, entities['c'], entities['r'], entities['d'], entities['m']
+	r = action_table.create $3.to_sym, entities['c'], entities['r'], entities['d'], entities['m']
 	$2 == 's' ? (l.simulate r) : (l.disable r)
       end
     end
