@@ -30,6 +30,15 @@ class State
     s.nil? ? nil : (s.after w.drop 1)
   end
 
+  def over_approximation_after(w)
+    @entities + w.reduce([]){|ca, a| ca + a.creator}
+  end
+
+  def weak_enable?(w, a)
+    entities = over_approximation_after w
+    ((a.reader | a.eraser) - entities).empty?
+  end
+
   def enable?(w)
     !(after w).nil?
   end
