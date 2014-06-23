@@ -11,11 +11,6 @@ ats = ATSFileReader.read env.ats_file
 actions = ats[:action_table]
 state_space = ats[:state_space]
 
-#if env.use_pma?
-#  json = JSON.load File.read env.action_file
-#  state_space.each{|s|}
-#end
-
 Debug.enable if env.debug
 
 unless env.full_dot_file.nil?

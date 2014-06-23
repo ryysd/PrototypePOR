@@ -1,16 +1,18 @@
 require 'json'
+require_relative 'debug'
 
 class ATSFileReader
   def self.create_action_table(data)
     action_table = ActionTable.new
     entities = data['entities'].nil? ? {} : data['entities']
 
-    data['order'].each{|s| action_table.create s.to_sym, entities['c'], entities['r'], entities['d'], entities['m']} unless data['order'].nil?
+    Debug.puts_error 'actions => entities key is missing.' if data['entities'].nil?
+    data['order'].each{|s| action_table.create s.to_sym, entities[s]['c'], entities[s]['r'], entities[s]['d'], entities[s]['m']} unless data['order'].nil?
     data['relations'].each do |rel|
       case rel.chomp.strip
       when /(\w+)\s+(s|d)\s+(\w+)/ 
-	l = action_table.create $1.to_sym, entities['c'], entities['r'], entities['d'], entities['m']
-	r = action_table.create $3.to_sym, entities['c'], entities['r'], entities['d'], entities['m']
+	l = action_table.create $1.to_sym, entities[$1]['c'], entities[$1]['r'], entities[$1]['d'], entities[$1]['m']
+	r = action_table.create $3.to_sym, entities[$3]['c'], entities[$3]['r'], entities[$3]['d'], entities[$3]['m']
 	$2 == 's' ? (l.simulate r) : (l.disable r)
       end
     end
