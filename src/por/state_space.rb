@@ -11,18 +11,18 @@ class StateSpace
     @states[state.name] = state
   end
 
-  def create(name)
-    add State.new name until @states.has_key? name
+  def create(name, entities = [])
+    add State.new name, [], entities until @states.has_key? name
     @states[name]
   end
 
-  def create!(name)
+  def create!(name, entities = [])
     throw 'state #{name} is already existing.' if @states.has_key? name
-    add State.new name
+    add State.new name, [], entities
   end
 
-  def create_as_init(name)
-    register_as_init create name
+  def create_as_init(name, entities = [])
+    register_as_init create name, entities
   end
 
   def register_as_init(state)

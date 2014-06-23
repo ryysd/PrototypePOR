@@ -19,13 +19,15 @@ class ATSFileReader
 
   def self.create_state_space(data, action_table)
     state_space = StateSpace.new
-    state_space.create_as_init data['init'].to_sym
+    entities = data['states'].nil? ? {} : data['states']
+
+    state_space.create_as_init data['init'].to_sym, entities[data['init']]
 
     data['transitions'].each do |trans|
       case trans.chomp.strip
       when /(\w+)\s*-\s*(\w+)\s*->\s*(\w+)/ 
-	l = state_space.create $1.to_sym
-	r = state_space.create $3.to_sym
+	l = state_space.create $1.to_sym, entities[$1]
+	r = state_space.create $3.to_sym, entities[$3]
 	action = action_table.create $2.to_sym
 	l[action] = r
       end

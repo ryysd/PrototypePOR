@@ -1,11 +1,13 @@
 class State
-  attr_reader :name, :transitions
+  attr_reader :name, :transitions, :entities
   attr_accessor :reduced
 
-  def initialize(name, transitions = [])
+  def initialize(name, transitions = [], entities = [])
     @name = name
     @transitions = transitions
     @reduced = false
+
+    @entities = entities # for pma
   end
 
   def successors

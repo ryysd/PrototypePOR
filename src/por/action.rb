@@ -1,10 +1,17 @@
 class Action
   attr_reader :name, :simulates, :disables
+  attr_accessor :reader, :creator, :embargoes, :eraser
 
   def initialize(name)
     @name = name
     @simulates = []
     @disables = []
+
+    # for pma
+    @reader = []
+    @creator = []
+    @embargoes = []
+    @eraser = []
   end
 
   def simulate(a)

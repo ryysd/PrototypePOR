@@ -39,7 +39,7 @@ class Reducer
     @visited.push state
   end
 
-  def reduce
+  def reduce(use_pma = false)
     @states.each{|s| s.reduced = true}
     @visited = []
 
@@ -54,7 +54,8 @@ class Reducer
       unless @visited.include? state
 	visit state
   
-	(vector.missed_action @actions).each do |vm|
+	missed_actions = use_pma ? (vector.potentially_missed_action @actions) : (vector.missed_action @actions)
+	missed_actions.each do |vm|
 	  v = vm[0...vm.length-1]
 
 	  v.hard_prefix.each do |w|
