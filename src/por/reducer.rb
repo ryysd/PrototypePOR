@@ -81,7 +81,7 @@ class Reducer
 
     if Debug.enable?
       reduced = @states.select{|s| s.reduced}
-      Debug.puts_success "reduced: #{reduced.length}/#{@states.length} (#{reduced.length.to_f/@states.length}%)"
+      Debug.puts_success "reduced: #{reduced.length}/#{@states.length} (#{reduced.length*100.0/@states.length}%)"
     end
   end
 end
