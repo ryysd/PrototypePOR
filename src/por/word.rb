@@ -89,7 +89,7 @@ class Word
 
     permutation.each do |perm|
       (0...perm.length-1).each do |length|
-	weak_prefixes.push perm[0..length]
+        weak_prefixes.push perm[0..length]
       end
     end
 
@@ -114,8 +114,34 @@ class Word
   end
 
   # permutation of independent actions
+  #def permutation
+  #  @actions.permutation.map{|perm| Word.new perm}.select{|w| w.feasible? && (w.weak_equal? self)}
+  #end
+  
   def permutation
-    @actions.permutation.map{|perm| Word.new perm}.select{|w| w.feasible? && (w.weak_equal? self)}
+    work_queue = [self]
+    permutations = []
+
+    until work_queue.empty?
+      w = work_queue.pop
+      permutations.push w
+
+      (0...w.length-1).each do |i|
+	(i+1...w.length).each do |j|
+	  if w[i].independent? w[j]
+	    new_w = w.clone
+	    new_w[i] = w[j]
+	    new_w[j] = w[i]
+
+	    exist = permutations.find{|perm| perm == new_w}
+	    work_queue.push new_w if exist.nil? && new_w.feasible? && (new_w.weak_equal? self)
+	  end
+	end
+      end
+    end
+
+    permutations.delete self
+    permutations
   end
 
   def head(size)
@@ -167,6 +193,14 @@ class Word
     if idx.is_a? Range then Word.new @actions[idx]
     else @actions[idx]
     end
+  end
+
+  def []=(idx, a)
+    @actions[idx] = a
+  end
+
+  def clone
+    Word.new @actions.clone
   end
 
   def to_s

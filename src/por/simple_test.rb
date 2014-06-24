@@ -223,4 +223,4 @@ p x2.influence? x1
 #pp (actions[:y2].prime_cause x1).map{|p| p.name}
 
 #action_table = SimulationDisablingFileParser.parse './input/sample.sd'
-ss.dump_dot
+puts ss.dot
