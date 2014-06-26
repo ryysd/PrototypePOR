@@ -29,6 +29,14 @@ class State
     "#{@entities.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join}"
   end
 
+  def hash
+    @to_hash.hash
+  end
+
+  def eql?(other)
+    @name == other.name
+  end
+
   def name
     @name = to_hash if @name.empty?
     @name = 'empty' if @name.empty?
@@ -36,6 +44,6 @@ class State
   end
 
   def ==(other)
-    @entities == other.entities
+    @name == other.name
   end
 end
