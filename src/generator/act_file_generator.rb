@@ -135,14 +135,14 @@ class ACTFileGenerator
       end
     end
 
-    if force_link
-      not_linked_states = states.select{|s| !(linked.include? s.name)}
+    #if force_link
+    #  not_linked_states = states.select{|s| !(linked.include? s.name)}
 
-      not_linked_states.each do |target|
-	state = states.find{|s| valid_target? s, target}
-	generate_action state, target, entities unless state.nil?
-      end
-    end
+    #  not_linked_states.each do |target|
+    #    state = states.select{|s| valid_target? s, target}.sample
+    #    generate_action state, target, entities unless state.nil?
+    #  end
+    #end
 
     @actions
   end
@@ -151,7 +151,7 @@ class ACTFileGenerator
     entity_num = ((Math.log state_num) / (Math.log 2.0)).ceil
     entities = (0...entity_num).map{|e| Entity.new "e#{e}"}
     states = generate_states entities, state_num
-    actions = generate_actions entities, states, true
+    actions = generate_actions entities, states,
 
     init_state = states[0]
     #state_space = StateSpace.new entities: entities, init_entities:  init_state.entities, states: states, actions: actions, init_state: init_state
