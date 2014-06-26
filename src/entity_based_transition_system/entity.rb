@@ -10,10 +10,10 @@ class Entity
   end
 
   def eql?(other)
-    @name = other.name
+    @name == other.name
   end
 
   def ==(other)
-    @name = other.name
+    @name == other.name
   end
 end

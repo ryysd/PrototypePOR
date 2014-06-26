@@ -21,10 +21,10 @@ class Action
   def to_hash
     c = "c_#{(@creator.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join)}"
     r = "r_#{(@reader.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join)}"
-    e = "e_#{(@eraser.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join)}"
+    d = "d_#{(@eraser.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join)}"
     n = "n_#{(@embargoes.sort{|x, y| x.name <=> y.name}.map{|ent| ent.name}.join)}"
 
-    [c, r, e, n].join '_'
+    [c, r, d, n].join '_'
   end
 
   def name
