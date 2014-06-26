@@ -50,40 +50,40 @@ class ACTFileGenerator
     @actions[action.name]
   end
 
-  def expand(state, action)
-    register_state state.successor action
-  end
+  #def expand(state, action)
+  #  register_state state.successor action
+  #end
 
-  def generate_merge_action(state)
-    targets = @states.values.sample 1
+  #def generate_merge_action(state)
+  #  targets = @states.values.sample 1
 
-    (targets - [state]).each do |target|
-      creator = target.entities - state.entities
-      eraser = state.entities - target.entities
-      reader = state.entities - creator - eraser
-      embargoes = @entities - state.entities - creator
+  #  (targets - [state]).each do |target|
+  #    creator = target.entities - state.entities
+  #    eraser = state.entities - target.entities
+  #    reader = state.entities - creator - eraser
+  #    embargoes = @entities - state.entities - creator
 
-      unless (creator | eraser).empty?
-	register_action Action.new '', creator.uniq, reader.uniq, eraser.uniq, embargoes.uniq
-      end
-    end
-  end
+  #    unless (creator | eraser).empty?
+  #      register_action Action.new '', creator.uniq, reader.uniq, eraser.uniq, embargoes.uniq
+  #    end
+  #  end
+  #end
 
-  def remove_duplicate_edges
-    clone = @actions.clone
+  #def remove_duplicate_edges
+  #  clone = @actions.clone
 
-    @actions.select do |a|
-      clone.each do |b|
-	a_c = a.creator.sort.map{|c| c.name}
-	a_d = a.eraser.sort.map{|d| d.name}
+  #  @actions.select do |a|
+  #    clone.each do |b|
+  #      a_c = a.creator.sort.map{|c| c.name}
+  #      a_d = a.eraser.sort.map{|d| d.name}
 
-	b_c = b.creator.sort.map{|c| c.name}
-	b_d = b.eraser.sort.map{|d| d.name}
+  #      b_c = b.creator.sort.map{|c| c.name}
+  #      b_d = b.eraser.sort.map{|d| d.name}
 
-	(a_c != b_c) || (a_d != b_d)
-      end
-    end
-  end
+  #      (a_c != b_c) || (a_d != b_d)
+  #    end
+  #  end
+  #end
 
   def generate_states(entities, state_num)
     (0...state_num).map do |idx|
@@ -239,7 +239,7 @@ env = ACTGeneratorEnv.new
 generator = ACTFileGenerator.new action_num_per_state: 3, max_creator_num: 1, max_eraser_num: 0
 #generator = ACTFileGenerator.new entity_num: env.entity_num, init_num: env.init_num, max_action_num: env.max_action_num, max_edge_num_per_state: env.max_edge_num_per_state, max_state_num: env.max_state_num, max_creator_size: env.max_creator_num, max_embargoes_size: env.max_embargoes_num, max_reader_size: env.max_reader_num, max_eraser_size: env.max_eraser_num
 
-state_space = generator.generate 100
+state_space = generator.generate 50
 dot = state_space.generate
 #state_space = result[:state_space]
 #dot = result[:dot]
