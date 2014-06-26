@@ -5,23 +5,24 @@ require_relative 'act_generator_env'
 require_relative '../entity_based_transition_system/entity'
 require_relative '../entity_based_transition_system/state'
 require_relative '../entity_based_transition_system/action'
+require_relative '../entity_based_transition_system/state_space'
 
-class StateSpace
-  attr_reader :init_state 
-
-  def initialize(entities:, init_entities:, actions:, states:, init_state:)
-    @entities = entities
-    @init_entities = init_entities
-    @actions = actions
-    @states = states
-    @init_state = init_state
-  end
-
-  def to_json
-    actions = @actions.inject({}){|h, (name, a)| h["a#{h.length}"] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
-    JSON.generate ({init: @init_entities, actions: actions})
-  end
-end
+#class StateSpace
+#  attr_reader :init_state 
+#
+#  def initialize(entities:, init_entities:, actions:, states:, init_state:)
+#    @entities = entities
+#    @init_entities = init_entities
+#    @actions = actions
+#    @states = states
+#    @init_state = init_state
+#  end
+#
+#  def to_json
+#    actions = @actions.inject({}){|h, (name, a)| h["a#{h.length}"] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
+#    JSON.generate ({init: @init_entities, actions: actions})
+#  end
+#end
 
 class ACTFileGenerator
   def initialize(action_num_per_state:, max_creator_num:1024, max_eraser_num:1024)
@@ -153,8 +154,9 @@ class ACTFileGenerator
     actions = generate_actions entities, states, true
 
     init_state = states[0]
-    state_space = StateSpace.new entities: entities, init_entities:  init_state.entities, states: states, actions: actions, init_state: init_state
-    {dot: (dot state_space), state_space: state_space}
+    #state_space = StateSpace.new entities: entities, init_entities:  init_state.entities, states: states, actions: actions, init_state: init_state
+    StateSpace.new init_state, actions.values
+    #{dot: (dot state_space), state_space: state_space}
 
     #states.each{|s| pp s.name}
 
@@ -237,9 +239,10 @@ env = ACTGeneratorEnv.new
 generator = ACTFileGenerator.new action_num_per_state: 3, max_creator_num: 1, max_eraser_num: 0
 #generator = ACTFileGenerator.new entity_num: env.entity_num, init_num: env.init_num, max_action_num: env.max_action_num, max_edge_num_per_state: env.max_edge_num_per_state, max_state_num: env.max_state_num, max_creator_size: env.max_creator_num, max_embargoes_size: env.max_embargoes_num, max_reader_size: env.max_reader_num, max_eraser_size: env.max_eraser_num
 
-result = generator.generate 100
-state_space = result[:state_space]
-dot = result[:dot]
+state_space = generator.generate 100
+dot = state_space.generate
+#state_space = result[:state_space]
+#dot = result[:dot]
 
 puts state_space.to_json
 

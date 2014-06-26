@@ -1,4 +1,5 @@
 require 'pp'
+require_relative 'transition'
 
 class StateSpace
   attr_reader :actions, :transitions, :init, :dot, :states
@@ -44,5 +45,10 @@ class StateSpace
     dot.push '}'
 
     @dot = dot.join "\n"
+  end
+
+  def to_json
+    actions = @actions.inject({}){|h, a| h["a#{h.length}"] = {r: a.reader.map{|e| e.name}, c: a.creator.map{|e| e.name}, d: a.eraser.map{|e| e.name}, n: a.embargoes.map{|e| e.name}}; h}
+    JSON.generate ({init: @init.entities, actions: actions})
   end
 end
