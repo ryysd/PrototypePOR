@@ -124,8 +124,8 @@ end
 
 env = ACTGeneratorEnv.new
 
-generator = ACTFileGenerator.new action_num_per_state: 3, max_creator_num: 1, max_eraser_num: 0
-state_space = generator.generate 50
+generator = ACTFileGenerator.new action_num_per_state: env.action_num_per_state, max_creator_num: env.max_creator_num, max_eraser_num: env.max_eraser_num
+state_space = generator.generate env.state_num
 dot = state_space.generate
 
 puts state_space.to_json
