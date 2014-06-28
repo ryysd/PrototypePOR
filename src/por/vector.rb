@@ -15,16 +15,16 @@ class Vector
 
     weak_prefixes = @word.weak_prefix
     actions.each do |a|
-      # avoid x0x1y1 x0
       unless @word.include? a
-	#puts a.name
+	#puts "  #{a.name}"
 	weak_prefixes.each do |v|
 	  va = v + a
 	  wa = @word + a
-	  #puts '=============================================='
-	  #puts "#{va.to_s}: #{@state.enable? va}"
-	  #puts "#{wa.to_s}: #{@state.enable? wa}"
-	  #puts '=============================================='
+	  #puts '  =============================================='
+	  #print "  #{va.to_s}: "; Debug.puts_boolean @state.enable? va
+	  #print "  #{wa.to_s}: "; Debug.puts_boolean @state.enable? wa
+	  #puts "  prime cause of #{a.name}|#{v.to_s}: #{(a.prime_cause v).to_s}"
+	  #puts '  =============================================='
 	  #puts
 	  missed_actions.push (a.prime_cause v) + a  if (@state.enable? va) && !(@state.enable? wa)
 	end

@@ -26,4 +26,8 @@ class Debug
   def self.puts_success(text = '')
     puts ColoredString.green text if @@enable
   end
+
+  def self.puts_boolean(b)
+    b ? (puts_success 'true') : (puts_error 'false')
+  end
 end

@@ -27,5 +27,3 @@ unless env.reduced_dot_file.nil?
     file.write state_space.dot Debug.enable?
   end
 end
-
-#state_space.dump_dot

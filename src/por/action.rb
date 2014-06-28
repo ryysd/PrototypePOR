@@ -38,13 +38,13 @@ class Action
   end
 
   def prime_cause(w)
-    def _prime_cause_rec(actions)
-      t = actions.pop
-      v = (t.influence? self) || (actions.any?{|rest| t.influence? rest}) ? t : nil
-      actions.empty? ? [v] : ((_prime_cause_rec actions).push v)
+    rest_flags = Array.new(w.length){true}
+    (w.length-1..0).each do |i|
+      t = w[i]
+      rest_flags[i] = (t.influence? self) || (0...w.length).any?{|j| i != j && rest_flags[j] && (t.influence? w[j])}
     end
 
-    Word.new (_prime_cause_rec w.actions.clone).compact
+    Word.new (w.actions.zip rest_flags).map{|a, rest| rest ? a : nil}.compact
   end
 
   def ==(a)

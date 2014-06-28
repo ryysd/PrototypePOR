@@ -58,14 +58,16 @@ class Reducer
 	missed_actions.each do |vm|
 	  v = vm[0...vm.length-1]
 
+	  Debug.dputs "ma: #{vm.to_s}"
+	  if !@states.init.enable? vm 
+	    Debug.puts_error "#{vm.to_s} is not enable at #{@states.init.name}." 
+	    next
+	  end
+
 	  v.hard_prefix.each do |w|
 	    visit vector.state.after w
 	  end
-	  Debug.dputs "ma: #{vm.to_s}"
-
-	  if !@states.init.enable? vm then Debug.puts_error "#{vm.to_s} is not enable at #{@states.init.name}." 
-	  else work_queue.push Vector.new (@states.init), vm
-	  end
+	  work_queue.push Vector.new (@states.init), vm
 	end
 
 	Debug.dputs
