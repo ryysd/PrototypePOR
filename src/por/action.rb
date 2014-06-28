@@ -3,8 +3,8 @@ class Action
 
   def initialize(name, creator=[], reader=[], eraser=[], embargoes=[])
     @name = name
-    @simulates = []
-    @disables = []
+    @simulates = {}
+    @disables = {}
 
     # for pma
     @creator = creator
@@ -14,19 +14,19 @@ class Action
   end
 
   def simulate(a)
-    @simulates.push a
+    @simulates[a.name] = true
   end
 
   def disable(a)
-    @disables.push a
+    @disables[a.name] = true
   end
 
   def simulate?(a)
-    @simulates.include? a
+    @simulates[a.name] || false
   end
 
   def disable?(a)
-    @disables.include? a
+    @disables[a.name] || false
   end
 
   def influence?(a)
