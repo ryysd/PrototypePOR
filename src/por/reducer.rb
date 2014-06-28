@@ -36,14 +36,18 @@ class Reducer
 
     Debug.dputs state.name
     state.reduced = false
-    @visited.push state
+    @visited[state.name] = true
+  end
+
+  def visited?(state)
+    @visited[state.name] || false
   end
 
   def reduce(use_pma = false)
     Word.clear_feasible_cache
 
     @states.each{|s| s.reduced = true}
-    @visited = []
+    @visited = {}
 
     work_queue = [(Vector.new @states.init, Word.new([]))]
 
@@ -53,35 +57,37 @@ class Reducer
 
       Debug.dputs '----------------------------------------------'
       Debug.dputs "(#{vector.state.name}, #{vector.word.to_s})"
-      unless @visited.include? state
-	visit state
-  
-	missed_actions = use_pma ? (vector.potentially_missed_action @actions) : (vector.missed_action @actions)
-	missed_actions.each do |vm|
-	  v = vm[0...vm.length-1]
 
-	  Debug.dputs "ma: #{vm.to_s}"
-	  if !@states.init.enable? vm 
-	    Debug.puts_error "#{vm.to_s} is not enable at #{@states.init.name}." 
-	    next
-	  end
+      visit state
 
-	  v.hard_prefix.each do |w|
-	    visit vector.state.after w
-	  end
-	  work_queue.push Vector.new (@states.init), vm
+      missed_actions = use_pma ? (vector.potentially_missed_action @actions) : (vector.missed_action @actions)
+      missed_actions.each do |vm|
+	v = vm[0...vm.length-1]
+
+	Debug.dputs "ma: #{vm.to_s}"
+	if !@states.init.enable? vm 
+	  Debug.puts_error "#{vm.to_s} is not enable at #{@states.init.name}." 
+	  next
 	end
 
-	Debug.dputs
-	Debug.dputs '### probe set ###'
-	(probe_set vector).each do |p|
-	  work_queue.push Vector.new @states.init, vector.word + p
-	  Debug.dputs p.name
+	v.hard_prefix.each do |w|
+	  visit vector.state.after w
 	end
+
+	new_vec = Vector.new (@states.init), vm
+	work_queue.push new_vec unless visited? new_vec.after
       end
-      Debug.dputs '----------------------------------------------'
+
       Debug.dputs
+      Debug.dputs '### probe set ###'
+      (probe_set vector).each do |p|
+	new_vec = Vector.new @states.init, vector.word + p
+	work_queue.push new_vec unless visited? new_vec.after
+	Debug.dputs p.name
+      end
     end
+    Debug.dputs '----------------------------------------------'
+    Debug.dputs
 
     if Debug.enable?
       reduced = @states.select{|s| s.reduced}
