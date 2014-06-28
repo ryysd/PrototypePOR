@@ -15,16 +15,10 @@ class Debug
     @@enable = false
   end
 
-  def self.dputs(text = '')
-    puts text if @@enable
-  end
-
-  def self.puts_error(text = '')
-    puts ColoredString.red text if @@enable
-  end
-
-  def self.puts_success(text = '')
-    puts ColoredString.green text if @@enable
+  ['puts', 'print'].each do |name|
+    define_singleton_method("d#{name}"){|text=''| send "#{name}", text if enable?}
+    define_singleton_method("#{name}_error"){|text=''| send "#{name}", (ColoredString.red text) if enable?}
+    define_singleton_method("#{name}_success"){|text=''| send "#{name}", (ColoredString.green text) if enable?}
   end
 
   def self.puts_boolean(b)

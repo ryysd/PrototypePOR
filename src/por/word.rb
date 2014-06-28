@@ -112,12 +112,7 @@ class Word
 
     words
   end
-
-  # permutation of independent actions
-  #def permutation
-  #  @actions.permutation.map{|perm| Word.new perm}.select{|w| w.feasible? && (w.weak_equal? self)}
-  #end
-  
+ 
   def permutation
     work_queue = [self]
     permutations = []
