@@ -3,6 +3,7 @@ class Word
 
   attr_reader :actions
 
+  @@feasible_cache = {}
   def initialize(actions)
     @actions = actions
   end
@@ -10,7 +11,7 @@ class Word
   def influence?(w)
     @actions.each do |a|
       w.each do |b|
-	return true if (a.simulate? b) || (b.disable? a)
+        return true if (a.simulate? b) || (b.disable? a)
       end
     end
     false
@@ -22,12 +23,16 @@ class Word
 
   # Definition1: word feasibility
   def feasible?
+    if @@feasible_cache.has_key? to_s
+      return @@feasible_cache[to_s] 
+    end
+
     # for all sub-words a·v·b of w,if a disable b then exist c in Av :a simulate c simulate b;
     @actions.each.with_index do |a, idx_a|
       @actions.drop(idx_a+1).each.with_index do |b, idx_b|
 	if a.disable? b
 	  v = @actions.slice idx_a, idx_a+idx_b+1
-	  return false until v.any?{|c| (a.simulate? c) && (c.simulate? b)}
+	  return @@feasible_cache[to_s] = false until v.any?{|c| (a.simulate? c) && (c.simulate? b)}
 	end
       end
     end
@@ -40,12 +45,12 @@ class Word
 	(0...tail.length).each do |idx_t|
 	  v1 = head[head.length-idx_h-1...head.length]
 	  v2 = tail[0..idx_t]
-	  return false if (v2.influence? v1) && (!v1.influence? v2)
+	  return @@feasible_cache[to_s] = false if (v2.influence? v1) && (!v1.influence? v2)
 	end
       end
     end
 
-    true
+    @@feasible_cache[to_s] = true
   end
 
   # Definition2: equality up to permutation of independent actions
@@ -197,7 +202,11 @@ class Word
   end
 
   def to_s
-    "[#{@actions.map{|a| a.name}.join ' '}]"
+    "[#{@actions.map{|a| a.name}.join ' '}]" 
+  end
+
+  def self.clear_feasible_cache
+    @@feasible_cache.clear
   end
 end
 

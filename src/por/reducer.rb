@@ -40,6 +40,8 @@ class Reducer
   end
 
   def reduce(use_pma = false)
+    Word.clear_feasible_cache
+
     @states.each{|s| s.reduced = true}
     @visited = []
 
