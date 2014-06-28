@@ -55,7 +55,7 @@ class Word
 
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
-  def weak_equal?(other, dump = false)
+  def weak_equal?(other)
     return false if length != other.length || self == other
     return self[0] == other[0] if length == 1
 
@@ -134,7 +134,8 @@ class Word
 	    new_w[j] = w[i]
 
 	    exist = permutations.find{|perm| perm == new_w}
-	    work_queue.push new_w if exist.nil? && new_w.feasible? && (new_w.weak_equal? self)
+	    #work_queue.push new_w if exist.nil? && new_w.feasible? && (new_w.weak_equal? self)
+	    work_queue.push new_w if exist.nil? && (new_w.weak_equal? self)
 	  end
 	end
       end
