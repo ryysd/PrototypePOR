@@ -185,9 +185,7 @@ class Word
   end
 
   def [](idx)
-    if idx.is_a? Range then Word.new @actions[idx]
-    else @actions[idx]
-    end
+    (idx.is_a? Range) ? (Word.new @actions[idx]) : @actions[idx]
   end
 
   def []=(idx, a)
