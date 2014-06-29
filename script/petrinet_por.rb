@@ -44,10 +44,10 @@ def execute_script(script, options, message, stdout = nil)
 end
 
 options = {pnml: env.pnml_file, o: env.ats_json_file}
-execute_script "#{env.script_path}/petrinet/petrinet.rb", options, "generate state space..."
+exit unless execute_script "#{env.script_path}/petrinet/petrinet.rb", options, "generate state space..."
 
 options = {ats: env.ats_json_file, 'full-dot' => env.full_dot_file,  'reduced-dot' => env.reduced_dot_file, debug: env.debug}
-execute_script "#{env.script_path}/por/por.rb", options, 'reduce state space...'
+exit unless execute_script "#{env.script_path}/por/por.rb", options, 'reduce state space...'
 
 if env.png
   puts "generate #{env.reduced_png_file}..."
