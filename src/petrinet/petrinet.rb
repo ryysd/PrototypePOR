@@ -90,8 +90,8 @@ class Action
   end
 
   def disable?(other)
-    !(@eraser & (other.reader | other.eraser)).empty? ||
-      !(@creator & (other.creator | other.embargoes)).empty?
+    !(@eraser & (other.reader | other.eraser)).empty? #||
+      #!(@creator & (other.creator | other.embargoes)).empty?
   end
 end
 
