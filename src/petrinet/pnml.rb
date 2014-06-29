@@ -150,12 +150,13 @@ class Petrinet
 end
 
 class PNML
-  def self.parse(xml)
+  def self.parse(xml, pipe = false)
     hash =  Hash.from_xml xml
-    net = hash['pnml']['net']
+    net = pipe ? hash['pnml']['net'] : hash['pnml']['net']['page']
+    value_key = pipe ? 'value' : 'text'
 
-    places = net['place'].map{|p| Place.new p['id'], p['name']['value'], p['initialMarking']['value'].to_i}
-    transitions = net['transition'].map{|t| Transition.new t['id'], t['name']['value']}
+    places = net['place'].map{|p| Place.new p['id'], p['name'][value_key], (p.has_key? 'initialMarking') ? (p['initialMarking'][value_key].gsub(/[^0-9]/, "").to_i) : 0}
+    transitions = net['transition'].map{|t| Transition.new t['id'], t['name'][value_key]}
 
     nodes = places + transitions
     net['arc'].each do |a| 
@@ -165,7 +166,7 @@ class PNML
       source = nodes.find{|n| n.id == source_id}
       target = nodes.find{|n| n.id == target_id}
 
-      source.add_arc Arc.new source, target, a['inscription']['value'].to_i
+      source.add_arc Arc.new source, target, (a.has_key? 'inscription') ? (a['inscription'][value_key].gsub(/[^0-9]/, "").to_i) : 1
     end
 
     Petrinet.new places, transitions
@@ -173,21 +174,26 @@ class PNML
 end
 
 petrinet = PNML.parse (File.open './tmp/pnml.xml').read
-petrinet.simulate do |source, transition, target|
-  puts "\"#{source.to_s}\" -> \"#{target.to_s}\" [label=\"#{transition.name}\"];"
+
+incidence_csv, input_csv, output_csv = petrinet.csv
+
+File.open './tmp/incidence.csv', 'w' do |file|
+  file.write incidence_csv
 end
 
-#incidence_csv, input_csv, output_csv = petrinet.csv
+File.open './tmp/input.csv', 'w' do |file|
+  file.write input_csv
+end
 
-#File.open './tmp/incidence.csv', 'w' do |file|
-#  file.write incidence_csv
-#end
-#
-#File.open './tmp/input.csv', 'w' do |file|
-#  file.write input_csv
-#end
-#
-#File.open './tmp/output.csv', 'w' do |file|
-#  file.write output_csv
-#end
+File.open './tmp/output.csv', 'w' do |file|
+  file.write output_csv
+end
+
+puts "digraph g{"
+petrinet.simulate do |source, transition, target|
+  puts "\"#{source.to_s}\" [label=\" \"]"
+  puts "\"#{source.to_s}\" -> \"#{target.to_s}\" [label=\"#{transition.name}\"];"
+end
+puts "}"
+
 #puts petrinet.dot
