@@ -12,7 +12,7 @@ class PNML
     net = pipe ? hash['pnml']['net'] : hash['pnml']['net']['page']
     value_key = pipe ? 'value' : 'text'
 
-    places = net['place'].map{|p| Place.new p['id'], p['name'][value_key], (p.has_key? 'initialMarking') ? (p['initialMarking'][value_key].gsub(/[^0-9]/, "").to_i) : 0}
+    places = net['place'].map{|p| Place.new p['id'], (p.has_key? 'name') ? (p['name'][value_key]) : p['id'], (p.has_key? 'initialMarking') ? (p['initialMarking'][value_key].gsub(/[^0-9]/, "").to_i) : 0}
     transitions = net['transition'].map{|t| Transition.new t['id'], (t.has_key? 'name') ? t['name'][value_key] : t['id']}
 
     nodes = places + transitions
