@@ -1,4 +1,5 @@
 require 'pp'
+require 'json'
 require 'matrix'
 require 'active_support/core_ext'
 
@@ -72,14 +73,70 @@ class State
   end
 end
 
+class Action
+  attr_reader :name, :creator, :reader, :eraser, :embargoes
+  def initialize(name="", c=[], d=[], r=[], n=[])
+    @name = name
+    @creator = c
+    @reader = r
+    @eraser = d
+    @embargoes = n
+  end
+
+  def simulate?(other)
+    !(@creator & (other.reader | other.eraser)).empty? ||
+      !(@eraser & (other.creator | other.embargoes)).empty?
+  end
+
+  def disable?(other)
+    !(@eraser & (other.reader | other.eraser)).empty? ||
+      !(@creator & (other.creator | other.embargoes)).empty?
+  end
+end
+
+class ATSFileGenerator
+  def self.create_actions(petrinet)
+    (petrinet.input_matrix.column_vectors.zip petrinet.output_matrix.column_vectors).map.with_index do |(readers, erasers), i|
+      reader = readers.to_a.map.with_index{|r, j| (r > 0) ? petrinet.places[j].id : nil}.compact
+      eraser = erasers.to_a.map.with_index{|e, j| (e > 0) ? petrinet.places[j].id : nil}.compact
+      Action.new petrinet.transitions[i].name, reader, eraser
+    end
+  end
+
+  def self.transition_relations(petrinet)
+    actions = create_actions petrinet
+    relations = []
+
+    actions.each do |a|
+      actions.each do |b|
+	relations.push "#{a.name} s #{b.name}" if a.simulate? b
+	relations.push "#{a.name} d #{b.name}" if a.disable? b
+      end
+    end
+
+    relations
+  end
+
+  def self.generate(petrinet)
+    transitions = []
+    petrinet.execute do |source, transition, target|
+      transitions.push "#{source.to_s}-#{transition.name}->#{target.to_s}"
+    end
+
+    relations = transition_relations petrinet
+
+    JSON.generate ({actions: {relations: relations}, lts: {init: petrinet.init_state.to_s, transitions: transitions}})
+  end
+end
+
 class Petrinet
-  attr_reader :places, :transitions
+  attr_reader :places, :transitions, :incidence_matrix, :input_matrix, :output_matrix, :init_state
 
   def initialize(places, transitions)
     @places = places
     @transitions = transitions
 
-    @initial_marking = Vector.elements @places.map{|p| p.initial_marking}
+    @init_state = State.new Vector.elements @places.map{|p| p.initial_marking}
     @incidence_matrix, @input_matrix, @output_matrix = create_matrix
   end
 
@@ -104,9 +161,9 @@ class Petrinet
     [input_matrix - output_matrix, input_matrix, output_matrix]
   end
 
-  def simulate
+  def execute
     states = []
-    work_queue = [(State.new @initial_marking)]
+    work_queue = [@init_state]
 
     until work_queue.empty?
       state = work_queue.pop
@@ -150,7 +207,7 @@ class Petrinet
 end
 
 class PNML
-  def self.parse(xml, pipe = false)
+  def self.parse(xml, pipe = true)
     hash =  Hash.from_xml xml
     net = pipe ? hash['pnml']['net'] : hash['pnml']['net']['page']
     value_key = pipe ? 'value' : 'text'
@@ -174,26 +231,28 @@ class PNML
 end
 
 petrinet = PNML.parse (File.open './tmp/pnml.xml').read
+json = ATSFileGenerator.generate petrinet
+puts json
 
-incidence_csv, input_csv, output_csv = petrinet.csv
-
-File.open './tmp/incidence.csv', 'w' do |file|
-  file.write incidence_csv
-end
-
-File.open './tmp/input.csv', 'w' do |file|
-  file.write input_csv
-end
-
-File.open './tmp/output.csv', 'w' do |file|
-  file.write output_csv
-end
-
-puts "digraph g{"
-petrinet.simulate do |source, transition, target|
-  puts "\"#{source.to_s}\" [label=\" \"]"
-  puts "\"#{source.to_s}\" -> \"#{target.to_s}\" [label=\"#{transition.name}\"];"
-end
-puts "}"
+#incidence_csv, input_csv, output_csv = petrinet.csv
+#
+#File.open './tmp/incidence.csv', 'w' do |file|
+#  file.write incidence_csv
+#end
+#
+#File.open './tmp/input.csv', 'w' do |file|
+#  file.write input_csv
+#end
+#
+#File.open './tmp/output.csv', 'w' do |file|
+#  file.write output_csv
+#end
+#
+#puts "digraph g{"
+#petrinet.execute do |source, transition, target|
+#  puts "\"#{source.to_s}\" [label=\" \"]"
+#  puts "\"#{source.to_s}\" -> \"#{target.to_s}\" [label=\"#{transition.name}\"];"
+#end
+#puts "}"
 
 #puts petrinet.dot

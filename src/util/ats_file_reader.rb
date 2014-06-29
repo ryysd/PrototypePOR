@@ -30,7 +30,7 @@ class ATSFileReader
 
     data['transitions'].each do |trans|
       case trans.chomp.strip
-      when /(\w+)\s*-\s*(\w+)\s*->\s*(\w+)/ 
+      when /([^-]+)\s*-\s*([^-]+)\s*->\s*([^-]+)/ 
 	l = state_space.create $1.to_sym, entities[$1]
 	r = state_space.create $3.to_sym, entities[$3]
 	action = action_table.create $2.to_sym
