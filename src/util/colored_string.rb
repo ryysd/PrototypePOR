@@ -14,4 +14,8 @@ class ColoredString
   def self.blue(string)
     ColoredString.color_string(34, string)
   end
+
+  def self.yellow(string)
+    ColoredString.color_string(33, string)
+  end
 end

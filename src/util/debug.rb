@@ -18,7 +18,9 @@ class Debug
   ['puts', 'print'].each do |name|
     define_singleton_method("d#{name}"){|text=''| send "#{name}", text if enable?}
     define_singleton_method("#{name}_error"){|text=''| send "#{name}", (ColoredString.red text) if enable?}
+    define_singleton_method("#{name}_warn"){|text=''| send "#{name}", (ColoredString.yellow text) if enable?}
     define_singleton_method("#{name}_success"){|text=''| send "#{name}", (ColoredString.green text) if enable?}
+    define_singleton_method("#{name}_information"){|text=''| send "#{name}", (ColoredString.blue text) if enable?}
   end
 
   def self.puts_boolean(b)

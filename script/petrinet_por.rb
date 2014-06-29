@@ -41,7 +41,7 @@ def execute_script(script, options, message, stdout = nil)
   cmd = "ruby #{script} #{(Option.new options).to_s}"
   cmd += " > #{stdout}" unless stdout.nil?
 
-  Debug.puts_success cmd
+  Debug.puts_information cmd
   puts
   system cmd
 end

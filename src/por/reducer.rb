@@ -34,6 +34,7 @@ class Reducer
       return
     end
 
+    Debug.puts_warn "warning: revisited at #{state.name}" if visited? state
     Debug.dputs state.name
     state.reduced = false
     @visited[state.name] = true
@@ -55,6 +56,7 @@ class Reducer
       vector = work_queue.pop
       state = vector.after
 
+      next if visited? state
       Debug.dputs '----------------------------------------------'
       Debug.dputs "(#{vector.state.name}, #{vector.word.to_s})"
 
@@ -75,14 +77,14 @@ class Reducer
 	end
 
 	new_vec = Vector.new (@states.init), vm
-	work_queue.push new_vec unless visited? new_vec.after
+	work_queue.push new_vec
       end
 
       Debug.dputs
       Debug.dputs '### probe set ###'
       (probe_set vector).each do |p|
 	new_vec = Vector.new @states.init, vector.word + p
-	work_queue.push new_vec unless visited? new_vec.after
+	work_queue.push new_vec
 	Debug.dputs p.name
       end
     end
