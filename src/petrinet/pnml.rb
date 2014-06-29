@@ -46,6 +46,32 @@ class Arc
   end
 end
 
+class State
+  attr_reader :marking
+
+  def initialize(marking)
+    @marking = marking
+  end
+
+  def successors(incidence_matrix, transitions)
+    (0...transitions.length).map do |i|
+      arr = Array.new transitions.length, 0
+      arr[i] = 1
+
+      new_marking = @marking + incidence_matrix * (Vector.elements arr)
+      new_marking.all?{|m| m >= 0} ? [transitions[i], (State.new new_marking)] : nil
+    end.compact
+  end
+
+  def ==(other)
+    @marking == other.marking
+  end
+
+  def to_s
+    @marking.to_a.to_s.gsub ' ', ''
+  end
+end
+
 class Petrinet
   attr_reader :places, :transitions
 
@@ -53,6 +79,7 @@ class Petrinet
     @places = places
     @transitions = transitions
 
+    @initial_marking = Vector.elements @places.map{|p| p.initial_marking}
     @incidence_matrix, @input_matrix, @output_matrix = create_matrix
   end
 
@@ -75,6 +102,21 @@ class Petrinet
     input_matrix = Matrix.rows input_matrix_arr
     output_matrix = Matrix.rows output_matrix_arr
     [input_matrix - output_matrix, input_matrix, output_matrix]
+  end
+
+  def simulate
+    states = []
+    work_queue = [(State.new @initial_marking)]
+
+    until work_queue.empty?
+      state = work_queue.pop
+
+      states.push state
+      (state.successors @incidence_matrix, @transitions).each do |trans, succ|
+	work_queue.push succ unless states.include? succ
+	yield state, trans, succ
+      end
+    end
   end
 
   def csv
@@ -131,17 +173,21 @@ class PNML
 end
 
 petrinet = PNML.parse (File.open './tmp/pnml.xml').read
-incidence_csv, input_csv, output_csv = petrinet.csv
-
-File.open './tmp/incidence.csv', 'w' do |file|
-  file.write incidence_csv
+petrinet.simulate do |source, transition, target|
+  puts "\"#{source.to_s}\" -> \"#{target.to_s}\" [label=\"#{transition.name}\"];"
 end
 
-File.open './tmp/input.csv', 'w' do |file|
-  file.write input_csv
-end
+#incidence_csv, input_csv, output_csv = petrinet.csv
 
-File.open './tmp/output.csv', 'w' do |file|
-  file.write output_csv
-end
+#File.open './tmp/incidence.csv', 'w' do |file|
+#  file.write incidence_csv
+#end
+#
+#File.open './tmp/input.csv', 'w' do |file|
+#  file.write input_csv
+#end
+#
+#File.open './tmp/output.csv', 'w' do |file|
+#  file.write output_csv
+#end
 #puts petrinet.dot
