@@ -1,4 +1,5 @@
 require 'optparse'
+require 'fileutils'
 require_relative '../src/util/debug'
 
 class ScriptEnv
@@ -13,6 +14,7 @@ class ScriptEnv
   end
 
   tmp_dir = './tmp'
+  FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
   ['ats', 'full', 'reduced'].each do |name|
     ['json', 'dot', 'png'].each do |ext|
       define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{name}.#{ext}"}
