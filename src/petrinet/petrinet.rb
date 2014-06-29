@@ -44,12 +44,15 @@ class Petrinet
     until work_queue.empty?
       state = work_queue.pop
 
-      states.push state
-      (state.successors @incidence_matrix, @transitions).each do |trans, succ|
-	work_queue.push succ unless states.include? succ
-	yield state, trans, succ
+      unless states.include? state
+	states.push state
+	(state.successors @incidence_matrix, @transitions).each do |trans, succ|
+	  work_queue.push succ
+	  yield state, trans, succ
+	end
       end
     end
+
     states.length
   end
 
