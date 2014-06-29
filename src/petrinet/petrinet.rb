@@ -1,6 +1,7 @@
 require 'pp'
 require 'json'
 require 'matrix'
+require 'optparse'
 require 'active_support/core_ext'
 
 class PetrinetNode
@@ -230,9 +231,24 @@ class PNML
   end
 end
 
-petrinet = PNML.parse (File.open './tmp/pnml.xml').read
+class PetrinetEnv
+  attr_reader :pnml_file, :ats_file
+
+  def initialize
+    params = ARGV.getopts '', 'pnml:', 'o:'
+
+    @pnml_file = params['pnml']
+    @ats_file = params['o']
+  end
+end
+
+env = PetrinetEnv.new
+petrinet = PNML.parse (File.open env.pnml_file).read
 json = ATSFileGenerator.generate petrinet
-puts json
+
+File.open env.ats_file, 'w' do |file|
+  file.write json
+end
 
 #incidence_csv, input_csv, output_csv = petrinet.csv
 #
