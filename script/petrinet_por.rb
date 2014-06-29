@@ -3,13 +3,14 @@ require 'fileutils'
 require_relative '../src/util/debug'
 
 class ScriptEnv
-  attr_reader :debug, :png, :pnml_file, :script_path
+  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction
 
   def initialize
-    params = ARGV.getopts '', 'debug', 'png', 'pnml:'
+    params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction'
     @debug = params['debug']
     @png = params['png']
     @pnml_file = params['pnml']
+    @disable_reduction = params['disable-reduction']
     @script_path = './src'
   end
 
@@ -45,14 +46,22 @@ def execute_script(script, options, message, stdout = nil)
   system cmd
 end
 
-options = {pnml: env.pnml_file, o: env.ats_json_file}
-exit unless execute_script "#{env.script_path}/generator/ats_file_generator.rb", options, "generate state space..."
+if env.disable_reduction
+  options = {pnml: env.pnml_file, debug: env.debug, o: env.full_dot_file, 'state-space' => nil}
+  png_source = env.full_dot_file
+  png_file = env.full_png_file
+else
+  options = {pnml: env.pnml_file, debug: env.debug, o: env.ats_json_file, ats: nil}
+  png_source = env.reduced_dot_file
+  png_file = env.reduced_png_file
+end
 
-options = {ats: env.ats_json_file, 'full-dot' => env.full_dot_file,  'reduced-dot' => env.reduced_dot_file, debug: env.debug}
-exit unless execute_script "#{env.script_path}/por/por.rb", options, 'reduce state space...'
+exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."
+exit unless execute_script "#{env.script_path}/por/por.rb", {ats: env.ats_json_file, 'full-dot' => env.full_dot_file,  'reduced-dot' => env.reduced_dot_file, debug: env.debug}, 'reduce state space...' unless env.disable_reduction
 
 if env.png
-  puts "generate #{env.reduced_png_file}..."
-  system "dot -Tpng #{env.reduced_dot_file} -o #{env.reduced_png_file}"
-  system "open #{env.reduced_png_file}"
+  puts "generate #{png_source}..."
+  system "dot -Tpng #{png_source} -o #{png_file}"
+  system "open #{png_file}"
 end
+

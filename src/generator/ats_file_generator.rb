@@ -1,8 +1,6 @@
 require 'json'
 require_relative 'action'
-require_relative 'ats_file_generator_env'
 require_relative '../petrinet/petrinet'
-require_relative '../petrinet/pnml'
 
 class ATSFileGenerator
   def self.create_actions(petrinet)
@@ -29,20 +27,13 @@ class ATSFileGenerator
 
   def self.generate(petrinet)
     transitions = []
-    petrinet.execute do |source, transition, target|
+    states_num = petrinet.execute do |source, transition, target|
       transitions.push "#{source.to_s}-#{transition.name}->#{target.to_s}"
     end
+    Debug.puts_success "number of state: #{states_num}"
 
     relations = transition_relations petrinet
 
     JSON.generate ({actions: {relations: relations}, lts: {init: petrinet.init_state.to_s, transitions: transitions}})
   end
-end
-
-env = ATSFileGeneratorEnv.new
-petrinet = PNML.parse (File.open env.pnml_file).read
-json = ATSFileGenerator.generate petrinet
-
-File.open env.ats_file, 'w' do |file|
-  file.write json
 end

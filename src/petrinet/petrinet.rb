@@ -50,6 +50,7 @@ class Petrinet
 	yield state, trans, succ
       end
     end
+    states.length
   end
 
   def csv
