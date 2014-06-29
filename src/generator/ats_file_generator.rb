@@ -1,19 +1,22 @@
 require 'json'
-require_relative './ats_generator_env'
-require_relative '../entity_based_transition_system/action'
-require_relative '../entity_based_transition_system/state'
-require_relative '../entity_based_transition_system/transition'
-require_relative '../entity_based_transition_system/state_space'
-require_relative '../entity_based_transition_system/entity'
-require_relative '../entity_based_transition_system/entity_table'
+require_relative 'action'
+require_relative 'ats_file_generator_env'
+require_relative '../petrinet/petrinet'
+require_relative '../petrinet/pnml'
 
 class ATSFileGenerator
-  def self.generate_transitions(transitions)
-    transitions.map{|name, t| "#{t.src.name}-#{t.action.name}->#{t.dst.name}"}
+  def self.create_actions(petrinet)
+    (petrinet.input_matrix.column_vectors.zip petrinet.output_matrix.column_vectors).map.with_index do |(readers, erasers), i|
+      reader = readers.to_a.map.with_index{|r, j| (r > 0) ? petrinet.places[j].id : nil}.compact
+      eraser = erasers.to_a.map.with_index{|e, j| (e > 0) ? petrinet.places[j].id : nil}.compact
+      Action.new petrinet.transitions[i].name, reader, eraser
+    end
   end
 
-  def self.generate_relations(actions)
+  def self.transition_relations(petrinet)
+    actions = create_actions petrinet
     relations = []
+
     actions.each do |a|
       actions.each do |b|
 	relations.push "#{a.name} s #{b.name}" if a.simulate? b
@@ -24,37 +27,22 @@ class ATSFileGenerator
     relations
   end
 
-  def self.generate_state_space(data)
-    entities = EntityTable.new
-    init = State.new data['init'].map{|e| entities.generate e}
-    actions = data['actions'].map do |name, set|
-      Action.new name, set['c'].map{|e| entities.generate e}, set['r'].map{|e| entities.generate e}, set['d'].map{|e| entities.generate e}, set['n'].map{|e| entities.generate e}
+  def self.generate(petrinet)
+    transitions = []
+    petrinet.execute do |source, transition, target|
+      transitions.push "#{source.to_s}-#{transition.name}->#{target.to_s}"
     end
 
-    state_space = StateSpace.new init, actions
-    state_space.generate
-    state_space
-  end
+    relations = transition_relations petrinet
 
-  def self.generate(data)
-    state_space = ATSFileGenerator.generate_state_space data
-    relations = ATSFileGenerator.generate_relations state_space.actions
-    transitions = ATSFileGenerator.generate_transitions state_space.transitions
-    states = state_space.states.inject({}){|h, (name, s)| h[name] = s.entities.map{|e| e.name}; h}
-    
-    json = JSON.generate ({actions: {relations: relations, entities: data['actions']}, lts: {init: state_space.init.name, transitions: transitions, states: states}})
-    {ats: json, state_space: state_space}
+    JSON.generate ({actions: {relations: relations}, lts: {init: petrinet.init_state.to_s, transitions: transitions}})
   end
 end
 
-env = ATSGeneratorEnv.new
-json = JSON.load File.read env.action_file
-result = ATSFileGenerator.generate json
-puts result[:ats]
+env = ATSFileGeneratorEnv.new
+petrinet = PNML.parse (File.open env.pnml_file).read
+json = ATSFileGenerator.generate petrinet
 
-unless env.dot_file.nil?
-  File.open(env.dot_file, 'w') do |file|
-    file.write result[:state_space].dot
-  end
+File.open env.ats_file, 'w' do |file|
+  file.write json
 end
-
