@@ -13,7 +13,7 @@ class Petrinet
     @transitions = transitions
 
     @init_state = State.new Vector.elements @places.map{|p| p.initial_marking}
-    @incidence_matrix, @input_matrix, @output_matrix = create_matrix
+    @incidence_matrix = create_matrix
   end
 
   def create_matrix
@@ -34,19 +34,20 @@ class Petrinet
 
     input_matrix = Matrix.rows input_matrix_arr
     output_matrix = Matrix.rows output_matrix_arr
-    [input_matrix - output_matrix, input_matrix, output_matrix]
+    input_matrix - output_matrix
   end
 
   def execute
-    states = []
+    states = {}
     work_queue = [@init_state]
+    column_vectors = @incidence_matrix.column_vectors
 
     until work_queue.empty?
       state = work_queue.pop
 
-      unless states.include? state
-	states.push state
-	(state.successors @incidence_matrix, @transitions).each do |trans, succ|
+      unless states.has_key? state.to_s
+	states[state.to_s] = state
+	(state.successors column_vectors, @transitions).each do |trans, succ|
 	  work_queue.push succ
 	  yield state, trans, succ
 	end

@@ -5,12 +5,9 @@ class State
     @marking = marking
   end
 
-  def successors(incidence_matrix, transitions)
+  def successors(incidence_column_vectors, transitions)
     (0...transitions.length).map do |i|
-      arr = Array.new transitions.length, 0
-      arr[i] = 1
-
-      new_marking = @marking + incidence_matrix * (Vector.elements arr)
+      new_marking = @marking + incidence_column_vectors[i]
       new_marking.all?{|m| m >= 0} ? [transitions[i], (State.new new_marking)] : nil
     end.compact
   end
