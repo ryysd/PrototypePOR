@@ -30,7 +30,7 @@ class ATSFileGenerator
     states_num = petrinet.execute do |source, transition, target|
       transitions.push "#{source.to_s}-#{transition.name}->#{target.to_s}"
     end
-    Debug.puts_success "number of state: #{states_num}"
+    Debug.puts_success "number of states: #{states_num}"
 
     relations = transition_relations petrinet
 

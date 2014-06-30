@@ -13,7 +13,7 @@ class Petrinet
     @transitions = transitions
 
     @init_state = State.new @places.map{|p| p.initial_marking}
-    @incidence_matrix = create_matrix
+    @incidence_matrix, @input_matrix, @output_matrix = create_matrix
   end
 
   def create_matrix
@@ -34,7 +34,7 @@ class Petrinet
 
     input_matrix = Matrix.rows input_matrix_arr
     output_matrix = Matrix.rows output_matrix_arr
-    input_matrix - output_matrix
+    [input_matrix - output_matrix, input_matrix, output_matrix]
   end
 
   def execute
