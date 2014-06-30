@@ -12,7 +12,7 @@ class Petrinet
     @places = places
     @transitions = transitions
 
-    @init_state = State.new Vector.elements @places.map{|p| p.initial_marking}
+    @init_state = State.new @places.map{|p| p.initial_marking}
     @incidence_matrix = create_matrix
   end
 
@@ -40,7 +40,7 @@ class Petrinet
   def execute
     states = {}
     work_queue = [@init_state]
-    column_vectors = @incidence_matrix.column_vectors
+    column_vectors = @incidence_matrix.column_vectors.map{|v| v.to_a}
 
     until work_queue.empty?
       state = work_queue.pop
