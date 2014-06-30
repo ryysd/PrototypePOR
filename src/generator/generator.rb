@@ -24,7 +24,7 @@ result =
     dot.push '}'
     dot.join "\n"
   end
-Debug.dputs "execute time: #{timer.stop} ms"
+Debug.dputs "execution time: #{timer.stop} ms"
 
 
 File.open env.output_file, 'w' do |file|
