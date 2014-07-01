@@ -47,6 +47,7 @@ class Petrinet
 
       unless states.has_key? state.to_s
 	states[state.to_s] = state
+	Debug.puts_information "#{states.length} states are expanded." if states.length % 10000 == 0
 	(state.successors column_vectors, @transitions).each do |trans, succ|
 	  work_queue.push succ
 	  yield state, trans, succ
