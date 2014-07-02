@@ -18,11 +18,14 @@ unless env.full_dot_file.nil?
   end
 end
 
-unless env.reduced_dot_file.nil?
-  reducer = Reducer.new state_space, actions
-  reducer.reduce
+reducer = Reducer.new state_space, actions
+reduced_states = reducer.reduce
 
+unless env.reduced_dot_file.nil?
   File.open(env.reduced_dot_file, 'w') do |file|
     file.write state_space.dot Debug.enable?
   end
 end
+
+reduced = reduced_states.select{|s| s.reduced}
+Dumper.puts_success "reduced #{reduced_states.length} to #{reduced.length} (#{reduced.length*100.0/reduced_states.length}%)"

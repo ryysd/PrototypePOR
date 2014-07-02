@@ -6,19 +6,20 @@ class ScriptEnv
   attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction
 
   def initialize
-    params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction'
-    @debug = params['debug']
-    @png = params['png']
-    @pnml_file = params['pnml']
-    @disable_reduction = params['disable-reduction']
+    @debug = @@params['debug']
+    @png = @@params['png']
+    @pnml_file = @@params['pnml']
+    @disable_reduction = @@params['disable-reduction']
     @script_path = './src'
   end
 
   tmp_dir = './tmp'
+  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction'
+  file_name = File.basename @@params['pnml'], '.*'
   FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
   ['ats', 'full', 'reduced'].each do |name|
     ['json', 'dot', 'png'].each do |ext|
-      define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{name}.#{ext}"}
+      define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{file_name}.#{name}.#{ext}"}
     end
   end
 end
@@ -57,7 +58,9 @@ else
 end
 
 exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."
-exit unless execute_script "#{env.script_path}/por/por.rb", {ats: env.ats_json_file, 'full-dot' => env.full_dot_file,  'reduced-dot' => env.reduced_dot_file, debug: env.debug}, 'reduce state space...' unless env.disable_reduction
+
+options = {ats: env.ats_json_file, 'full-dot' => env.png ? env.full_dot_file : false,  'reduced-dot' => env.png ? env.reduced_dot_file : false, debug: env.debug}
+exit unless execute_script "#{env.script_path}/por/por.rb", options, 'reduce state space...' unless env.disable_reduction
 
 if env.png
   puts "generate #{png_source}..."

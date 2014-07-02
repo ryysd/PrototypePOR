@@ -66,7 +66,7 @@ class StateSpace
       s.transitions.each do |t|
 	color = (t.src.reduced || t.dst.reduced) ? 'style=dashed, color="#999999"' : ''
 	edge = "\"#{t.src.name}\" -> \"#{t.dst.name}\""
-	data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : "  #{edge} #{t.src.name} -> #{t.dst.name} [#{color}];"
+	data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : (color.empty? ? "  #{edge};" : "  #{edge} [#{color}];")
 	stack.push t.dst
       end
     end
