@@ -23,7 +23,8 @@ end
 timer = SimpleTimer.new true
 reducer = Reducer.new state_space, actions
 states = reducer.reduce
-Dumper.puts_success "execution time: #{timer.stop} ms"
+execution_time = timer.stop
+Dumper.puts_success "execution time: #{execution_time} ms"
 Dumper.dputs
 
 unless env.reduced_dot_file.nil?
@@ -51,6 +52,7 @@ Dumper.puts_success '-----------------------------------------------------------
 
 json = JSON.generate({
   name: env.name,
+  execution_time: execution_time,
   validation: {
     deadlock_states: deadlock_states.length,
     reachable_deadlock_states: reachable_deadlock_states.length,
