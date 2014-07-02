@@ -32,7 +32,6 @@ class Reducer
 
   def visit(state)
     Debug.puts_error 'nil state is visited.' if state.nil?
-    Debug.puts_warn "warning: revisited at #{state.name}" if visited? state
     Debug.dputs state.name
 
     state.reduced = false
