@@ -13,6 +13,8 @@ class Reducer
     @actions = actions
     @probe_set = {}
     @visited = []
+
+    @missed_actions = {}
   end
 
   def probe_set(v)
@@ -29,13 +31,10 @@ class Reducer
   end
 
   def visit(state)
-    if state.nil?
-      Debug.puts_error 'maybe occur error: nil state is visited.'
-      return
-    end
-
+    Debug.puts_error 'nil state is visited.' if state.nil?
     Debug.puts_warn "warning: revisited at #{state.name}" if visited? state
     Debug.dputs state.name
+
     state.reduced = false
     @visited[state.name] = true
   end
@@ -45,8 +44,6 @@ class Reducer
   end
 
   def reduce(use_pma = false)
-    Word.clear_feasible_cache
-
     @states.each{|s| s.reduced = true}
     @visited = {}
 
@@ -62,7 +59,7 @@ class Reducer
 
       visit state
 
-      missed_actions = use_pma ? (vector.potentially_missed_action @actions) : (vector.missed_action @actions)
+      missed_actions = vector.fresh_missed_action @actions, @missed_actions
       missed_actions.each do |vm|
 	v = vm[0...vm.length-1]
 

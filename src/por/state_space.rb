@@ -65,7 +65,7 @@ class StateSpace
       visited.push s
 
       deadlocks.push s if s.transitions.empty?
-      s.transitions.each{|t| stack.push t.dst}
+      s.transitions.each{|t| stack.push t.dst unless t.dst.reduced}
     end
 
     deadlocks

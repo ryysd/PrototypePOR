@@ -17,10 +17,10 @@ result =
     ATSFileGenerator.generate petrinet
   when :state_space
     dot = ['digraph {']
-    states_num = petrinet.execute do |source, transition, target|
+    states = petrinet.execute do |source, transition, target|
       dot.push "  \"#{source.to_s}\"->\"#{target.to_s}\" [label=\"#{transition.name}\"];"
     end
-    Debug.puts_success "number of states: #{states_num}"
+    Debug.puts_success "number of states: #{states.length}"
     dot.push '}'
     dot.join "\n"
   end

@@ -24,6 +24,7 @@ class State
   end
 
   def after(w)
+    return successor w if w.is_a? Action
     return self if w.empty?
 
     s = successor w.first

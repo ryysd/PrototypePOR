@@ -55,7 +55,7 @@ class Petrinet
       end
     end
 
-    states.length
+    states
   end
 
   def csv

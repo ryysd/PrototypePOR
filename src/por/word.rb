@@ -3,7 +3,7 @@ class Word
 
   attr_reader :actions
 
-  @@feasible_cache = {}
+  #@@feasible_cache = {}
   def initialize(actions)
     @actions = actions
   end
@@ -22,36 +22,36 @@ class Word
   end
 
   # Definition1: word feasibility
-  def feasible?
-    if @@feasible_cache.has_key? to_s
-      return @@feasible_cache[to_s] 
-    end
+  #def feasible?
+  #  if @@feasible_cache.has_key? to_s
+  #    return @@feasible_cache[to_s] 
+  #  end
 
-    # for all sub-words a·v·b of w,if a disable b then exist c in Av :a simulate c simulate b;
-    @actions.each.with_index do |a, idx_a|
-      @actions.drop(idx_a+1).each.with_index do |b, idx_b|
-	if a.disable? b
-	  v = @actions.slice idx_a, idx_a+idx_b+1
-	  return @@feasible_cache[to_s] = false until v.any?{|c| (a.simulate? c) && (c.simulate? b)}
-	end
-      end
-    end
+  #  # for all sub-words a·v·b of w,if a disable b then exist c in Av :a simulate c simulate b;
+  #  @actions.each.with_index do |a, idx_a|
+  #    @actions.drop(idx_a+1).each.with_index do |b, idx_b|
+  #      if a.disable? b
+  #        v = @actions.slice idx_a, idx_a+idx_b+1
+  #        return @@feasible_cache[to_s] = false until v.any?{|c| (a.simulate? c) && (c.simulate? b)}
+  #      end
+  #    end
+  #  end
 
-    # for all sub-words v1・v2 of w, if v2 influence v1 then v1 influence v2;
-    (0...length-1).each do |idx|
-      head = self[0..idx]
-      tail = self[idx+1...length]
-      (0...head.length).each do |idx_h|
-	(0...tail.length).each do |idx_t|
-	  v1 = head[head.length-idx_h-1...head.length]
-	  v2 = tail[0..idx_t]
-	  return @@feasible_cache[to_s] = false if (v2.influence? v1) && (!v1.influence? v2)
-	end
-      end
-    end
+  #  # for all sub-words v1・v2 of w, if v2 influence v1 then v1 influence v2;
+  #  (0...length-1).each do |idx|
+  #    head = self[0..idx]
+  #    tail = self[idx+1...length]
+  #    (0...head.length).each do |idx_h|
+  #      (0...tail.length).each do |idx_t|
+  #        v1 = head[head.length-idx_h-1...head.length]
+  #        v2 = tail[0..idx_t]
+  #        return @@feasible_cache[to_s] = false if (v2.influence? v1) && (!v1.influence? v2)
+  #      end
+  #    end
+  #  end
 
-    @@feasible_cache[to_s] = true
-  end
+  #  @@feasible_cache[to_s] = true
+  #end
 
   # Definition2: equality up to permutation of independent actions
   # weak equal is the smallest transitive relation such that v·a·b·w ≃ v·b·a·w if a not influence b
@@ -151,6 +151,10 @@ class Word
 
   def tail(size)
     self[(length-size)...length]
+  end
+
+  def last
+    @actions.last
   end
 
   def length
