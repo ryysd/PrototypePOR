@@ -1,8 +1,9 @@
 require_relative './debug'
 
 class SimpleTimer
-  def initialize
+  def initialize(execute = false)
     @start = {}
+    start if execute
   end
 
   def start(id = 'none')

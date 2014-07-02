@@ -3,6 +3,7 @@ require_relative 'reducer'
 require_relative 'por_env'
 require_relative '../util/ats_file_reader'
 require_relative '../util/colored_string'
+require_relative '../util/simple_timer'
 
 env = POREnv.new
 ats = ATSFileReader.read env.ats_file
@@ -18,8 +19,11 @@ unless env.full_dot_file.nil?
   end
 end
 
+timer = SimpleTimer.new true
 reducer = Reducer.new state_space, actions
 states = reducer.reduce
+Dumper.puts_success "execution time: #{timer.stop} ms"
+Dumper.dputs
 
 unless env.reduced_dot_file.nil?
   File.open(env.reduced_dot_file, 'w') do |file|
