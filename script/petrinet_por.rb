@@ -13,13 +13,13 @@ class ScriptEnv
     @script_path = './src'
   end
 
-  tmp_dir = './tmp'
   @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction'
   file_name = File.basename @@params['pnml'], '.*'
+  tmp_dir = "./tmp/#{file_name}"
   FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
   ['ats', 'full', 'reduced'].each do |name|
     ['json', 'dot', 'png'].each do |ext|
-      define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{file_name}.#{name}.#{ext}"}
+      define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{name}.#{ext}"}
     end
   end
 end
