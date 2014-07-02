@@ -27,5 +27,8 @@ unless env.reduced_dot_file.nil?
   end
 end
 
+Dumper.puts_success "deadlock states            : #{state_space.deadlock_states.length}"
+Dumper.puts_success "deadlock states (reachable): #{state_space.reachable_deadlock_states.length}"
+Dumper.dputs
 reduced = reduced_states.select{|s| s.reduced}
 Dumper.puts_success "reduced #{reduced_states.length} to #{reduced.length} (#{reduced.length*100.0/reduced_states.length}%)"

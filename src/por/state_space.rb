@@ -49,6 +49,28 @@ class StateSpace
     @states.select{|name, s| yield s}
   end
 
+  def deadlock_states
+    @states.select{|name, s| s.transitions.empty?}
+  end
+
+  def reachable_deadlock_states
+    stack = [@init]
+    visited = []
+
+    deadlocks = []
+
+    until stack.empty?
+      s = stack.pop
+      next if visited.include? s
+      visited.push s
+
+      deadlocks.push s if s.transitions.empty?
+      s.transitions.each{|t| stack.push t.dst}
+    end
+
+    deadlocks
+  end
+
   def dot(label=true)
     stack = [@init]
     visited = []
