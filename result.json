@@ -1,0 +1,1 @@
+{"name":"eratosthenes-020","validation":{"deadlock_states":1,"reachable_deadlock_states":1,"valid":true},"result":{"full_state_space":2048,"reduced_state_space":2048,"reduction_rate":50.390625}}
