@@ -7,14 +7,14 @@ class ATSFileReader
     entities = data['entities'].nil? ? {} : data['entities']
 
     Debug.puts_error 'actions => entities key is missing.' if data['entities'].nil?
-    data['order'].each{|s| s_entities = entities[s].nil? ? {} : entities[s]; action_table.create s.to_sym, s_entities['c'], s_entities['r'], s_entities['d'], s_entities['m']} unless data['order'].nil?
+    data['order'].each{|s| s_entities = entities[s].nil? ? {} : entities[s]; action_table.create s.to_sym, s_entities['c'], s_entities['r'], s_entities['d'], s_entities['n']} unless data['order'].nil?
     data['relations'].each do |rel|
       case rel.chomp.strip
-      when /(\w+)\s+(s|d)\s+(\w+)/ 
+      when /([^-]+)\s+(s|d)\s+([^-]+)/ 
         l_entities = entities[$1].nil? ? {} : entities[$1]
         r_entities = entities[$3].nil? ? {} : entities[$1]
-	l = action_table.create $1.to_sym, l_entities['c'], l_entities['r'], l_entities['d'], l_entities['m']
-	r = action_table.create $3.to_sym, r_entities['c'], r_entities['r'], r_entities['d'], r_entities['m']
+	l = action_table.create $1.to_sym, (l_entities['c'] || []),( l_entities['r'] || []), (l_entities['d'] || []), (l_entities['n'] || [])
+	r = action_table.create $3.to_sym, (r_entities['c'] || []),( r_entities['r'] || []), (r_entities['d'] || []), (r_entities['n'] || [])
 	$2 == 's' ? (l.simulate r) : (l.disable r)
       end
     end
