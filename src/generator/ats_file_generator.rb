@@ -25,7 +25,8 @@ class ATSFileGenerator
   end
 
   def self.state_entities(petrinet, states)
-    states.inject({}){|e, (name, s)| e[name] = s.marking.map.with_index{|m, i| m > 0 ? petrinet.places[i].name : nil}.compact; e}
+    #states.inject({}){|e, (name, s)| e[name] = s.marking.map.with_index{|m, i| m > 0 ? petrinet.places[i].name : nil}.compact; e}
+    states.inject({}){|e, (name, s)| e[name] = s.marking.map.with_index{|m, i| m > 0 ? petrinet.places[i].id : nil}.compact; e}
   end
 
   def self.action_entities(actions)
