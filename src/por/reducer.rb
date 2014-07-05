@@ -24,7 +24,8 @@ class Reducer
     @probe_set[v] = [] unless @probe_set.has_key? v
 
     p = @probe_set[v]
-    p.push v.after.enable_actions.first if p.empty?
+    p.push v.after.enable_actions.sort{|a, b| a.name <=> b.name}.first if p.empty?
+    #p.push v.after.enable_actions.first if p.empty?
     p.each{|a| v.after.enable_actions.each{|b| new_probe_set.push b if (b.disable? a) && (!p.include? b)}}
 
     p += new_probe_set
