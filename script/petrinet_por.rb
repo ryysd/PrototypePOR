@@ -3,7 +3,7 @@ require 'fileutils'
 require_relative '../src/util/debug'
 
 class ScriptEnv
-  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file
+  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file, :use_scala
 
   def initialize
     @debug = @@params['debug']
@@ -11,11 +11,12 @@ class ScriptEnv
     @pnml_file = @@params['pnml']
     @disable_reduction = @@params['disable-reduction']
     @use_cache = @@params['use-cache']
-    @output_file = @@params['o']
+    @output_file = @@params['out']
+    @use_scala = @@params['use-scala']
     @script_path = './src'
   end
 
-  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'o:', 'use-cache'
+  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'out:', 'use-cache', 'use-scala'
   file_name = File.basename @@params['pnml'], '.*'
   tmp_dir = "./tmp/#{file_name}"
   FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
@@ -38,9 +39,9 @@ end
 
 env = ScriptEnv.new
 
-def execute_script(script, options, message, stdout = nil)
+def execute_script(script, options, message, bin = 'ruby', stdout = nil)
   Dumper.puts_information message
-  cmd = "ruby #{script} #{(Option.new options).to_s}"
+  cmd = "#{bin} #{script} #{(Option.new options).to_s}"
   cmd += " > #{stdout}" unless stdout.nil?
 
   Dumper.puts_information cmd
@@ -50,16 +51,21 @@ end
 
 if !env.use_cache || !(File.exist? env.ats_json_file)
   if env.disable_reduction
-    options = {pnml: env.pnml_file, debug: env.debug, o: env.full_dot_file, 'state-space' => nil}
+    options = {pnml: env.pnml_file, debug: env.debug, out: env.full_dot_file, 'state-space' => nil}
     png_source = env.full_dot_file
     png_file = env.full_png_file
   else
-    options = {pnml: env.pnml_file, debug: env.debug, o: env.ats_json_file, ats: nil}
+    options = {pnml: env.pnml_file, debug: env.debug, out: env.ats_json_file, ats: nil}
     png_source = env.reduced_dot_file
     png_file = env.reduced_png_file
   end
 
-  exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."
+  if env.use_scala
+    options['worker-num'] = 8
+    exit unless execute_script "-jar ./scala/target/petrinet-por-assembly-1.0-SNAPSHOT.jar", options, "generate state space...", 'java'
+  else
+    exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."
+  end
 end
 
 options = {ats: env.ats_json_file, 'full-dot' => env.png ? env.full_dot_file : false,  'reduced-dot' => env.png ? env.reduced_dot_file : false, debug: env.debug, name: (File.basename env.pnml_file, '.*'), o: env.output_file}
