@@ -38,12 +38,12 @@ object ATSFileGenerator {
   }
 
   def generate(petrinet :Petrinet, core :Int = 1) = {
-    val transitions = new scala.collection.mutable.ArrayBuffer[String]
+    val transitions = new scala.collection.mutable.ArrayBuffer[String] with scala.collection.mutable.SynchronizedBuffer[String]
 
     val start = System.currentTimeMillis
-    val states = petrinet.execute({(source, transition, target) =>
-      transitions += source.toString + "-" + transition.name + "->" + target.toString
-    }, core)
+    val states = petrinet.execute({(source, transition, target) =>{
+        transitions += (source.toString + "-" + transition.name + "->" + target.toString)
+      }}, core)
 
     val actions = createActions(petrinet)
     val relations = createActionRelations(actions)
