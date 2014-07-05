@@ -2,6 +2,10 @@ package utgenome
 
 import sbt._
 import Keys._
+import sbtassembly.Plugin._
+import AssemblyKeys._
+
+//assemblySettings
 
 object ProjectBuild extends Build {
 
@@ -10,6 +14,7 @@ object ProjectBuild extends Build {
     base = file("."),
     settings = 
     Defaults.defaultSettings 
+    ++ assemblySettings
     ++ Seq(PackageTask.packageDistTask) 
     ++ PackageTask.distSettings 
     ++ Seq(

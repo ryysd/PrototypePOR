@@ -129,7 +129,7 @@ object Petrinet {
     }
 
     parser.parse(args, Config()) map { config =>
-      val petrinet = PNML.parse(config.pnml)
+      val petrinet = PNML.parse(config.pnml, config.debug)
       val json = ATSFileGenerator.generate(petrinet, config.core)
       val out = new PrintWriter(config.out)
       out.println(json)
