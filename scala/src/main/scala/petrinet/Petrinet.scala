@@ -91,8 +91,8 @@ case class Petrinet(places :Map[String, Place], transitions :Map[String, Transit
 
       if(!states.contains(state.toString)) {
         states += (state.toString -> state)
+        if(debug && states.size % 10000 == 0) println(states.size + "states are expanded")
         state.successors(incidenceColumVectors, transitions).foreach{case (transition, successor) => {
-          if(debug && states.size % 10000 == 0) println(states.size + "states are expanded")
           callback(state, transition, successor)
           stack.push(successor)
         }}
