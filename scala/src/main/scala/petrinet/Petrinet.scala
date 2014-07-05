@@ -108,7 +108,7 @@ case class Petrinet(places :Map[String, Place], transitions :Map[String, Transit
   }
 }
 
-case class Config(pnml :String = "", out :String = "", debug :Boolean = false, ats :Boolean = true, core :Int = 1)
+case class Config(pnml :String = "", out :String = "", debug :Boolean = false, ats :Boolean = true, stateSpace :Boolean = false, core :Int = 1)
 
 object Petrinet {
   def main(args:Array[String]) = {
@@ -121,6 +121,8 @@ object Petrinet {
         c.copy(out = x) } text("out is a file name of output file")
       opt[Int]('w', "worker-num") required() valueName("<worker-num>") action { (x, c) =>
         c.copy(core = x) } text("worker-num is a number of workers")
+      opt[Unit]("state-space") hidden() action { (_, c) =>
+        c.copy(stateSpace = true) } text("this option is hidden in the usage text")
       opt[Unit]("debug") hidden() action { (_, c) =>
         c.copy(debug = true) } text("this option is hidden in the usage text")
       opt[Unit]("ats") hidden() action { (_, c) =>
