@@ -66,8 +66,8 @@ class ProbeReducer < Reducer
     p += new_probe_set
   end
 
-  def reduce
-    super
+  def reduce(check_all = true)
+    super()
 
     @states.each{|s| s.reduced = true}
 
@@ -82,6 +82,7 @@ class ProbeReducer < Reducer
       Debug.dputs "(#{vector.state.name}, #{vector.word.to_s})"
 
       visit state
+      break if !check_all && state.deadlock?
 
       missed_actions = vector.fresh_missed_action @actions, @missed_actions
       missed_actions.each do |vm|

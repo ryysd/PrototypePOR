@@ -44,6 +44,10 @@ class State
     !(after w).nil?
   end
 
+  def deadlock?
+    @transitions.empty?
+  end
+
   def []=(action, dst)
     @transitions.push Transition.new self, action, dst
   end

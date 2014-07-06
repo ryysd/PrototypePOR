@@ -1,1 +1,0 @@
-{"name":"FMS-2","execution_time":32,"validation":{"deadlock_states":0,"reachable_deadlock_states":0,"valid":true},"result":{"full_state_space":3444,"reduced_state_space":3444,"reduction_rate":98.78048780487805}}

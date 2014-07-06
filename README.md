@@ -11,6 +11,7 @@ usage
     --disable-reduction - Generate state space without reduction
     --use-cache         - Use existing ats file. ats file is created only if it does not exis
     --use-scala         - Use scala petrinet implementation
+    --all               - Continue reduction, even if a deadlock state is found
 ### PNML (PetriNet Markup Language) ###
 This script generate state space using petrinet model.
 

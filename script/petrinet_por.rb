@@ -3,7 +3,7 @@ require 'fileutils'
 require_relative '../src/util/debug'
 
 class ScriptEnv
-  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file, :use_scala
+  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file, :use_scala, :check_all
 
   def initialize
     @debug = @@params['debug']
@@ -13,10 +13,11 @@ class ScriptEnv
     @use_cache = @@params['use-cache']
     @output_file = @@params['out']
     @use_scala = @@params['use-scala']
+    @check_all = @@params['all']
     @script_path = './src'
   end
 
-  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'out:', 'use-cache', 'use-scala'
+  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'out:', 'use-cache', 'use-scala', 'all'
   file_name = File.basename @@params['pnml'], '.*'
   tmp_dir = "./tmp/#{file_name}"
   FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
@@ -68,7 +69,8 @@ if !env.use_cache || !(File.exist? env.ats_json_file)
   end
 end
 
-options = {ats: env.ats_json_file, 'full-dot' => env.png ? env.full_dot_file : false,  'reduced-dot' => env.png ? env.reduced_dot_file : false, debug: env.debug, name: (File.basename env.pnml_file, '.*'), o: env.output_file}
+options = {ats: env.ats_json_file, 'full-dot' => env.png ? env.full_dot_file : false,  'reduced-dot' => env.png ? env.reduced_dot_file : false, debug: env.debug, 
+	   name: (File.basename env.pnml_file, '.*'), o: env.output_file, all: env.check_all}
 exit unless execute_script "#{env.script_path}/por/por.rb", options, 'reduce state space...' unless env.disable_reduction
 
 if env.png

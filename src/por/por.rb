@@ -22,7 +22,7 @@ end
 
 timer = SimpleTimer.new true
 reducer = ProbeReducer.new state_space, actions
-states = reducer.reduce
+states = reducer.reduce env.check_all
 execution_time = timer.stop
 Dumper.puts_success "execution time: #{execution_time} ms"
 Dumper.dputs
@@ -36,9 +36,15 @@ end
 deadlock_states = state_space.deadlock_states
 reachable_deadlock_states = state_space.reachable_deadlock_states
 Dumper.puts_success 'validation -----------------------------------------------'
-Dumper.puts_success "deadlock states            : #{deadlock_states.length}"
-Dumper.puts_success "deadlock states (reachable): #{reachable_deadlock_states.length}"
-Dumper.print_success "valid: "; Dumper.puts_boolean (deadlock_states.length == reachable_deadlock_states.length)
+if env.check_all
+  Dumper.puts_success "deadlock states            : #{deadlock_states.length}"
+  Dumper.puts_success "deadlock states (reachable): #{reachable_deadlock_states.length}"
+  Dumper.print_success "valid: "; Dumper.puts_boolean (deadlock_states.length == reachable_deadlock_states.length)
+else
+  Dumper.puts_success "deadlock states            : #{deadlock_states.empty? ? 'NOT FOUND' : 'FOUND'}"
+  Dumper.puts_success "deadlock states (reachable): #{reachable_deadlock_states.empty? ? 'NOT FOUND' : 'FOUND'}"
+  Dumper.print_success "valid: "; Dumper.puts_boolean (deadlock_states.empty? == reachable_deadlock_states.empty?)
+end
 Dumper.puts_success '-----------------------------------------------------------'
 Dumper.dputs
 
