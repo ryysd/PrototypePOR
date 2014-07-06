@@ -11,9 +11,31 @@ class Reducer
   def initialize(states, actions)
     @states = states
     @actions = actions
-    @probe_set = {}
-    @visited = []
+    @visited = {}
+  end
 
+  def visit(state)
+    Debug.puts_error 'nil state is visited.' if state.nil?
+    Debug.dputs state.name
+
+    state.reduced = false
+    @visited[state.name] = true
+  end
+
+  def visited?(state)
+    @visited[state.name] || false
+  end
+
+  def reduce
+    @visited = {}
+  end
+end
+
+class ProbeReducer < Reducer
+  def initialize(states, actions)
+    super
+
+    @probe_set = {}
     @missed_actions = {}
   end
 
@@ -31,21 +53,10 @@ class Reducer
     p += new_probe_set
   end
 
-  def visit(state)
-    Debug.puts_error 'nil state is visited.' if state.nil?
-    Debug.dputs state.name
+  def reduce
+    super
 
-    state.reduced = false
-    @visited[state.name] = true
-  end
-
-  def visited?(state)
-    @visited[state.name] || false
-  end
-
-  def reduce(use_pma = false)
     @states.each{|s| s.reduced = true}
-    @visited = {}
 
     work_queue = [(Vector.new @states.init, Word.new([]))]
 

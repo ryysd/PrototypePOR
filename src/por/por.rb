@@ -21,7 +21,7 @@ unless env.full_dot_file.nil?
 end
 
 timer = SimpleTimer.new true
-reducer = Reducer.new state_space, actions
+reducer = ProbeReducer.new state_space, actions
 states = reducer.reduce
 execution_time = timer.stop
 Dumper.puts_success "execution time: #{execution_time} ms"
