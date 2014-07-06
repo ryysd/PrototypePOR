@@ -1,10 +1,13 @@
 class Action
-  attr_reader :name, :simulates, :disables, :creator, :reader, :eraser, :embargoes
+  attr_reader :name, :simulates, :disables, :creator, :reader, :eraser, :embargoes, :age
 
   def initialize(name, creator=[], reader=[], eraser=[], embargoes=[])
     @name = name
     @simulates = {}
     @disables = {}
+
+    # for fairness
+    @age = 0
 
     # for pma
     @creator = creator
@@ -45,6 +48,14 @@ class Action
     end
 
     Word.new (w.actions.zip rest_flags).map{|a, rest| rest ? a : nil}.compact
+  end
+
+  def inc_age
+    @age += 1
+  end
+
+  def reset_age
+    @age = 0
   end
 
   def ==(a)

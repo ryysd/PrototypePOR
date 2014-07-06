@@ -39,6 +39,18 @@ class ProbeReducer < Reducer
     @missed_actions = {}
   end
 
+  def choose_first_probe_set(enable_actions)
+    #enable_actions.first
+    enable_actions.sort{|a, b| a.name <=> b.name}.first
+    #enable_actions.sort{|a, b| a.name <=> b.name}.max{|a, b| a.age <=> b.age}
+  end
+
+  def age_heuristics(probe_set, enable_actions)
+    unprobe_set = enable_actions - probe_set
+    unprobe_set.each{|a| a.inc_age}
+    probe_set.each{|a| a.reset_age}
+  end
+
   def probe_set(v)
     return [] if v.after.enable_actions.empty?
 
@@ -46,9 +58,10 @@ class ProbeReducer < Reducer
     @probe_set[v] = [] unless @probe_set.has_key? v
 
     p = @probe_set[v]
-    p.push v.after.enable_actions.sort{|a, b| a.name <=> b.name}.first if p.empty?
-    #p.push v.after.enable_actions.first if p.empty?
+    enable_actions = v.after.enable_actions
+    p.push choose_first_probe_set enable_actions if p.empty?
     p.each{|a| v.after.enable_actions.each{|b| new_probe_set.push b if (b.disable? a) && (!p.include? b)}}
+    #age_heuristics(p, enable_actions)
 
     p += new_probe_set
   end
