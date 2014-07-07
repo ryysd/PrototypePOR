@@ -51,4 +51,16 @@ class State
   def []=(action, dst)
     @transitions.push Transition.new self, action, dst
   end
+
+  def ==(other)
+    @name == other.name
+  end
+
+  def hash
+    @name.hash
+  end
+
+  def eql?(other)
+    self == other
+  end
 end

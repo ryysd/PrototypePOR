@@ -23,6 +23,6 @@ class State
       end
     end
 
-    dependences
+    dependences.uniq
   end
 end

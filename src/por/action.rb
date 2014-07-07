@@ -58,8 +58,16 @@ class Action
     @age = 0
   end
 
-  def ==(a)
-    @name == a.name
+  def ==(other)
+    @name == other.name
+  end
+
+  def hash
+    @name.hash
+  end
+
+  def eql?(other)
+    self == other
   end
 
   def to_s
