@@ -51,6 +51,8 @@ def execute_script(script, options, message, bin = 'ruby', stdout = nil)
   system cmd
 end
 
+png_source = env.reduced_dot_file
+png_file = env.reduced_png_file
 if !env.use_cache || !(File.exist? env.ats_json_file)
   if env.disable_reduction
     options = {pnml: env.pnml_file, debug: env.debug, out: env.full_dot_file, 'state-space' => nil}
