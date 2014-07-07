@@ -19,7 +19,7 @@ class State
     actions.each do |a|
       actions.each do |b|
 	next if a == b
-	ependences.push a, b if !(independence? a, b)
+	dependences.push a, b if !(independence? a, b)
       end
     end
 
