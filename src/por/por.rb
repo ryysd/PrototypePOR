@@ -7,6 +7,9 @@ require_relative '../util/colored_string'
 require_relative '../util/simple_timer'
 
 env = POREnv.new
+require_relative "./#{env.algorithm}/state"
+require_relative "./#{env.algorithm}/reducer"
+
 ats = ATSFileReader.read env.ats_file
 
 actions = ats[:action_table]
@@ -21,7 +24,7 @@ unless env.full_dot_file.nil?
 end
 
 timer = SimpleTimer.new true
-reducer = ProbeReducer.new state_space, actions
+reducer = Reducer.new state_space, actions
 states = reducer.reduce env.check_all
 execution_time = timer.stop
 Dumper.puts_success "execution time: #{execution_time} ms"
