@@ -13,58 +13,90 @@
 #include "../../thirdparty//logger.h"
 
 class Transition;
+
+/*! @class State
+ *  @brief class representing state
+ *  Do not use STL container to keep performance.
+*/
 class State {
  public:
-    State(std::string name, std::vector<Transition> transitions, std::vector<std::string> entities)
-      : name_(name), transitions_(transitions), entities_(entities), reduced_(false) {}
+  State(const char* name, const Transition* transitions, const char** entities)
+    : name_(name), transitions_(transitions), entities_(entities), reduced_(false) {}
 
-    bool reduced() { return reduced_; }
-    std::string& name() { return name_; }
-    std::vector<Transition>& transitions() { return transitions_; }
-    std::vector<std::string> entities() { return entities_; }
+  bool reduced() { return reduced_; }
+  const char* name() { return name_; }
+  const Transition* transitions() { return transitions_; }
+  const char** entities() { return entities_; }
 
  private:
-    bool reduced_;
-    std::string name_;
-    std::vector<Transition> transitions_;
-    std::vector<std::string> entities_;
+  bool reduced_;
+  const char* name_;
+  const Transition* transitions_;
+  const char** entities_;
 };
 
+/*! @class Action
+ *  @brief class representing action
+ *  Do not use STL container to keep performance.
+*/
 class Action {
  public:
   typedef std::vector<std::string> EntitySet;
-  Action(std::string name, EntitySet creator, EntitySet reader, EntitySet eraser, EntitySet embargoes)
+  Action(const char* name, const char** creator, const char** reader, const char** eraser, const char** embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
 
-  std::string& name() { return name_; }
-  EntitySet& creator() { return creator_; }
-  EntitySet& reader() { return reader_; }
-  EntitySet& eraser() { return eraser_; }
-  EntitySet& embargoes() { return embargoes_; }
+  const char* name() { return name_; }
+  const char** creator() { return creator_; }
+  const char** reader() { return reader_; }
+  const char** eraser() { return eraser_; }
+  const char** embargoes() { return embargoes_; }
  private:
-  std::string name_;
-  EntitySet creator_;
-  EntitySet reader_;
-  EntitySet eraser_;
-  EntitySet embargoes_;
+  const char* name_;
+  const char** creator_;
+  const char** reader_;
+  const char** eraser_;
+  const char** embargoes_;
 };
 
+/*! @class Transition
+ *  @brief class representing transition
+ *  Do not use STL container to keep performance.
+*/
 class Transition {
  public:
-  Transition(State source, State target, Action action)
+  Transition(const State* source, const State* target, const Action* action)
     : source_(source), target_(target), action_(action) {}
 
-  State& source() { return source_; }
-  State& target() { return target_; }
-  Action& action() { return action_; }
+  const State* source() { return source_; }
+  const State* target() { return target_; }
+  const Action* action() { return action_; }
 
  private:
-  State source_;
-  State target_;
-  Action action_;
+  const State* source_;
+  const State* target_;
+  const Action* action_;
 };
 
 class StateSpace {
+ public:
+  ~StateSpace() {
+    FreeStates();
+    FreeTransitions();
+  }
+
+  void Add(State* state) { states_.push_back(state); }
+
+  std::vector<State*>& states() { return states_; }
+  std::vector<Transition*> transitions() { return transitions_; }
+  State* init_state() { return init_state_; }
+
+ private:
+  void FreeStates() { for (State* s : states_) { delete(s); } }
+  void FreeTransitions() { for (Transition* t : transitions_) { delete(t); }}
+
+  std::vector<State*> states_;
+  std::vector<Transition*> transitions_;
+  State* init_state_;
 };
 
 class Word {
@@ -80,6 +112,7 @@ class ATSFileReader {
  public:
   static void* Read(std::string fname) {
     std::ifstream ifs(fname);
+    std::cout << sizeof(State);
 
     if (ifs.fail()) {
       ERROR("cannot open %s", fname.c_str());
