@@ -16,6 +16,7 @@ class Transition;
 
 /*! @class State
  *  @brief class representing state
+ *
  *  Do not use STL container to keep performance.
 */
 class State {
@@ -37,6 +38,7 @@ class State {
 
 /*! @class Action
  *  @brief class representing action
+ *
  *  Do not use STL container to keep performance.
 */
 class Action {
@@ -60,6 +62,7 @@ class Action {
 
 /*! @class Transition
  *  @brief class representing transition
+ *
  *  Do not use STL container to keep performance.
 */
 class Transition {
