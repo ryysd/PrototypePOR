@@ -9,5 +9,5 @@
 #include "./util/atS_file_reader.h"
 
 int main() {
-  ATSFileReader::Read("aaaaaaaa");
+  ATSFileReader::Read("../tmp/sample_small/ats.json");
 }
