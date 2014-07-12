@@ -18,36 +18,36 @@
 TypeName(const TypeName&); \
 void operator=(const TypeName&)
 
+typedef std::vector<std::string> EntitySet;
+
 /*! @class Action
  *  @brief class representing action
- *
- *  Do not use STL container to keep performance.
 */
 class Action {
  public:
   typedef std::vector<std::string> EntitySet;
-  Action(const char* name, const char** creator, const char** reader, const char** eraser, const char** embargoes)
+  Action(const std::string name, EntitySet creator, EntitySet eraser, EntitySet reader, EntitySet embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
 
-  const char* name() const { return name_; }
-  const char** creator() const { return creator_; }
-  const char** reader() const { return reader_; }
-  const char** eraser() const { return eraser_; }
-  const char** embargoes() const { return embargoes_; }
+  const std::string& name() const { return name_; }
+  const EntitySet& creator() const { return creator_; }
+  const EntitySet& reader() const { return reader_; }
+  const EntitySet& eraser() const { return eraser_; }
+  const EntitySet& embargoes() const { return embargoes_; }
 
  private:
-  const char* name_;
-  const char** creator_;
-  const char** reader_;
-  const char** eraser_;
-  const char** embargoes_;
+  const std::string name_;
+  const EntitySet creator_;
+  const EntitySet reader_;
+  const EntitySet eraser_;
+  const EntitySet embargoes_;
+
+  DISALLOW_COPY_AND_ASSIGN(Action);
 };
 
 class State;
 /*! @class Transition
  *  @brief class representing transition
- *
- *  Do not use STL container to keep performance.
 */
 class Transition {
  public:
@@ -68,8 +68,6 @@ class Transition {
 
 /*! @class State
  *  @brief class representing state
- *
- *  Do not use STL container to keep performance.
 */
 class State {
  public:
@@ -145,6 +143,30 @@ class Vector {
 };
 
 class ActionTable {
+ public:
+  ~ActionTable() { for (Action* a : actions_) { delete(a); }}
+
+  void Register(Action* action) { actions_.push_back(action); }
+  Action* Create(const std::string& name, const EntitySet& creator, const EntitySet& eraser, const EntitySet& reader, const EntitySet& embargoes) {
+    const Action* old = FindByName(name);
+
+    if (old == NULL) {
+      Action* action = new Action(name, creator, eraser, reader, embargoes);
+      Register(action);
+
+      return action;
+    }
+
+    return const_cast<Action*>(old);
+  }
+
+  const Action* FindByName(const std::string& name) const {
+    auto it = std::find_if(actions_.begin(), actions_.end(), [&name] (Action* a) { return a->name() == name; } );
+    return (it != actions_.end()) ? reinterpret_cast<const Action*>(&(*it)) : NULL;
+  }
+
+ private:
+  std::vector<Action*> actions_;
 };
 
 class ATSFileReader {
@@ -179,7 +201,14 @@ class ATSFileReader {
       State* source, *target;
       std::vector<std::string> source_entities, target_entities;
       picojson::array& transitions_array = lts_object["transitions"].get<picojson::array>();
+      DEBUG("size: %d\n", transitions_array.size());
+      int debug_count = 0;
       for (picojson::value& transition : transitions_array) {
+        debug_count++;
+        if (debug_count % 1000 == 0) {
+          DEBUG("count: %d\n", debug_count);
+        }
+
         if (regex_match(transition.get<std::string>(), match_results, regex)) {
           ATSFileReader::CreateState(match_results.str(1), &entities_object, state_space);
           ATSFileReader::CreateState(match_results.str(3), &entities_object, state_space);
