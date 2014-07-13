@@ -16,8 +16,8 @@ class ATSFileGenerator
 
     actions.each do |a|
       actions.each do |b|
-	relations.push "#{a.name} s #{b.name}" if a.simulate? b
-	relations.push "#{a.name} d #{b.name}" if a.disable? b
+	relations.push "#{a.name}-s-#{b.name}" if a.simulate? b
+	relations.push "#{a.name}-d-#{b.name}" if a.disable? b
       end
     end
 
@@ -36,7 +36,7 @@ class ATSFileGenerator
   def self.generate(petrinet)
     transitions = []
     states = petrinet.execute do |source, transition, target|
-      transitions.push "#{source.to_s}-#{transition.name}->#{target.to_s}"
+      transitions.push "#{source.to_s}-#{transition.name}-#{target.to_s}"
     end
     Debug.puts_success "number of states: #{states.length}"
 

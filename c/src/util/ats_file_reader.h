@@ -8,15 +8,26 @@
 
 #include <string>
 #include <fstream>
-#include <regex> // NOLINT
 #include <vector>
 #include <algorithm>
+#include <map>
 #include "../../thirdparty/picojson.h"
 #include "../../thirdparty//logger.h"
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
 TypeName(const TypeName&); \
 void operator=(const TypeName&)
+
+std::vector<std::string> split(const std::string& str, char delim){
+  std::vector<std::string> res;
+  size_t current = 0, found;
+  while((found = str.find_first_of(delim, current)) != std::string::npos){
+    res.push_back(std::string(str, current, found - current));
+    current = found + 1;
+  }
+  res.push_back(std::string(str, current, str.size() - current));
+  return res;
+}
 
 typedef std::vector<std::string> EntitySet;
 
@@ -28,6 +39,12 @@ class Action {
   typedef std::vector<std::string> EntitySet;
   Action(const std::string name, EntitySet creator, EntitySet eraser, EntitySet reader, EntitySet embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
+
+  void Simulate(const Action* action) { simulates_.insert(make_pair(action->name(), true)); }
+  void Disable(const Action* action) { disables_.insert(make_pair(action->name(), true)); }
+
+  bool isSimulate(const Action* action) const { return simulates_.find(action->name()) != simulates_.end(); }
+  bool isDisable(const Action* action) const { return disables_.find(action->name()) != disables_.end(); }
 
   const std::string& name() const { return name_; }
   const EntitySet& creator() const { return creator_; }
@@ -41,6 +58,9 @@ class Action {
   const EntitySet reader_;
   const EntitySet eraser_;
   const EntitySet embargoes_;
+
+  std::map<std::string, bool> simulates_;
+  std::map<std::string, bool> disables_;
 
   DISALLOW_COPY_AND_ASSIGN(Action);
 };
@@ -76,9 +96,9 @@ class State {
 
   ~State() { for (Transition* t : transitions_) { delete t; } }
 
-  void AddTransition(State* target, Action* action) { transitions_.push_back(new Transition(this, target, action)); }
+  void AddTransition(const State* target, const Action* action) { transitions_.push_back(new Transition(this, target, action)); }
 
-  bool reduced() { return reduced_; }
+  bool reduced() const { return reduced_; }
   const std::string& name() const { return name_; }
   const std::vector<Transition*>& transitions() const { return transitions_; }
   const std::vector<std::string>& entities() const { return entities_; }
@@ -101,8 +121,8 @@ class StateSpace {
     FreeTransitions();
   }
 
-  void Register(State* state) { states_.push_back(state); }
-  bool isRegistered(State* state) const { return std::find(states_.begin(), states_.end(), state) != states_.end();  }
+  void Register(State* state) { states_.insert(make_pair(state->name(), state)); }
+  bool isRegistered(const std::string& name) const { return states_.find(name) != states_.end();  }
 
   State* Create(const std::string& name, const std::vector<std::string>& entities, bool is_init = false) {
     const State* old = FindByName(name);
@@ -119,19 +139,19 @@ class StateSpace {
   }
 
   const State* FindByName(const std::string& name) const {
-    auto it = std::find_if(states_.begin(), states_.end(), [&name] (State* s) { return s->name() == name; } );
-    return (it != states_.end()) ? reinterpret_cast<const State*>(&(*it)) : NULL;
+    auto it = states_.find(name);
+    return (it != states_.end()) ? reinterpret_cast<const State*>(it->second) : NULL;
   }
 
-  const std::vector<State*>& states() const { return states_; }
+  const std::map<std::string, State*>& states() const { return states_; }
   const std::vector<Transition*> transitions() const { return transitions_; }
   const State* init_state() const { return init_state_; }
 
  private:
-  void FreeStates() { for (State* s : states_) { delete(s); } }
+  void FreeStates() { for (auto& kv : states_) { delete kv.second; } }
   void FreeTransitions() { for (Transition* t : transitions_) { delete(t); }}
 
-  std::vector<State*> states_;
+  std::map<std::string, State*> states_;
   std::vector<Transition*> transitions_;
   State* init_state_;
 };
@@ -144,9 +164,9 @@ class Vector {
 
 class ActionTable {
  public:
-  ~ActionTable() { for (Action* a : actions_) { delete(a); }}
+  ~ActionTable() { for (auto &kv : actions_) { delete kv.second; }}
 
-  void Register(Action* action) { actions_.push_back(action); }
+  void Register(Action* action) { actions_.insert(make_pair(action->name(), action)); }
   Action* Create(const std::string& name, const EntitySet& creator, const EntitySet& eraser, const EntitySet& reader, const EntitySet& embargoes) {
     const Action* old = FindByName(name);
 
@@ -161,62 +181,64 @@ class ActionTable {
   }
 
   const Action* FindByName(const std::string& name) const {
-    auto it = std::find_if(actions_.begin(), actions_.end(), [&name] (Action* a) { return a->name() == name; } );
-    return (it != actions_.end()) ? reinterpret_cast<const Action*>(&(*it)) : NULL;
+    auto it = actions_.find(name);
+    return (it != actions_.end()) ? reinterpret_cast<const Action*>(it->second) : NULL;
   }
 
+  const std::map<std::string, Action*> actions() const { return actions_; }
+
  private:
-  std::vector<Action*> actions_;
+  std::map<std::string, Action*> actions_;
 };
+
+void picojson_array_to_string_vector(const picojson::array& array, std::vector<std::string>* result) {
+  std::transform(array.begin(), array.end(), std::back_inserter(*result),
+      [](picojson::value value) { return value.get<std::string>(); });
+}
 
 class ATSFileReader {
  private:
-  static void GetEntity(const std::string& state_name, picojson::object* entities_object, std::vector<std::string>* entities) {
-    picojson::array& entities_array = (*entities_object)[state_name].get<picojson::array>();
-
-    std::transform(entities_array.begin(), entities_array.end(), std::back_inserter(*entities),
-        [](picojson::value value) { return value.get<std::string>(); });
-  }
-
-  static void CreateState(const std::string& state_name, picojson::object* entities_object, StateSpace* state_space, bool is_init = false) {
+  static State* CreateState(const std::string& state_name, const picojson::object& entities_object, StateSpace* state_space, bool is_init = false) {
     std::vector<std::string> entities;
-    ATSFileReader::GetEntity(state_name, entities_object, &entities);
-    state_space->Create(state_name, entities, is_init);
+
+    picojson_array_to_string_vector(entities_object.at(state_name).get<picojson::array>(), &entities);
+    return state_space->Create(state_name, entities, is_init);
   }
 
-  static StateSpace* CreateStateSpace(picojson::value* json_value) {
+  static Action* CreateAction(const std::string& action_name, const picojson::object& entities_object, ActionTable* action_table) {
+    const picojson::object& action_entities_object = entities_object.at(action_name).get<picojson::object>();
+    std::vector<std::string> creator, eraser, reader, embargoes;
+
+    picojson_array_to_string_vector(action_entities_object.at("c").get<picojson::array>(), &creator);
+    picojson_array_to_string_vector(action_entities_object.at("d").get<picojson::array>(), &eraser);
+    picojson_array_to_string_vector(action_entities_object.at("r").get<picojson::array>(), &reader);
+    picojson_array_to_string_vector(action_entities_object.at("n").get<picojson::array>(), &embargoes);
+
+    return action_table->Create(action_name, creator, eraser, reader, embargoes);
+  }
+
+  static StateSpace* CreateStateSpace(const picojson::value& json_value, ActionTable* action_table) {
     StateSpace* state_space = new StateSpace();
 
     try {
-      picojson::object& json_object = json_value->get<picojson::object>();
-      picojson::object& lts_object = json_object["lts"].get<picojson::object>();
-      picojson::object& entities_object = lts_object["states"].get<picojson::object>();
+      const picojson::object& json_object = json_value.get<picojson::object>();
+      const picojson::object& lts_object = json_object.at("lts").get<picojson::object>();
+      const picojson::object& entities_object = lts_object.at("states").get<picojson::object>();
 
-      std::string init_state_name = lts_object["init"].get<std::string>();
-      ATSFileReader::CreateState(init_state_name, &entities_object, state_space, true);
+      std::string init_state_name = lts_object.at("init").get<std::string>();
+      ATSFileReader::CreateState(init_state_name, entities_object, state_space, true);
 
-      std::regex regex("([^-]+) *- *([^-]+) *-> *([^-]+)");
-      std::smatch match_results;
+      std::vector<std::string> split_result;
 
       State* source, *target;
-      std::vector<std::string> source_entities, target_entities;
-      picojson::array& transitions_array = lts_object["transitions"].get<picojson::array>();
-      DEBUG("size: %d\n", transitions_array.size());
-      int debug_count = 0;
-      for (picojson::value& transition : transitions_array) {
-        debug_count++;
-        if (debug_count % 1000 == 0) {
-          DEBUG("count: %d\n", debug_count);
-        }
+      const picojson::array& transitions_array = lts_object.at("transitions").get<picojson::array>();
+      for (const picojson::value& transition : transitions_array) {
+        split_result = split(transition.get<std::string>(), '-');
 
-        if (regex_match(transition.get<std::string>(), match_results, regex)) {
-          ATSFileReader::CreateState(match_results.str(1), &entities_object, state_space);
-          ATSFileReader::CreateState(match_results.str(3), &entities_object, state_space);
-          // TODO(ryysd) add action
-        } else {
-          ERROR("invalid transition is found.");
-          return NULL;
-        }
+        source = ATSFileReader::CreateState(split_result[0], entities_object, state_space);
+        target = ATSFileReader::CreateState(split_result[2], entities_object, state_space);
+
+        source->AddTransition(target, action_table->FindByName(split_result[1]));
       }
     } catch(...) {
       ERROR("cannot parse 'lts' record.");
@@ -226,23 +248,40 @@ class ATSFileReader {
     return state_space;
   }
 
-  static ActionTable* CreateActionTable(picojson::value* json_value) {
+  static ActionTable* CreateActionTable(const picojson::value& json_value) {
     ActionTable* action_table = new ActionTable();
 
     try {
+      const picojson::object& json_object = json_value.get<picojson::object>();
+      const picojson::object& action_object = json_object.at("actions").get<picojson::object>();
+      const picojson::object& entities_object = action_object.at("entities").get<picojson::object>();
+
+      std::vector<std::string> split_result;
+
+      Action* source, *target;
+      const picojson::array& relations_array = action_object.at("relations").get<picojson::array>();
+      for (const picojson::value& relation : relations_array) {
+        split_result = split(relation.get<std::string>(), '-');
+        source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
+        target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
+
+        (split_result[1] == "s") ? source->Simulate(target) : target->Disable(target);
+      }
     } catch(...) {
       ERROR("cannot parse 'actions' record.");
       return NULL;
     }
+
+    return action_table;
   }
 
  public:
-  static void* Read(std::string fname) {
+  static const std::pair<StateSpace*, ActionTable*> Read(std::string fname) {
     std::ifstream ifs(fname);
 
     if (ifs.fail()) {
       ERROR("cannot open %s.", fname.c_str());
-      return NULL;
+      return std::make_pair<StateSpace*, ActionTable*>(NULL, NULL);
     }
 
     std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
@@ -253,12 +292,13 @@ class ATSFileReader {
 
     if (!err.empty()) {
       ERROR(err.c_str());
-      return NULL;
+      return std::make_pair<StateSpace*, ActionTable*>(NULL, NULL);
     }
 
-    StateSpace* state_space = ATSFileReader::CreateStateSpace(&json_value);
+    ActionTable* action_table = ATSFileReader::CreateActionTable(json_value);
+    StateSpace* state_space = ATSFileReader::CreateStateSpace(json_value, action_table);
 
-    return NULL;
+    return std::make_pair(state_space, action_table);
   }
 };
 
