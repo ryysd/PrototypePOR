@@ -35,8 +35,12 @@ std::vector<std::string> split(const std::string& str, char delim){
 
 class Profiler {
  public:
-   Profiler() {}
-   ~Profiler() { for (auto kv : timers_) { delete kv.second; } }
+  ~Profiler() { for (auto kv : timers_) { delete kv.second; } }
+
+  static Profiler& GetInstance() {
+    static Profiler instance;
+    return instance;
+  }
 
   void Start(const std::string& name) {
     if (timers_.find(name) == timers_.end()) timers_.insert(std::make_pair(name, new ProfilerTimer()));
@@ -77,6 +81,8 @@ class Profiler {
   }
 
  private:
+  Profiler() {}
+
   std::string MakeLabels(const std::vector<std::string>& labels, unsigned column_width, const std::string& separator) const {
     std::stringstream ss;
     for (auto label : labels) { ss << std::setw(column_width) << label << separator; }
@@ -136,6 +142,12 @@ class Profiler {
 
   DISALLOW_COPY_AND_ASSIGN(Profiler);
 };
+
+inline void profile_start(const std::string& name) { Profiler::GetInstance().Start(name); }
+inline void profile_stop(const std::string& name) { Profiler::GetInstance().Stop(name); }
+inline void profile_scope_start() { Profiler::GetInstance().Start("total"); }
+inline void profile_scope_end() { Profiler::GetInstance().Stop("total"); }
+inline void profile_dump() { Profiler::GetInstance().Dump(); }
 
 typedef std::vector<std::string> EntitySet;
 
@@ -388,8 +400,7 @@ class ATSFileReader {
 
  public:
   static const std::pair<StateSpace*, ActionTable*> Read(std::string fname) {
-    Profiler profiler;
-    profiler.Start("total");
+    profile_scope_start();
 
     std::ifstream ifs(fname,  std::ios::in | std::ios::binary);
 
@@ -401,29 +412,29 @@ class ATSFileReader {
     picojson::value json_value;
     std::string error;
 
-    profiler.Start("parse");
+    profile_start("parse");
     ifs >> json_value;
     error = picojson::get_last_error();
-    profiler.Stop("parse");
+    profile_stop("parse");
 
     if (!error.empty()) {
       ERROR(error.c_str());
       return std::make_pair<StateSpace*, ActionTable*>(NULL, NULL);
     }
 
-    profiler.Start("gen_actions");
+    profile_start("gen_actions");
     ActionTable* action_table = ATSFileReader::CreateActionTable(json_value);
-    profiler.Stop("gen_actions");
+    profile_stop("gen_actions");
 
-    profiler.Start("gen_states");
+    profile_start("gen_states");
     StateSpace* state_space = ATSFileReader::CreateStateSpace(json_value, action_table);
-    profiler.Stop("gen_states");
+    profile_stop("gen_states");
 
     std::cout << action_table->actions().size() << std::endl;
     std::cout << state_space->states().size() << std::endl;
 
-    profiler.Stop("total");
-    profiler.Dump();
+    profile_scope_end();
+    profile_dump();
 
     return std::make_pair(state_space, action_table);
   }
