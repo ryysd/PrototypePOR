@@ -299,22 +299,33 @@ void picojson_array_to_string_vector(const picojson::array& array, std::vector<s
 class ATSFileReader {
  private:
   static State* CreateState(const std::string& state_name, const picojson::object& entities_object, StateSpace* state_space, bool is_init = false) {
-    std::vector<std::string> entities;
+    State* old = state_space->FindByName(state_name);
 
-    picojson_array_to_string_vector(entities_object.at(state_name).get<picojson::array>(), &entities);
-    return state_space->Create(state_name, entities, is_init);
+    if (old == NULL) {
+      std::vector<std::string> entities;
+      picojson_array_to_string_vector(entities_object.at(state_name).get<picojson::array>(), &entities);
+      return state_space->Create(state_name, entities, is_init);
+    }
+
+    return old;
   }
 
   static Action* CreateAction(const std::string& action_name, const picojson::object& entities_object, ActionTable* action_table) {
     const picojson::object& action_entities_object = entities_object.at(action_name).get<picojson::object>();
-    std::vector<std::string> creator, eraser, reader, embargoes;
+    Action* old = action_table->FindByName(action_name);
 
-    picojson_array_to_string_vector(action_entities_object.at("c").get<picojson::array>(), &creator);
-    picojson_array_to_string_vector(action_entities_object.at("d").get<picojson::array>(), &eraser);
-    picojson_array_to_string_vector(action_entities_object.at("r").get<picojson::array>(), &reader);
-    picojson_array_to_string_vector(action_entities_object.at("n").get<picojson::array>(), &embargoes);
+    if (old == NULL) {
+      std::vector<std::string> creator, eraser, reader, embargoes;
 
-    return action_table->Create(action_name, creator, eraser, reader, embargoes);
+      picojson_array_to_string_vector(action_entities_object.at("c").get<picojson::array>(), &creator);
+      picojson_array_to_string_vector(action_entities_object.at("d").get<picojson::array>(), &eraser);
+      picojson_array_to_string_vector(action_entities_object.at("r").get<picojson::array>(), &reader);
+      picojson_array_to_string_vector(action_entities_object.at("n").get<picojson::array>(), &embargoes);
+
+      return action_table->Create(action_name, creator, eraser, reader, embargoes);
+    }
+
+    return old;
   }
 
   static StateSpace* CreateStateSpace(const picojson::value& json_value, ActionTable* action_table) {
@@ -380,26 +391,23 @@ class ATSFileReader {
     Profiler profiler;
     profiler.Start("total");
 
-    std::ifstream ifs(fname);
+    std::ifstream ifs(fname,  std::ios::in | std::ios::binary);
 
     if (ifs.fail()) {
       ERROR("cannot open %s.", fname.c_str());
       return std::make_pair<StateSpace*, ActionTable*>(NULL, NULL);
     }
 
-    profiler.Start("read");
-    std::string json((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-    profiler.Stop("read");
-
     picojson::value json_value;
-    std::string err;
+    std::string error;
 
     profiler.Start("parse");
-    picojson::parse(json_value, json.data(), json.data() + json.length(), &err);
+    ifs >> json_value;
+    error = picojson::get_last_error();
     profiler.Stop("parse");
 
-    if (!err.empty()) {
-      ERROR(err.c_str());
+    if (!error.empty()) {
+      ERROR(error.c_str());
       return std::make_pair<StateSpace*, ActionTable*>(NULL, NULL);
     }
 
