@@ -24,3 +24,6 @@ project/plugins/project/
 
 c/build/
 c/build/*
+
+gtest-svn/
+gtest-svn/*

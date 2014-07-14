@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -Wextra -Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3")
 
-# include_directories(include)
+include_directories($ENV{GTEST_DIR}/include)
 # link_directories(lib) 
 
 # set_target_properties(hellodemo LINK_FLAGS -lc)
@@ -17,4 +17,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3")
 
 ADD_EXECUTABLE(por_module ${PROJECT_SOURCE_DIR}/src/main.cc)
 
-# target_link_libraries(hellodemo hello_lib) 
+target_link_libraries(por_module $ENV{GTEST_DIR}/build/libgtest.a $ENV{GTEST_DIR}/build/libgtest_main.a) 
