@@ -5,12 +5,12 @@
 #include <string>
 #include <vector>
 
+typedef std::vector<std::string> EntitySet;
 /*! @class Action
  *  @brief class representing action
 */
 class Action {
  public:
-  typedef std::vector<std::string> EntitySet;
   Action(const std::string name, EntitySet creator, EntitySet eraser, EntitySet reader, EntitySet embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
 

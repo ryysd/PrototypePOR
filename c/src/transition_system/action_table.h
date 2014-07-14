@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-typedef std::vector<std::string> EntitySet;
 class ActionTable {
  public:
   ActionTable() {}

@@ -13,7 +13,7 @@ class StateSpace {
     FreeTransitions();
   }
 
-  State* Register(State* state) { return states_.insert(make_pair(state->name(), state)).first->second; }
+  State* Register(State* state) { return states_.insert(std::make_pair(state->name(), state)).first->second; }
   bool isRegistered(const std::string& name) const { return states_.find(name) != states_.end();  }
 
   State* Create(const std::string& name, const std::vector<std::string>& entities) {
