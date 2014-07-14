@@ -1,6 +1,9 @@
 PROJECT(PORModule)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+set(MODULE_NAME "por_module")
+set(TEST_MODULE_NAME "por_module_test")
+
 set(CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wextra -Wall")
@@ -15,7 +18,9 @@ include_directories($ENV{GTEST_DIR}/include)
 
 #add_definitions(-DDEBUG)
 
-ADD_EXECUTABLE(por_module ${PROJECT_SOURCE_DIR}/src/main.cc)
-ADD_EXECUTABLE(por_module_test ${PROJECT_SOURCE_DIR}/test/test_main.cc ${PROJECT_SOURCE_DIR}/test/test.cc)
+add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/src/main.cc)
 
-target_link_libraries(por_module_test $ENV{GTEST_DIR}/build/libgtest.a $ENV{GTEST_DIR}/build/libgtest_main.a) 
+file(GLOB CC_SOURCES ${PROJECT_SOURCE_DIR}/test/*.cc)
+add_executable(${TEST_MODULE_NAME} ${CC_SOURCES})
+
+target_link_libraries(${TEST_MODULE_NAME} $ENV{GTEST_DIR}/build/libgtest.a $ENV{GTEST_DIR}/build/libgtest_main.a) 
