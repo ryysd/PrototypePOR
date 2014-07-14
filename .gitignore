@@ -22,5 +22,5 @@ src_managed/
 project/boot/
 project/plugins/project/
 
-obj/
-c/bin/
+c/build/
+c/build/*

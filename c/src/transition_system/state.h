@@ -10,7 +10,7 @@
 class State {
  public:
   State(const std::string name, const std::vector<std::string> entities)
-    : name_(name), entities_(entities), reduced_(false) {}
+    : reduced_(false), name_(name), entities_(entities) {}
 
   ~State() { for (Transition* t : transitions_) { delete t; } }
 
