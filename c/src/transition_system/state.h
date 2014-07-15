@@ -25,12 +25,29 @@ class State {
 
   void AddTransition(const State* target, const Action* action) { transitions_.push_back(new Transition(this, target, action)); }
 
+  const State* After(const Action* action) const {
+    if (!action) return NULL;
+
+    auto it = std::find_if(transitions_.begin(), transitions_.end(), [action](const Transition* t) { return t->action()->Equals(action); });
+    return it == transitions_.end() ? NULL : (*it)->target();
+  }
+
+  const State* After(const Word* word) const {
+    if (!word) return NULL;
+
+    const State* s = this;
+    for (Action* action : *word) { if (!(s = s->After(action))) return NULL; }
+    return s;
+  }
+
+  const State* After(const Word& word) const { return After(&word); }
+
+  bool Equals(const State& other) const { return name_ == other.name(); }
+
   bool reduced() const { return reduced_; }
   const std::string& name() const { return name_; }
   const std::vector<Transition*>& transitions() const { return transitions_; }
   const std::vector<std::string>& entities() const { return entities_; }
-
-  bool operator==(const State& other) const { return name_ == other.name(); }
 
  private:
   bool reduced_;

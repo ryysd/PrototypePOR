@@ -22,113 +22,7 @@
 #include "./transition_system/transition_system.h"
 
 
-std::vector<std::string> split(const std::string& str, char delim) {
-  std::vector<std::string> res;
-  size_t current = 0, found;
-  while ((found = str.find_first_of(delim, current)) != std::string::npos) {
-    res.push_back(std::string(str, current, found - current));
-    current = found + 1;
-  }
-
-  res.push_back(std::string(str, current, str.size() - current));
-  return res;
-}
-
-void picojson_array_to_string_vector(const picojson::array& array, std::vector<std::string>* result) {
-  std::transform(array.begin(), array.end(), std::back_inserter(*result),
-      [](picojson::value value) { return value.get<std::string>(); });
-}
-
 class ATSFileReader {
- private:
-  static State* CreateState(const std::string& state_name, const picojson::object& entities_object, StateSpace* state_space, bool is_init = false) {
-    State* old = state_space->FindByName(state_name);
-
-    if (old == NULL) {
-      std::vector<std::string> entities;
-      picojson_array_to_string_vector(entities_object.at(state_name).get<picojson::array>(), &entities);
-      return state_space->Create(state_name, entities, is_init);
-    }
-
-    return old;
-  }
-
-  static Action* CreateAction(const std::string& action_name, const picojson::object& entities_object, ActionTable* action_table) {
-    const picojson::object& action_entities_object = entities_object.at(action_name).get<picojson::object>();
-    Action* old = action_table->FindByName(action_name);
-
-    if (old == NULL) {
-      std::vector<std::string> creator, eraser, reader, embargoes;
-
-      picojson_array_to_string_vector(action_entities_object.at("c").get<picojson::array>(), &creator);
-      picojson_array_to_string_vector(action_entities_object.at("d").get<picojson::array>(), &eraser);
-      picojson_array_to_string_vector(action_entities_object.at("r").get<picojson::array>(), &reader);
-      picojson_array_to_string_vector(action_entities_object.at("n").get<picojson::array>(), &embargoes);
-
-      return action_table->Create(action_name, creator, eraser, reader, embargoes);
-    }
-
-    return old;
-  }
-
-  static StateSpace* CreateStateSpace(const picojson::value& json_value, ActionTable* action_table) {
-    StateSpace* state_space = new StateSpace();
-
-    try {
-      const picojson::object& json_object = json_value.get<picojson::object>();
-      const picojson::object& lts_object = json_object.at("lts").get<picojson::object>();
-      const picojson::object& entities_object = lts_object.at("states").get<picojson::object>();
-
-      std::string init_state_name = lts_object.at("init").get<std::string>();
-      ATSFileReader::CreateState(init_state_name, entities_object, state_space, true);
-
-      std::vector<std::string> split_result;
-
-      State* source, *target;
-      const picojson::array& transitions_array = lts_object.at("transitions").get<picojson::array>();
-      for (const picojson::value& transition : transitions_array) {
-        split_result = split(transition.get<std::string>(), '-');
-
-        source = ATSFileReader::CreateState(split_result[0], entities_object, state_space);
-        target = ATSFileReader::CreateState(split_result[2], entities_object, state_space);
-
-        source->AddTransition(target, action_table->FindByName(split_result[1]));
-      }
-    } catch(...) {
-      ERROR("cannot parse 'lts' record.");
-      return NULL;
-    }
-
-    return state_space;
-  }
-
-  static ActionTable* CreateActionTable(const picojson::value& json_value) {
-    ActionTable* action_table = new ActionTable();
-
-    try {
-      const picojson::object& json_object = json_value.get<picojson::object>();
-      const picojson::object& action_object = json_object.at("actions").get<picojson::object>();
-      const picojson::object& entities_object = action_object.at("entities").get<picojson::object>();
-
-      std::vector<std::string> split_result;
-
-      Action* source, *target;
-      const picojson::array& relations_array = action_object.at("relations").get<picojson::array>();
-      for (const picojson::value& relation : relations_array) {
-        split_result = split(relation.get<std::string>(), '-');
-        source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
-        target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
-
-        (split_result[1] == "s") ? source->Simulate(target) : source->Disable(target);
-      }
-    } catch(...) {
-      ERROR("cannot parse 'actions' record.");
-      return NULL;
-    }
-
-    return action_table;
-  }
-
  public:
   static const std::pair<StateSpace*, ActionTable*> Read(std::string fname) {
     profiler::start_scope();
@@ -165,6 +59,112 @@ class ATSFileReader {
     // profiler::dump();
 
     return std::make_pair(state_space, action_table);
+  }
+
+ private:
+  static State* CreateState(const std::string& state_name, const picojson::object& entities_object, StateSpace* state_space, bool is_init = false) {
+    State* old = state_space->FindByName(state_name);
+
+    if (old == NULL) {
+      std::vector<std::string> entities;
+      PicojsonArrayToStringVector(entities_object.at(state_name).get<picojson::array>(), &entities);
+      return state_space->Create(state_name, entities, is_init);
+    }
+
+    return old;
+  }
+
+  static Action* CreateAction(const std::string& action_name, const picojson::object& entities_object, ActionTable* action_table) {
+    const picojson::object& action_entities_object = entities_object.at(action_name).get<picojson::object>();
+    Action* old = action_table->FindByName(action_name);
+
+    if (old == NULL) {
+      std::vector<std::string> creator, eraser, reader, embargoes;
+
+      PicojsonArrayToStringVector(action_entities_object.at("c").get<picojson::array>(), &creator);
+      PicojsonArrayToStringVector(action_entities_object.at("d").get<picojson::array>(), &eraser);
+      PicojsonArrayToStringVector(action_entities_object.at("r").get<picojson::array>(), &reader);
+      PicojsonArrayToStringVector(action_entities_object.at("n").get<picojson::array>(), &embargoes);
+
+      return action_table->Create(action_name, creator, eraser, reader, embargoes);
+    }
+
+    return old;
+  }
+
+  static StateSpace* CreateStateSpace(const picojson::value& json_value, ActionTable* action_table) {
+    StateSpace* state_space = new StateSpace();
+
+    try {
+      const picojson::object& json_object = json_value.get<picojson::object>();
+      const picojson::object& lts_object = json_object.at("lts").get<picojson::object>();
+      const picojson::object& entities_object = lts_object.at("states").get<picojson::object>();
+
+      std::string init_state_name = lts_object.at("init").get<std::string>();
+      ATSFileReader::CreateState(init_state_name, entities_object, state_space, true);
+
+      std::vector<std::string> split_result;
+
+      State* source, *target;
+      const picojson::array& transitions_array = lts_object.at("transitions").get<picojson::array>();
+      for (const picojson::value& transition : transitions_array) {
+        split_result = Split(transition.get<std::string>(), '-');
+
+        source = ATSFileReader::CreateState(split_result[0], entities_object, state_space);
+        target = ATSFileReader::CreateState(split_result[2], entities_object, state_space);
+
+        source->AddTransition(target, action_table->FindByName(split_result[1]));
+      }
+    } catch(...) {
+      ERROR("cannot parse 'lts' record.");
+      return NULL;
+    }
+
+    return state_space;
+  }
+
+  static ActionTable* CreateActionTable(const picojson::value& json_value) {
+    ActionTable* action_table = new ActionTable();
+
+    try {
+      const picojson::object& json_object = json_value.get<picojson::object>();
+      const picojson::object& action_object = json_object.at("actions").get<picojson::object>();
+      const picojson::object& entities_object = action_object.at("entities").get<picojson::object>();
+
+      std::vector<std::string> split_result;
+
+      Action* source, *target;
+      const picojson::array& relations_array = action_object.at("relations").get<picojson::array>();
+      for (const picojson::value& relation : relations_array) {
+        split_result = Split(relation.get<std::string>(), '-');
+        source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
+        target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
+
+        (split_result[1] == "s") ? source->Simulate(target) : source->Disable(target);
+      }
+    } catch(...) {
+      ERROR("cannot parse 'actions' record.");
+      return NULL;
+    }
+
+    return action_table;
+  }
+
+  static void PicojsonArrayToStringVector(const picojson::array& array, std::vector<std::string>* result) {
+    std::transform(array.begin(), array.end(), std::back_inserter(*result),
+        [](picojson::value value) { return value.get<std::string>(); });
+  }
+
+  static std::vector<std::string> Split(const std::string& str, char delim) {
+    std::vector<std::string> res;
+    size_t current = 0, found;
+    while ((found = str.find_first_of(delim, current)) != std::string::npos) {
+      res.push_back(std::string(str, current, found - current));
+      current = found + 1;
+    }
+
+    res.push_back(std::string(str, current, str.size() - current));
+    return res;
   }
 };
 

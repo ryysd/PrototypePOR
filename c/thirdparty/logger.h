@@ -18,7 +18,7 @@ struct log_level
     };
 };
 
-std::ostream& operator<<(std::ostream& os, log_level::type level)
+static std::ostream& operator<<(std::ostream& os, log_level::type level)
 {
     switch (level) {
     case log_level::DEBUG: os << "DEBUG"; break;
@@ -89,6 +89,6 @@ struct stdout_logger
     }
 };
 
-stdout_logger logger;
+static stdout_logger logger;
 
 #endif

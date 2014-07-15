@@ -3,13 +3,9 @@
 
 #include <vector>
 
-class Word {
+class Word : public std::vector<Action*> {
  public:
-  explicit Word(const std::vector<Action*>& actions) : actions_(actions) {}
-
-  const std::vector<Action*>& actionr() const { return actions_; }
- private:
-  std::vector<Action*> actions_;
+  Word(std::initializer_list<Action*> actions) : std::vector<Action*>(actions) {}
 };
 
 #endif  // TRANSITION_SYSTEM_WORD_H_

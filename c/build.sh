@@ -11,6 +11,18 @@ gtest_build_dir=$gtest_dir/build
 gtest_libgtest=$gtest_build_dir/libgtest.a
 gtest_libgtest_main=$gtest_build_dir/libgtest_main.a
 
+mode="debug"
+
+while getopts cm: OPT
+do
+  case $OPT in
+    c)  clear=1
+      ;;
+    m)  mode=$OPTARG
+      ;;
+  esac
+done
+
 function print_header() {
   echo "${blue}******************************************************************${default}"
   echo "${blue}* $1  ${white}"
@@ -42,10 +54,9 @@ find . -name "*.h" -o -name "*.cc" | grep -v thirdparty | grep -v test | xargs p
 print_header "Built binary"
 cd ./build
 export GTEST_DIR=$gtest_dir
-if [ $# -gt 0 ] 
-then cmake -DCMAKE_BUILD_TYPE=$1 ..
-else cmake ..
-fi
+cmake -DCMAKE_BUILD_TYPE=$mode ..
 
-make clean
+if [ $clear -eq 1 ]
+then make clean
+fi
 make

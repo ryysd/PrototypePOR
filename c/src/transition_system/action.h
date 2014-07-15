@@ -16,10 +16,12 @@ class Action {
   void Simulate(const Action* action) { simulates_.insert(std::make_pair(action->name(), true)); }
   void Disable(const Action* action) { disables_.insert(std::make_pair(action->name(), true)); }
 
-  bool isSimulate(const Action* action) const { return simulates_.find(action->name()) != simulates_.end(); }
-  bool isDisable(const Action* action) const { return disables_.find(action->name()) != disables_.end(); }
+  bool Simulates(const Action* action) const { return simulates_.find(action->name()) != simulates_.end(); }
+  bool Disables(const Action* action) const { return disables_.find(action->name()) != disables_.end(); }
 
-  bool isInfluence(const Action* action) const { return isSimulate(action) || action->isDisable(this); }
+  bool Influences(const Action* action) const { return Simulates(action) || action->Disables(this); }
+
+  bool Equals(const Action* other) const { return name_ == other->name(); }
 
   const std::string& name() const { return name_; }
   const EntitySet& creator() const { return creator_; }
