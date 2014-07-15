@@ -12,6 +12,7 @@ gtest_libgtest=$gtest_build_dir/libgtest.a
 gtest_libgtest_main=$gtest_build_dir/libgtest_main.a
 
 mode="debug"
+clear=0
 
 while getopts cm: OPT
 do

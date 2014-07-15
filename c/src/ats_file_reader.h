@@ -152,7 +152,7 @@ class ATSFileReader {
 
   static void PicojsonArrayToStringVector(const picojson::array& array, std::vector<std::string>* result) {
     std::transform(array.begin(), array.end(), std::back_inserter(*result),
-        [](picojson::value value) { return value.get<std::string>(); });
+        [](const picojson::value& value) { return value.get<std::string>(); });
   }
 
   static std::vector<std::string> Split(const std::string& str, char delim) {
