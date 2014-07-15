@@ -33,7 +33,7 @@ class StateSpace {
   }
 
   const std::map<std::string, State*>& states() const { return states_; }
-  const std::vector<Transition*> transitions() const { return transitions_; }
+  const std::vector<Transition*>& transitions() const { return transitions_; }
   const State* init_state() const { return init_state_; }
 
  private:

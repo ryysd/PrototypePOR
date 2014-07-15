@@ -9,5 +9,5 @@
 #include "./atS_file_reader.h"
 
 int main() {
-  ATSFileReader::Read("../tmp/Philosophers-10/ats.json");
+  ATSFileReader::Read("../c/test/test_data/Philosopher_02.ats.json");
 }
