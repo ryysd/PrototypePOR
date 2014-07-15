@@ -47,4 +47,5 @@ then cmake -DCMAKE_BUILD_TYPE=$1 ..
 else cmake ..
 fi
 
+make clean
 make

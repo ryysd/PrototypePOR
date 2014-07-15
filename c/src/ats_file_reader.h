@@ -119,7 +119,7 @@ class ATSFileReader {
         source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
         target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
 
-        (split_result[1] == "s") ? source->Simulate(target) : target->Disable(target);
+        (split_result[1] == "s") ? source->Simulate(target) : source->Disable(target);
       }
     } catch(...) {
       ERROR("cannot parse 'actions' record.");
@@ -161,11 +161,8 @@ class ATSFileReader {
     StateSpace* state_space = ATSFileReader::CreateStateSpace(json_value, action_table);
     profiler::stop("gen_states");
 
-    std::cout << action_table->actions().size() << std::endl;
-    std::cout << state_space->states().size() << std::endl;
-
     profiler::end_scope();
-    profiler::dump();
+    // profiler::dump();
 
     return std::make_pair(state_space, action_table);
   }

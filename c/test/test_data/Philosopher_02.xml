@@ -201,12 +201,12 @@
 <value>0</value>
 </capacity>
 </place>
-<transition id="getLeftFork1">
+<transition id="glf1">
 <graphics>
 <position x="315.0" y="180.0"/>
 </graphics>
 <name>
-<value>getLeftFork1</value>
+<value>glf1</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -227,12 +227,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="getLeftFork2">
+<transition id="glf2">
 <graphics>
 <position x="315.0" y="360.0"/>
 </graphics>
 <name>
-<value>getLeftFork2</value>
+<value>glf2</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -253,12 +253,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="getRightFork1">
+<transition id="grf1">
 <graphics>
 <position x="540.0" y="180.0"/>
 </graphics>
 <name>
-<value>getRightFork1</value>
+<value>grf1</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -279,12 +279,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="getRightFork2">
+<transition id="grf2">
 <graphics>
 <position x="540.0" y="360.0"/>
 </graphics>
 <name>
-<value>getRightFork2</value>
+<value>grf2</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -305,38 +305,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="purRightFork2">
-<graphics>
-<position x="540.0" y="495.0"/>
-</graphics>
-<name>
-<value>purRightFork2</value>
-<graphics>
-<offset x="-5.0" y="35.0"/>
-</graphics>
-</name>
-<orientation>
-<value>0</value>
-</orientation>
-<rate>
-<value>1.0</value>
-</rate>
-<timed>
-<value>false</value>
-</timed>
-<infiniteServer>
-<value>false</value>
-</infiniteServer>
-<priority>
-<value>1</value>
-</priority>
-</transition>
-<transition id="putLeftFork1">
+<transition id="plf1">
 <graphics>
 <position x="810.0" y="180.0"/>
 </graphics>
 <name>
-<value>putLeftFork1</value>
+<value>plf1</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -357,12 +331,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="putLeftFork2">
+<transition id="plf2">
 <graphics>
 <position x="810.0" y="360.0"/>
 </graphics>
 <name>
-<value>putLeftFork2</value>
+<value>plf2</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -383,12 +357,12 @@
 <value>1</value>
 </priority>
 </transition>
-<transition id="putRightFork1">
+<transition id="prf1">
 <graphics>
 <position x="540.0" y="75.0"/>
 </graphics>
 <name>
-<value>putRightFork1</value>
+<value>prf1</value>
 <graphics>
 <offset x="-5.0" y="35.0"/>
 </graphics>
@@ -409,7 +383,33 @@
 <value>1</value>
 </priority>
 </transition>
-<arc id="eating1 to putLeftFork1" source="eating1" target="putLeftFork1">
+<transition id="prf2">
+<graphics>
+<position x="540.0" y="495.0"/>
+</graphics>
+<name>
+<value>prf2</value>
+<graphics>
+<offset x="-5.0" y="35.0"/>
+</graphics>
+</name>
+<orientation>
+<value>0</value>
+</orientation>
+<rate>
+<value>1.0</value>
+</rate>
+<timed>
+<value>false</value>
+</timed>
+<infiniteServer>
+<value>false</value>
+</infiniteServer>
+<priority>
+<value>1</value>
+</priority>
+</transition>
+<arc id="eating1 to putLeftFork1" source="eating1" target="plf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -418,11 +418,11 @@
 <tagged>
 <value>false</value>
 </tagged>
-<arcpath id="000" x="701" y="191" curvePoint="false"/>
+<arcpath id="000" x="701" y="192" curvePoint="false"/>
 <arcpath id="001" x="817" y="187" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="eating2 to putLeftFork2" source="eating2" target="putLeftFork2">
+<arc id="eating2 to putLeftFork2" source="eating2" target="plf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -435,7 +435,7 @@
 <arcpath id="001" x="816" y="372" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="fork1 to getLeftFork1" source="fork1" target="getLeftFork1">
+<arc id="fork1 to getLeftFork1" source="fork1" target="glf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -448,7 +448,7 @@
 <arcpath id="001" x="327" y="207" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="fork1 to getRightFork2" source="fork1" target="getRightFork2">
+<arc id="fork1 to getRightFork2" source="fork1" target="grf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -461,7 +461,7 @@
 <arcpath id="001" x="547" y="367" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="fork2 to getLeftFork2" source="fork2" target="getLeftFork2">
+<arc id="fork2 to getLeftFork2" source="fork2" target="glf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -474,7 +474,7 @@
 <arcpath id="001" x="332" y="367" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="fork2 to getRightFork1" source="fork2" target="getRightFork1">
+<arc id="fork2 to getRightFork1" source="fork2" target="grf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -487,7 +487,7 @@
 <arcpath id="001" x="556" y="197" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="getLeftFork1 to tmp1_1" source="getLeftFork1" target="tmp1_1">
+<arc id="getLeftFork1 to tmp1_1" source="glf1" target="tmp1_1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -500,7 +500,7 @@
 <arcpath id="001" x="432" y="192" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="getLeftFork2 to tmp2_1" source="getLeftFork2" target="tmp2_1">
+<arc id="getLeftFork2 to tmp2_1" source="glf2" target="tmp2_1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -513,7 +513,7 @@
 <arcpath id="001" x="432" y="372" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="getRightFork1 to eating1" source="getRightFork1" target="eating1">
+<arc id="getRightFork1 to eating1" source="grf1" target="eating1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -526,7 +526,7 @@
 <arcpath id="001" x="672" y="191" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="getRightFork2 to eating2" source="getRightFork2" target="eating2">
+<arc id="getRightFork2 to eating2" source="grf2" target="eating2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -539,7 +539,7 @@
 <arcpath id="001" x="672" y="372" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="purRightFork2 to fork1" source="purRightFork2" target="fork1">
+<arc id="purRightFork2 to fork1" source="prf2" target="fork1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -552,7 +552,7 @@
 <arcpath id="001" x="337" y="292" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="purRightFork2 to thiking2" source="purRightFork2" target="thiking2">
+<arc id="purRightFork2 to thiking2" source="prf2" target="thiking2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -565,7 +565,7 @@
 <arcpath id="001" x="191" y="377" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putLeftFork1 to fork1" source="putLeftFork1" target="fork1">
+<arc id="putLeftFork1 to fork1" source="plf1" target="fork1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -578,7 +578,7 @@
 <arcpath id="001" x="341" y="279" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putLeftFork1 to tmp1_2" source="putLeftFork1" target="tmp1_2">
+<arc id="putLeftFork1 to tmp1_2" source="plf1" target="tmp1_2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -591,7 +591,7 @@
 <arcpath id="001" x="942" y="192" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putLeftFork2 to fork2" source="putLeftFork2" target="fork2">
+<arc id="putLeftFork2 to fork2" source="plf2" target="fork2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -604,7 +604,7 @@
 <arcpath id="001" x="822" y="296" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putLeftFork2 to tmp2_2" source="putLeftFork2" target="tmp2_2">
+<arc id="putLeftFork2 to tmp2_2" source="plf2" target="tmp2_2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -617,7 +617,7 @@
 <arcpath id="001" x="927" y="372" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putRightFork1 to fork2" source="putRightFork1" target="fork2">
+<arc id="putRightFork1 to fork2" source="prf1" target="fork2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -630,7 +630,7 @@
 <arcpath id="001" x="809" y="273" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="putRightFork1 to thinking1" source="putRightFork1" target="thinking1">
+<arc id="putRightFork1 to thinking1" source="prf1" target="thinking1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -643,7 +643,7 @@
 <arcpath id="001" x="191" y="187" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="thiking2 to getLeftFork2" source="thiking2" target="getLeftFork2">
+<arc id="thiking2 to getLeftFork2" source="thiking2" target="glf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -656,7 +656,7 @@
 <arcpath id="001" x="321" y="372" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="thinking1 to getLeftFork1" source="thinking1" target="getLeftFork1">
+<arc id="thinking1 to getLeftFork1" source="thinking1" target="glf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -669,7 +669,7 @@
 <arcpath id="001" x="321" y="192" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="tmp1_1 to getRightFork1" source="tmp1_1" target="getRightFork1">
+<arc id="tmp1_1 to getRightFork1" source="tmp1_1" target="grf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -682,7 +682,7 @@
 <arcpath id="001" x="546" y="192" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="tmp1_2 to putRightFork1" source="tmp1_2" target="putRightFork1">
+<arc id="tmp1_2 to putRightFork1" source="tmp1_2" target="prf1">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -695,7 +695,7 @@
 <arcpath id="001" x="557" y="82" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="tmp2_1 to getRightFork2" source="tmp2_1" target="getRightFork2">
+<arc id="tmp2_1 to getRightFork2" source="tmp2_1" target="grf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>
@@ -708,7 +708,7 @@
 <arcpath id="001" x="546" y="377" curvePoint="false"/>
 <type value="normal"/>
 </arc>
-<arc id="tmp2_2 to purRightFork2" source="tmp2_2" target="purRightFork2">
+<arc id="tmp2_2 to purRightFork2" source="tmp2_2" target="prf2">
 <graphics/>
 <inscription>
 <value>Default,1</value>

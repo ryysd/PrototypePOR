@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-typedef std::vector<std::string> EntitySet;
 /*! @class Action
  *  @brief class representing action
 */
@@ -14,11 +13,13 @@ class Action {
   Action(const std::string& name, const EntitySet& creator, const EntitySet& eraser, const EntitySet& reader, const EntitySet& embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
 
-  void Simulate(const Action* action) { simulates_.insert(make_pair(action->name(), true)); }
-  void Disable(const Action* action) { disables_.insert(make_pair(action->name(), true)); }
+  void Simulate(const Action* action) { simulates_.insert(std::make_pair(action->name(), true)); }
+  void Disable(const Action* action) { disables_.insert(std::make_pair(action->name(), true)); }
 
   bool isSimulate(const Action* action) const { return simulates_.find(action->name()) != simulates_.end(); }
   bool isDisable(const Action* action) const { return disables_.find(action->name()) != disables_.end(); }
+
+  bool isInfluence(const Action* action) const { return isSimulate(action) || action->isDisable(this); }
 
   const std::string& name() const { return name_; }
   const EntitySet& creator() const { return creator_; }
