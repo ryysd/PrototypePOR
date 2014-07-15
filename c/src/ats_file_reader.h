@@ -140,7 +140,7 @@ class ATSFileReader {
         source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
         target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
 
-        (split_result[1] == "s") ? source->Simulate(target) : source->Disable(target);
+        (split_result[1] == "s") ? source->AddSimulate(target) : source->AddDisable(target);
       }
     } catch(...) {
       ERROR("cannot parse 'actions' record.");

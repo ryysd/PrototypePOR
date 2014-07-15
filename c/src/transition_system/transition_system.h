@@ -3,8 +3,8 @@
 
 #include "../common.h"
 #include "./action.h"
-#include "./transition.h"
 #include "./word.h"
+#include "./transition.h"
 #include "./state.h"
 #include "./vector.h"
 #include "./state_space.h"
