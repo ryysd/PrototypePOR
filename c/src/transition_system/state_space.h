@@ -38,7 +38,7 @@ class StateSpace {
 
  private:
   void FreeStates() { for (auto& kv : states_) { delete kv.second; } }
-  void FreeTransitions() { for (Transition* t : transitions_) { delete(t); }}
+  void FreeTransitions() { for (auto t : transitions_) { delete(t); }}
 
   std::map<std::string, State*> states_;
   std::vector<Transition*> transitions_;

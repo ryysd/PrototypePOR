@@ -4,15 +4,24 @@
 #include <string>
 #include <vector>
 
+// TODO(ryysd) use std::array instead of std::vector (if vector is bottleneck of performance)
+// class State<int EntitySize, int TransitionSize> {
+// State(..., const std::array<std::string, EntitySize> entities) {
+// ...
+// }
+// ...
+// }
+// create_state(std::vector<std::string> entities) {new State<entities.size()>(...)}
+
 /*! @class State
  *  @brief class representing state
 */
 class State {
  public:
-  State(const std::string name, const std::vector<std::string> entities)
+  State(const std::string& name, const std::vector<std::string>& entities)
     : reduced_(false), name_(name), entities_(entities) {}
 
-  ~State() { for (Transition* t : transitions_) { delete t; } }
+  ~State() { for (auto t : transitions_) { delete t; } }
 
   void AddTransition(const State* target, const Action* action) { transitions_.push_back(new Transition(this, target, action)); }
 

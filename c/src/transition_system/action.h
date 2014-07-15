@@ -11,7 +11,7 @@ typedef std::vector<std::string> EntitySet;
 */
 class Action {
  public:
-  Action(const std::string name, EntitySet creator, EntitySet eraser, EntitySet reader, EntitySet embargoes)
+  Action(const std::string& name, const EntitySet& creator, const EntitySet& eraser, const EntitySet& reader, const EntitySet& embargoes)
     : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
 
   void Simulate(const Action* action) { simulates_.insert(make_pair(action->name(), true)); }
