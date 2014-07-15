@@ -10,4 +10,6 @@
 #include "./state_space.h"
 #include "./action_table.h"
 
+#include "./action_inl.h"
+
 #endif  // TRANSITION_SYSTEM_TRANSITION_SYSTEM_H_

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+class Word;
 /*! @class Action
  *  @brief class representing action
 */
@@ -20,6 +21,8 @@ class Action {
   bool Disables(const Action* action) const { return disables_.find(action->name()) != disables_.end(); }
 
   bool Influences(const Action* action) const { return Simulates(action) || action->Disables(this); }
+
+  void CalcPrimeCause(const Word& word, Word* prime_cause) const;
 
   bool Equals(const Action* other) const { return name_ == other->name(); }
 
