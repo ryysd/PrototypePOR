@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <stack>
 
 class StateSpace {
  public:
@@ -30,6 +31,34 @@ class StateSpace {
   State* FindByName(const std::string& name) const {
     auto it = states_.find(name);
     return (it != states_.end()) ? it->second : NULL;
+  }
+
+  // for debug (only for small state space)
+  void dump() const {
+    // Use map to retain visited state to not change State::visited flag.
+    // So, memory performance is bad. Do not call this method for large state space
+    std::map<std::string, bool> visited;
+    std::stack<const State*> stack;
+
+    stack.push(init_state_);
+    printf("digraph g{\n");
+    while (!stack.empty()) {
+      const State* s = stack.top();
+      stack.pop();
+
+      if (visited.find(s->name()) != visited.end()) continue;
+
+      visited.insert(std::make_pair(s->name(), true));
+
+      if (s->transitions().empty()) printf("  \"%s\" [color=red, style=bold];\n", s->name().c_str());
+      if (s->reduced()) printf("  \"%s\" [style=filled, fillcolor=\"#999999\", fontcolor=white];\n", s->name().c_str());
+      for (Transition* t : s->transitions()) {
+        printf("  \"%s\"->\"%s\"%s;\n", t->source()->name().c_str(), t->target()->name().c_str(),
+            ((t->source()->reduced() || t->target()->reduced()) ? "[style=dashed, color=\"#999999\"]" : ""));
+        stack.push(t->target());
+      }
+    }
+    printf("}\n");
   }
 
   const std::map<std::string, State*>& states() const { return states_; }
