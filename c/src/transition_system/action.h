@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
 
 class Word;
 /*! @class Action
@@ -22,7 +23,7 @@ class Action {
 
   bool Influences(const Action* action) const { return Simulates(action) || action->Disables(this); }
 
-  void CalcPrimeCause(const Word& word, Word* prime_cause) const;
+  std::unique_ptr<Word> CalcPrimeCause(const Word& word) const;
 
   bool Equals(const Action* other) const { return name_ == other->name(); }
 

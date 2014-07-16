@@ -6,22 +6,31 @@
 #include <sstream>
 #include <iterator>
 
-class Word : public std::vector<Action*> {
+class Word {
  public:
-  Word() {}
-  Word(std::initializer_list<Action*> actions) : std::vector<Action*>(actions) {}
+  Word() : name_(MakeName()) {}
+  Word(std::initializer_list<Action*> actions) : actions_(actions), name_(MakeName()) {}
+  Word(std::vector<Action*>& actions) : actions_(actions), name_(MakeName()) {}
 
-  const std::string& name() { return name_.empty() ? MakeName() : name_; }
+  const std::vector<Action*>::const_iterator begin() const { return actions_.begin(); }
+  const std::vector<Action*>::const_iterator end() const { return actions_.end(); }
 
+  Action* operator[](int index) const { return actions_[index]; }
+  size_t size() const { return actions_.size(); }
+
+  const std::vector<Action*>& actions() const { return actions_; }
+  const std::string& name() const { return name_; }
  private:
-  const std::string& MakeName() {
-    for (Action* action : *this) { name_ += action->name() + ","; }
-    if (!name_.empty()) name_.erase(--name_.end());
-
-    return name_ = "[" + name_ + "]";
+  const std::string MakeName() const {
+    std::string name = "";
+    for (Action* action : actions_) { name += action->name() + ","; }
+    if (!name.empty()) name.erase(--name.end());
+ 
+    return name = "[" + name + "]";
   }
 
-  std::string name_;
+  const std::vector<Action*> actions_;
+  const std::string name_;
 };
 
 #endif  // TRANSITION_SYSTEM_WORD_H_
