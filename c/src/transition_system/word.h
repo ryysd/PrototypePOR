@@ -18,6 +18,19 @@ class Word {
   const std::vector<Action*>::const_iterator begin() const { return actions_.begin(); }
   const std::vector<Action*>::const_iterator end() const { return actions_.end(); }
 
+  bool WeakEquals(const Word& other) const {
+    if (size() != other.size()) return false;
+
+    std::vector<Action*> difference;
+    std::set_difference(begin(), end(), other.begin(), other.end(), back_inserter(difference), [](Action* a, Action* b) {return a->Equals(b);});
+    if (!difference.empty()) return false;
+
+    std::unique_ptr<Word> sorted = TopologicalSort();
+    std::unique_ptr<Word> other_sorted = TopologicalSort();
+
+    return sorted->name() == other_sorted->name();
+  }
+
   std::unique_ptr<Word> TopologicalSort() const {
     std::vector<bool> visited(actions_.size());
     std::vector<int> range(actions_.size());
