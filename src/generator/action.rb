@@ -9,7 +9,7 @@ class Action
   end
 
   def simulate?(other)
-    !(@creator & (other.reader | other.eraser)).empty? ||
+    !(@creator & (other.reader | other.eraser)).empty? # ||
       !(@eraser & (other.creator | other.embargoes)).empty?
   end
 

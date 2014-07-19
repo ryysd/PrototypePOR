@@ -1,9 +1,0 @@
-   ,glf1 ,grf1 ,glf2 ,grf2 ,plf1 ,prf1 ,plf2 ,prf2
-glf1, d,  s,   ,  d,   ,   ,   ,   ,
-grf1,  ,  d,  d,   ,  s,   ,   ,   ,
-glf2,  ,  d,  d,  s,   ,   ,   ,   ,
-grf2, d,   ,   ,  d,   ,   ,  s,   ,
-plf1, s,   ,   ,  s,  d,  s,   ,   ,
-prf1, s,  s,  s,   ,   ,  d,   ,   ,
-plf2,  ,  s,  s,   ,   ,   ,  d,  s,
-prf2, s,   ,  s,  s,   ,   ,   ,  d,

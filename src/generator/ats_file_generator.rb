@@ -49,11 +49,12 @@ class ATSFileGenerator
       creator = target_entities - source_entities
 
       action = Action.new transition.id, creator, eraser
+
       tmp_actions[action.to_s] = action if tmp_actions[action.to_s].nil?
       index = tmp_actions.select{|action_name, a| a.name == action.name}.length
-
+	 
       action_name = "#{action.name}_#{index}"
-      actions[action_name] = Action.new action_name, creator, eraser
+      actions[action_name] = Action.new action_name, creator, eraser if actions[action_name].nil?
 
       transitions.push "#{source.to_s}-#{action_name}-#{target.to_s}"
       # transitions.push "#{source.to_s}-#{transition.name}-#{target.to_s}"
@@ -70,8 +71,10 @@ class ATSFileGenerator
 	}, 
 	lts: {
 	  init: petrinet.init_state.to_s, 
+	  init_entities: state_entities[petrinet.init_state.to_s],
 	  transitions: transitions, 
-	  states: state_entities}}
+	  states: state_entities
+	}}
     )
   end
 end

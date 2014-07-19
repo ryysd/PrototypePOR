@@ -28,12 +28,19 @@ class ActionTest : public PorTest {
     put_right_fork1_ = philosopher_2_action_table_->FindByName("prf1_1");
     put_right_fork2_ = philosopher_2_action_table_->FindByName("prf2_1");
 
-    a1_ = interleave_3_action_table_->FindByName("a1");
-    a2_ = interleave_3_action_table_->FindByName("a2");
-    b1_ = interleave_3_action_table_->FindByName("b1");
-    b2_ = interleave_3_action_table_->FindByName("b2");
-    c1_ = interleave_3_action_table_->FindByName("c1");
-    c2_ = interleave_3_action_table_->FindByName("c2");
+    // a1_ = interleave_3_action_table_->FindByName("a1");
+    // a2_ = interleave_3_action_table_->FindByName("a2");
+    // b1_ = interleave_3_action_table_->FindByName("b1");
+    // b2_ = interleave_3_action_table_->FindByName("b2");
+    // c1_ = interleave_3_action_table_->FindByName("c1");
+    // c2_ = interleave_3_action_table_->FindByName("c2");
+
+    a1_ = interleave_3_action_table_->FindByName("a1_1");
+    a2_ = interleave_3_action_table_->FindByName("a2_1");
+    b1_ = interleave_3_action_table_->FindByName("b1_1");
+    b2_ = interleave_3_action_table_->FindByName("b2_1");
+    c1_ = interleave_3_action_table_->FindByName("c1_1");
+    c2_ = interleave_3_action_table_->FindByName("c2_1");
   }
 
   Action* get_left_fork1_, *get_left_fork2_, *get_right_fork1_, *get_right_fork2_;

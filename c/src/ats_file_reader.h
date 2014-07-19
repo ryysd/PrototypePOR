@@ -99,6 +99,9 @@ class ATSFileReader {
       const picojson::object& json_object = json_value.get<picojson::object>();
       const picojson::object& lts_object = json_object.at("lts").get<picojson::object>();
       const picojson::object& entities_object = lts_object.at("states").get<picojson::object>();
+      // const picojson::array& init_entities_object = lts_object.at("init_entities").get<picojson::array>();
+      // std::vector<std::string> init_entities;
+      // PicojsonArrayToStringVector(init_entities_object, &init_entities);
 
       std::string init_state_name = lts_object.at("init").get<std::string>();
       std::vector<std::string> entities;
@@ -136,17 +139,20 @@ class ATSFileReader {
       const picojson::object& action_object = json_object.at("actions").get<picojson::object>();
       const picojson::object& entities_object = action_object.at("entities").get<picojson::object>();
 
-      std::vector<std::string> split_result;
+      // std::vector<std::string> split_result;
 
-      Action* source, *target;
-      const picojson::array& relations_array = action_object.at("relations").get<picojson::array>();
-      for (const picojson::value& relation : relations_array) {
-        split_result = Split(relation.get<std::string>(), '-');
-        source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
-        target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
-
-        (split_result[1] == "s") ? source->AddSimulate(target) : source->AddDisable(target);
+      // Action* source, *target;
+      // const picojson::array& relations_array = action_object.at("relations").get<picojson::array>();
+      for (const auto& kv : entities_object) {
+        ATSFileReader::CreateAction(kv.first, entities_object, action_table);
       }
+      // for (const picojson::value& relation : relations_array) {
+      //   split_result = Split(relation.get<std::string>(), '-');
+      //   source = ATSFileReader::CreateAction(split_result[0], entities_object, action_table);
+      //   target = ATSFileReader::CreateAction(split_result[2], entities_object, action_table);
+
+      //   (split_result[1] == "s") ? source->AddSimulate(target) : source->AddDisable(target);
+      // }
     } catch(...) {
       ERROR("cannot parse 'actions' record.");
       return NULL;
