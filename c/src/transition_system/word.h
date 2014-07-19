@@ -20,13 +20,10 @@ class Word {
 
   bool WeakEquals(const Word& other) const {
     if (size() != other.size()) return false;
-
-    std::vector<Action*> difference;
-    std::set_difference(begin(), end(), other.begin(), other.end(), back_inserter(difference), [](Action* a, Action* b) {return a->Equals(b);});
-    if (!difference.empty()) return false;
+    if (!ContainsSameActions(other)) return false;
 
     std::unique_ptr<Word> sorted = TopologicalSort();
-    std::unique_ptr<Word> other_sorted = TopologicalSort();
+    std::unique_ptr<Word> other_sorted = other.TopologicalSort();
 
     return sorted->name() == other_sorted->name();
   }
@@ -37,13 +34,20 @@ class Word {
     std::unique_ptr<Word> sorted = TopologicalSort();
     std::unique_ptr<Word> other_sorted = other.TopologicalSort();
 
-    for (auto it = sorted->begin(), other_it = other_sorted->begin(), end = sorted->end(); it != end; ++it, ++other_it) {
+    for (auto it = sorted->begin(), end = sorted->end(), other_it = other_sorted->begin(); it != end; ++it, ++other_it) {
       if (!(*it)->Equals(*other_it)) return false;
     }
 
     return true;
   }
 
+  Action* operator[](int index) const { return actions_[index]; }
+  size_t size() const { return actions_.size(); }
+
+  const std::vector<Action*>& actions() const { return actions_; }
+  const std::string& name() const { return name_; }
+
+ private:
   std::unique_ptr<Word> TopologicalSort() const {
     std::vector<bool> visited(actions_.size());
     std::vector<int> range(actions_.size());
@@ -67,9 +71,8 @@ class Word {
         }
 
         visited[index] = true;
-
         for (int j = 0; j < index; ++j) {
-          if (!visited[j] && (actions_[j]->Influences(actions_[index]) || actions_[index]->Influences(actions_[j]))) {
+          if (!visited[j] && !actions_[j]->Equals(actions_[index]) && ((actions_[j]->Influences(actions_[index]) || actions_[index]->Influences(actions_[j])))) {
             stack.push(j);
           }
         }
@@ -79,13 +82,22 @@ class Word {
     return std::unique_ptr<Word>(new Word(sorted));
   }
 
-  Action* operator[](int index) const { return actions_[index]; }
-  size_t size() const { return actions_.size(); }
+  bool ContainsSameActions(const Word& other) const {
+    std::vector<Action*> clone, other_clone;
+    std::copy(begin(), end(), back_inserter(clone));
+    std::copy(other.begin(), other.end(), back_inserter(other_clone));
 
-  const std::vector<Action*>& actions() const { return actions_; }
-  const std::string& name() const { return name_; }
+    auto compare = [](Action* a, Action* b) { return a->name() < b->name(); };
+    std::sort(clone.begin(), clone.end(), compare);
+    std::sort(other_clone.begin(), other_clone.end(), compare);
 
- private:
+    for (auto it = clone.begin(), end = clone.end(), other_it = other_clone.begin(); it != end; ++it, ++other_it) {
+      if (!(*it)->Equals(*other_it)) return false;
+    }
+
+    return true;
+  }
+
   const std::string MakeName() const {
     std::string name = "";
     for (Action* action : actions_) { name += action->name() + ","; }
