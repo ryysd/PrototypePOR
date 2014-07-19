@@ -18,12 +18,18 @@
 */
 class State {
  public:
-  State(const std::string& name, const EntitySet& entities)
-    : reduced_(false), name_(name), entities_(entities) {}
+  typedef std::string Hash;  // for debug
+  // typedef unsigned& Hash;
+
+  State(const Hash& hash, const EntitySet& entities)
+    : /*reduced_(false),*/ hash_(hash), entities_(entities) {}
 
   ~State() { for (auto t : transitions_) { delete t; } }
 
   void AddTransition(const State* target, const Action* action) { transitions_.push_back(new Transition(this, target, action)); }
+
+  // void Visit() { visited_ = true; }
+  // void Reduce() { reduced_ = true; }
 
   const State* After(const Action* action) const {
     if (!action) return NULL;
@@ -42,16 +48,19 @@ class State {
 
   const State* After(const Word& word) const { return After(&word); }
 
-  bool Equals(const State& other) const { return name_ == other.name(); }
+  bool Equals(const State& other) const { return hash_ == other.hash(); }
 
-  bool reduced() const { return reduced_; }
-  const std::string& name() const { return name_; }
+  // bool reduced() const { return reduced_; }
+  // bool visited() const { return visited_; }
+
+  const Hash& hash() const { return hash_; }
   const std::vector<Transition*>& transitions() const { return transitions_; }
   const std::vector<std::string>& entities() const { return entities_; }
 
  private:
-  bool reduced_;
-  const std::string name_;
+  // bool reduced_;
+  // bool visited_;
+  const Hash hash_;
   const std::vector<std::string> entities_;
   std::vector<Transition*> transitions_;
 

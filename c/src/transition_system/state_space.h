@@ -14,22 +14,22 @@ class StateSpace {
     FreeTransitions();
   }
 
-  State* Register(State* state) { return states_.insert(std::make_pair(state->name(), state)).first->second; }
-  bool isRegistered(const std::string& name) const { return states_.find(name) != states_.end();  }
+  State* Register(State* state) { return states_.insert(std::make_pair(state->hash(), state)).first->second; }
+  bool isRegistered(const State::Hash& hash) const { return states_.find(hash) != states_.end();  }
 
-  State* Create(const std::string& name, const std::vector<std::string>& entities) {
-    State* old = FindByName(name);
-    return old == NULL ? Register(new State(name, entities)) : old;
+  State* Create(const State::Hash& hash, const std::vector<std::string>& entities) {
+    State* old = FindByName(hash);
+    return old == NULL ? Register(new State(hash, entities)) : old;
   }
 
-  State* Create(const std::string& name, const std::vector<std::string>& entities, bool is_init) {
-    State* state = Create(name, entities);
+  State* Create(const State::Hash& hash, const std::vector<std::string>& entities, bool is_init) {
+    State* state = Create(hash, entities);
     if (is_init) init_state_ = state;
     return state;
   }
 
-  State* FindByName(const std::string& name) const {
-    auto it = states_.find(name);
+  State* FindByName(const State::Hash& hash) const {
+    auto it = states_.find(hash);
     return (it != states_.end()) ? it->second : NULL;
   }
 
@@ -46,15 +46,15 @@ class StateSpace {
       const State* s = stack.top();
       stack.pop();
 
-      if (visited.find(s->name()) != visited.end()) continue;
+      if (visited.find(s->hash()) != visited.end()) continue;
 
-      visited.insert(std::make_pair(s->name(), true));
+      visited.insert(std::make_pair(s->hash(), true));
 
-      if (s->transitions().empty()) printf("  \"%s\" [color=red, style=bold];\n", s->name().c_str());
-      if (s->reduced()) printf("  \"%s\" [style=filled, fillcolor=\"#999999\", fontcolor=white];\n", s->name().c_str());
+      if (s->transitions().empty()) printf("  \"%s\" [color=red, style=bold];\n", s->hash().c_str());
+      // if (s->reduced()) printf("  \"%s\" [style=filled, fillcolor=\"#999999\", fontcolor=white];\n", s->hash().c_str());
       for (Transition* t : s->transitions()) {
-        printf("  \"%s\"->\"%s\"%s;\n", t->source()->name().c_str(), t->target()->name().c_str(),
-            ((t->source()->reduced() || t->target()->reduced()) ? "[style=dashed, color=\"#999999\"]" : ""));
+        printf("  \"%s\"->\"%s\"%s;\n", t->source()->hash().c_str(), t->target()->hash().c_str(),
+            (/*(t->source()->reduced() || t->target()->reduced())*/ false ? "[style=dashed, color=\"#999999\"]" : ""));
         stack.push(t->target());
       }
     }
