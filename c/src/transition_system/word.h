@@ -103,7 +103,7 @@ class Word {
     for (Action* action : actions_) { name += action->name() + ","; }
     if (!name.empty()) name.erase(--name.end());
 
-    return name = "[" + name + "]";
+    return "[" + name + "]";
   }
 
   const std::vector<Action*> actions_;

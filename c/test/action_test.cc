@@ -25,8 +25,8 @@ TEST_F(ActionTest, CalcPrimeCauseTest) {
   Word glf1_grf1{get_left_fork1_, get_right_fork1_};
 
   std::unique_ptr<Word> prime_cause1 = get_right_fork1_->CalcPrimeCause(glf1);
-  EXPECT_EQ("[glf1]", prime_cause1->name());
+  EXPECT_EQ("[glf1_1]", prime_cause1->name());
 
   std::unique_ptr<Word> prime_cause2 = put_left_fork1_->CalcPrimeCause(glf1_grf1);
-  EXPECT_EQ("[glf1,grf1]", prime_cause2->name());
+  EXPECT_EQ("[glf1_1,grf1_1]", prime_cause2->name());
 }

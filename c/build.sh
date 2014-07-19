@@ -50,7 +50,7 @@ fi
 
 print_header "Check Coding Style"
 cd $project_root
-find . -name "*.h" -o -name "*.cc" | grep -v thirdparty | grep -v test | xargs python ./test/cpplint.py --filter=-legal/copyright,-readability/streams --counting=detailed --linelength=150 --root=c/src
+find . -name "*.h" -o -name "*.cc" | grep -v thirdparty | grep -v test | xargs python ./test/cpplint.py --filter=-legal/copyright,-readability/streams --counting=detailed --linelength=200 --root=c/src
 
 print_header "Built binary"
 cd ./build

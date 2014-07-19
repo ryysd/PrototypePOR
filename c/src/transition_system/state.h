@@ -24,9 +24,32 @@ class State {
   State(const Hash& hash, const EntitySet& entities)
     : /*reduced_(false),*/ hash_(hash), entities_(entities) {}
 
+  explicit State(const EntitySet& entities)
+    : hash_(MakeHash(entities)), entities_(entities) {}
+
   ~State() { for (auto t : transitions_) { delete t; } }
 
   void AddTransition(const State* target, const Action* action) { transitions_.push_back(new Transition(this, target, action)); }
+
+  void Expand(const Action* action, EntitySet* new_entities) const {
+    EntitySet tmp;
+    std::set_difference(entities_.begin(), entities_.end(), action->eraser().begin(), action->eraser().end(), back_inserter(tmp));
+    std::set_union(tmp.begin(), tmp.end(), action->creator().begin(), action->creator().end(), back_inserter(*new_entities));
+  }
+
+  bool  Enables(const Action* action) const {
+    EntitySet required_entities, insufficient_entities;
+    EntitySet unrequired_entities, forbidden_entities;
+
+    std::set_union(action->reader().begin(), action->reader().end(), action->eraser().begin(), action->eraser().end(), back_inserter(required_entities));
+    std::set_difference(required_entities.begin(), required_entities.end(), entities_.begin(), entities_.end(), back_inserter(insufficient_entities));
+    if (!insufficient_entities.empty()) return false;
+
+    std::set_union(action->embargoes().begin(), action->embargoes().end(), action->creator().begin(), action->creator().end(), back_inserter(unrequired_entities));
+    std::set_intersection(unrequired_entities.begin(), unrequired_entities.end(), entities_.begin(), entities_.end(), back_inserter(forbidden_entities));
+
+    return forbidden_entities.empty();
+  }
 
   // void Visit() { visited_ = true; }
   // void Reduce() { reduced_ = true; }
@@ -60,6 +83,15 @@ class State {
  private:
   // bool reduced_;
   // bool visited_;
+
+  const std::string MakeHash(const EntitySet& entities) const {
+    Hash hash = "";
+    for (const std::string& e : entities) { hash += e + ","; }
+    if (!hash.empty()) hash.erase(--hash.end());
+
+    return "[" + hash + "]";
+  }
+
   const Hash hash_;
   const std::vector<std::string> entities_;
   std::vector<Transition*> transitions_;

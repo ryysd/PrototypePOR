@@ -8,15 +8,25 @@ class ActionTest : public PorTest {
   virtual void SetUp() {
     PorTest::SetUp();
 
-    get_left_fork1_  = philosopher_2_action_table_->FindByName("glf1");
-    get_left_fork2_  = philosopher_2_action_table_->FindByName("glf2");
-    get_right_fork1_ = philosopher_2_action_table_->FindByName("grf1");
-    get_right_fork2_ = philosopher_2_action_table_->FindByName("grf2");
+    // get_left_fork1_  = philosopher_2_action_table_->FindByName("glf1");
+    // get_left_fork2_  = philosopher_2_action_table_->FindByName("glf2");
+    // get_right_fork1_ = philosopher_2_action_table_->FindByName("grf1");
+    // get_right_fork2_ = philosopher_2_action_table_->FindByName("grf2");
 
-    put_left_fork1_  = philosopher_2_action_table_->FindByName("plf1");
-    put_left_fork2_  = philosopher_2_action_table_->FindByName("plf2");
-    put_right_fork1_ = philosopher_2_action_table_->FindByName("prf1");
-    put_right_fork2_ = philosopher_2_action_table_->FindByName("prf2");
+    // put_left_fork1_  = philosopher_2_action_table_->FindByName("plf1");
+    // put_left_fork2_  = philosopher_2_action_table_->FindByName("plf2");
+    // put_right_fork1_ = philosopher_2_action_table_->FindByName("prf1");
+    // put_right_fork2_ = philosopher_2_action_table_->FindByName("prf2");
+
+    get_left_fork1_  = philosopher_2_action_table_->FindByName("glf1_1");
+    get_left_fork2_  = philosopher_2_action_table_->FindByName("glf2_1");
+    get_right_fork1_ = philosopher_2_action_table_->FindByName("grf1_1");
+    get_right_fork2_ = philosopher_2_action_table_->FindByName("grf2_1");
+
+    put_left_fork1_  = philosopher_2_action_table_->FindByName("plf1_1");
+    put_left_fork2_  = philosopher_2_action_table_->FindByName("plf2_1");
+    put_right_fork1_ = philosopher_2_action_table_->FindByName("prf1_1");
+    put_right_fork2_ = philosopher_2_action_table_->FindByName("prf2_1");
 
     a1_ = interleave_3_action_table_->FindByName("a1");
     a2_ = interleave_3_action_table_->FindByName("a2");
