@@ -7,13 +7,21 @@
 class PorTest : public testing::Test {
  protected:
   virtual void SetUp() {
-    auto pair = ATSFileReader::Read("../c/test/test_data/Philosopher_02.ats.json");
-    state_space_ = pair.first;
-    action_table_ = pair.second;
+    auto philosopher_2_pair = ATSFileReader::Read("../c/test/test_data/Philosopher_02.ats.json");
+    auto interleave_3_pair = ATSFileReader::Read("../c/test/test_data/interleave_3.ats.json");
+
+    philosopher_2_state_space_ = philosopher_2_pair.first;
+    philosopher_2_action_table_ = philosopher_2_pair.second;
+
+    interleave_3_state_space_ = interleave_3_pair.first;
+    interleave_3_action_table_ = interleave_3_pair.second;
   }
 
-  StateSpace* state_space_;
-  ActionTable* action_table_;
+  StateSpace* philosopher_2_state_space_;
+  ActionTable* philosopher_2_action_table_;
+
+  StateSpace* interleave_3_state_space_;
+  ActionTable* interleave_3_action_table_;
 };
 
 #endif  // TEST_POR_TEST_H_

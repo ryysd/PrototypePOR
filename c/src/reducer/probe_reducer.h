@@ -8,7 +8,7 @@
 //  public:
 //   State::Hash& hash();
 // };
-// 
+//
 // class ReducerCallbackObject {
 //  public:
 //   virtual State::Hash& GetInitStateHash();

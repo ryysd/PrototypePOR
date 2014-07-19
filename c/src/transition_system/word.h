@@ -5,6 +5,9 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <memory>
+#include <stack>
+#include <algorithm>
 
 class Word {
  public:
@@ -14,6 +17,41 @@ class Word {
 
   const std::vector<Action*>::const_iterator begin() const { return actions_.begin(); }
   const std::vector<Action*>::const_iterator end() const { return actions_.end(); }
+
+  std::unique_ptr<Word> TopologicalSort() const {
+    std::vector<bool> visited(actions_.size());
+    std::vector<int> range(actions_.size());
+    std::vector<Action*> sorted;
+    std::stack<int> stack;
+
+    std::fill(visited.begin(), visited.end(), false);
+    std::iota(range.begin(), range.end(), 0);
+    std::sort(range.begin(), range.end(), [this](int i, int j) {return actions_[i]->name() < actions_[j]->name();});
+
+    for (int i : range) {
+      if (!visited[i]) stack.push(i);
+      while (!stack.empty()) {
+        int index = stack.top();
+
+        // postorder
+        if (visited[index]) {
+          sorted.push_back(actions_[index]);
+          stack.pop();
+          continue;
+        }
+
+        visited[index] = true;
+
+        for (int j = 0; j < index; ++j) {
+          if (!visited[j] && (actions_[j]->Influences(actions_[index]) || actions_[index]->Influences(actions_[j]))) {
+            stack.push(j);
+          }
+        }
+      }
+    }
+
+    return std::unique_ptr<Word>(new Word(sorted));
+  }
 
   Action* operator[](int index) const { return actions_[index]; }
   size_t size() const { return actions_.size(); }
