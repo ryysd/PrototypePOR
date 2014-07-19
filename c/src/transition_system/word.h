@@ -31,6 +31,19 @@ class Word {
     return sorted->name() == other_sorted->name();
   }
 
+  bool IsWeakPrefixOf(const Word& other) const {
+    if (size() >= other.size()) return false;
+
+    std::unique_ptr<Word> sorted = TopologicalSort();
+    std::unique_ptr<Word> other_sorted = other.TopologicalSort();
+
+    for (auto it = sorted->begin(), other_it = other_sorted->begin(), end = sorted->end(); it != end; ++it, ++other_it) {
+      if (!(*it)->Equals(*other_it)) return false;
+    }
+
+    return true;
+  }
+
   std::unique_ptr<Word> TopologicalSort() const {
     std::vector<bool> visited(actions_.size());
     std::vector<int> range(actions_.size());
