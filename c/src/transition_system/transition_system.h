@@ -7,8 +7,8 @@
 #include "./transition.h"
 #include "./state.h"
 #include "./vector.h"
-#include "./state_space.h"
 #include "./action_table.h"
+#include "./state_space.h"
 
 #include "./action_inl.h"
 

@@ -6,9 +6,12 @@
 #include <vector>
 #include <stack>
 
+// TODO(ryysd) generate state space by State::Expand
 class StateSpace {
  public:
   StateSpace() {}
+  StateSpace(const EntitySet& init_entities, const ActionTable* action_table) { Create(init_entities, &init_state_); Generate(action_table); }
+
   ~StateSpace() {
     FreeStates();
     FreeTransitions();
@@ -17,20 +20,68 @@ class StateSpace {
   State* Register(State* state) { return states_.insert(std::make_pair(state->hash(), state)).first->second; }
   bool isRegistered(const State::Hash& hash) const { return states_.find(hash) != states_.end();  }
 
-  State* Create(const State::Hash& hash, const std::vector<std::string>& entities) {
-    State* old = FindByName(hash);
-    return old == NULL ? Register(new State(hash, entities)) : old;
+  // State* Create(const State::Hash& hash, const std::vector<std::string>& entities) {
+  //   State* old = FindByName(hash);
+  //   return old == NULL ? Register(new State(hash, entities)) : old;
+  // }
+
+  // State* Create(const State::Hash& hash, const std::vector<std::string>& entities, bool is_init) {
+  //   State* state = Create(hash, entities);
+  //   if (is_init) init_state_ = state;
+  //   return state;
+  // }
+
+  // unefficient implementation
+  // TODO(ryysd) find old states without creating new state object
+  bool Create(const EntitySet& entities, State** new_state) {
+    State* state = new State(entities);
+    State* old = FindByName(state->hash());
+
+    bool is_new = old == NULL;
+    if (is_new) {
+      Register(state);
+      *new_state = state;
+    } else {
+      delete state;
+      *new_state = old;
+    }
+
+    return is_new;
   }
 
-  State* Create(const State::Hash& hash, const std::vector<std::string>& entities, bool is_init) {
-    State* state = Create(hash, entities);
-    if (is_init) init_state_ = state;
-    return state;
-  }
+  // bool Create(const EntitySet& entities, bool is_init, State** new_state) {
+  //   bool is_new = Create(entities, new_state);
+  //   if (is_init) init_state_ = *new_state;
+  //   return is_new;
+  // }
 
   State* FindByName(const State::Hash& hash) const {
     auto it = states_.find(hash);
     return (it != states_.end()) ? it->second : NULL;
+  }
+
+  void Generate(const ActionTable* action_table) {
+    bool is_new = false;
+    EntitySet entities;
+    State* state = NULL, *new_state = NULL;
+
+    std::stack<State*> stack;
+    stack.push(init_state_);
+    while (!stack.empty()) {
+      state = stack.top();
+      stack.pop();
+
+      for (const auto& kv : action_table->actions()) {
+        if (state->Enables(kv.second)) {
+          entities.clear();
+          state->Expand(kv.second, &entities);
+          is_new = Create(entities, &new_state);
+
+          state->AddTransition(new_state, kv.second);
+          if (is_new) stack.push(new_state);
+        }
+      }
+    }
   }
 
   // for debug (only for small state space)
