@@ -49,7 +49,7 @@ class StateSpace {
     State* state = NULL, *new_state = NULL;
 
     std::vector<const Action*> actions, enable_actions;
-    action_table->actions_vector(&actions);
+    action_table->GetActionsVector(&actions);
 
     std::stack<State*> stack;
     stack.push(init_state_);

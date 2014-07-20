@@ -23,11 +23,12 @@ class ActionTable {
     return (it != actions_.end()) ? it->second : NULL;
   }
 
-  const std::map<std::string, Action*>& actions() const { return actions_; }
-  void actions_vector(std::vector<const Action*>* vector) const {
+  void GetActionsVector(std::vector<const Action*>* vector) const {
     auto to_second = [](const std::map<std::string, Action*>::value_type& value) { return value.second; };
     std::transform(actions_.begin(), actions_.end(), std::back_inserter(*vector), to_second);
   }
+
+  const std::map<std::string, Action*>& actions() const { return actions_; }
 
  private:
   void FreeActions() { for (auto &kv : actions_) { delete kv.second; } }

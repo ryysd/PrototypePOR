@@ -8,7 +8,8 @@
 #include <string>
 #include "../thirdparty/prettyprint.h"
 #include "../thirdparty/cmdline.h"
-#include "./atS_file_reader.h"
+#include "./ats_file_reader.h"
+#include "./reducer/probe_reducer.h"
 
 int main(int argc, char** argv) {
   cmdline::parser parser;

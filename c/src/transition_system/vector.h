@@ -5,12 +5,14 @@
 
 class Vector {
  public:
-  Vector(State* state, Word* word) : state_(state), word_(word), hash_(state->hash() + "@" + word->name()) {}
+  Vector(const State* state, Word* word) : state_(state), word_(word), hash_(state->hash() + "@" + word->name()) {}
+
+  const State* After() const { return state_->After(word_); }
 
   const std::string& hash() const { return hash_; }
 
  private:
-  State* state_;
+  const State* state_;
   Word* word_;
 
   const std::string hash_;
