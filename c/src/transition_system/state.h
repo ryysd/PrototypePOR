@@ -64,9 +64,6 @@ class State {
     std::copy_if(actions.begin(), actions.end(), std::back_inserter(*enable_actions), [this](const Action* action) { return Enables(action); });
   }
 
-  // void Visit() { visited_ = true; }
-  // void Reduce() { reduced_ = true; }
-
   const State* After(const Action* action) const {
     if (!action) return NULL;
 
@@ -86,17 +83,11 @@ class State {
 
   bool Equals(const State& other) const { return hash_ == other.hash(); }
 
-  // bool reduced() const { return reduced_; }
-  // bool visited() const { return visited_; }
-
   const Hash& hash() const { return hash_; }
   const std::vector<Transition*>& transitions() const { return transitions_; }
   const std::vector<std::string>& entities() const { return entities_; }
 
  private:
-  // bool reduced_;
-  // bool visited_;
-
   const std::string MakeHash(const EntitySet& entities) const {
     Hash hash = "";
     for (const std::string& e : entities) { hash += e + ","; }

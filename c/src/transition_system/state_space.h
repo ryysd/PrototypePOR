@@ -20,17 +20,6 @@ class StateSpace {
   State* Register(State* state) { return states_.insert(std::make_pair(state->hash(), state)).first->second; }
   bool isRegistered(const State::Hash& hash) const { return states_.find(hash) != states_.end();  }
 
-  // State* Create(const State::Hash& hash, const std::vector<std::string>& entities) {
-  //   State* old = FindByName(hash);
-  //   return old == NULL ? Register(new State(hash, entities)) : old;
-  // }
-
-  // State* Create(const State::Hash& hash, const std::vector<std::string>& entities, bool is_init) {
-  //   State* state = Create(hash, entities);
-  //   if (is_init) init_state_ = state;
-  //   return state;
-  // }
-
   // unefficient implementation
   // TODO(ryysd) find old states without creating new state object
   bool Create(const EntitySet& entities, State** new_state) {
@@ -48,12 +37,6 @@ class StateSpace {
 
     return is_new;
   }
-
-  // bool Create(const EntitySet& entities, bool is_init, State** new_state) {
-  //   bool is_new = Create(entities, new_state);
-  //   if (is_init) init_state_ = *new_state;
-  //   return is_new;
-  // }
 
   State* FindByName(const State::Hash& hash) const {
     auto it = states_.find(hash);
