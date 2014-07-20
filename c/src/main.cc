@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
   parser.add<std::string>("ats", 'a');
   if (!parser.parse(argc, argv)) {
     std::cout << parser.error_full() << parser.usage();
+    return 0;
   }
 
   auto pair = ATSFileReader::Read(parser.get<std::string>("ats"));
