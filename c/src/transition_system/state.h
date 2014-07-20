@@ -35,17 +35,18 @@ class State {
 
   void Expand(const Action* action, EntitySet* new_entities) const {
     EntitySet tmp;
-    std::set_difference(entities_.begin(), entities_.end(), action->eraser().begin(), action->eraser().end(), back_inserter(tmp));
+    new_entities->clear();
+    std::set_difference(entities_.begin(), entities_.end(), action->eraser().begin(), action->eraser().end(), std::back_inserter(tmp));
     std::set_union(tmp.begin(), tmp.end(), action->creator().begin(), action->creator().end(), back_inserter(*new_entities));
   }
 
-  bool  Enables(const Action* action) const {
+  bool Enables(const Action* action) const {
     EntitySet unrequired_entities, forbidden_entities;
 
     if (!WeakEnables(action)) return false;
 
-    std::set_union(action->embargoes().begin(), action->embargoes().end(), action->creator().begin(), action->creator().end(), back_inserter(unrequired_entities));
-    std::set_intersection(unrequired_entities.begin(), unrequired_entities.end(), entities_.begin(), entities_.end(), back_inserter(forbidden_entities));
+    std::set_union(action->embargoes().begin(), action->embargoes().end(), action->creator().begin(), action->creator().end(), std::back_inserter(unrequired_entities));
+    std::set_intersection(unrequired_entities.begin(), unrequired_entities.end(), entities_.begin(), entities_.end(), std::back_inserter(forbidden_entities));
 
     return forbidden_entities.empty();
   }
@@ -56,6 +57,11 @@ class State {
     std::set_union(action->reader().begin(), action->reader().end(), action->eraser().begin(), action->eraser().end(), back_inserter(required_entities));
     std::set_difference(required_entities.begin(), required_entities.end(), entities_.begin(), entities_.end(), back_inserter(insufficient_entities));
     return insufficient_entities.empty();
+  }
+
+  void CalcEnableActions(const std::vector<const Action*>& actions, std::vector<const Action*>* enable_actions) const {
+    enable_actions->clear();
+    std::copy_if(actions.begin(), actions.end(), std::back_inserter(*enable_actions), [this](const Action* action) { return Enables(action); });
   }
 
   // void Visit() { visited_ = true; }

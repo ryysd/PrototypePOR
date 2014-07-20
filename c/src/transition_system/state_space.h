@@ -65,21 +65,22 @@ class StateSpace {
     EntitySet entities;
     State* state = NULL, *new_state = NULL;
 
+    std::vector<const Action*> actions, enable_actions;
+    action_table->actions_vector(&actions);
+
     std::stack<State*> stack;
     stack.push(init_state_);
     while (!stack.empty()) {
       state = stack.top();
       stack.pop();
 
-      for (const auto& kv : action_table->actions()) {
-        if (state->Enables(kv.second)) {
-          entities.clear();
-          state->Expand(kv.second, &entities);
-          is_new = Create(entities, &new_state);
+      state->CalcEnableActions(actions, &enable_actions);
+      for (const Action* action : enable_actions) {
+        state->Expand(action, &entities);
+        is_new = Create(entities, &new_state);
 
-          state->AddTransition(new_state, kv.second);
-          if (is_new) stack.push(new_state);
-        }
+        state->AddTransition(new_state, action);
+        if (is_new) stack.push(new_state);
       }
     }
   }
