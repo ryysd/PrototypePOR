@@ -40,17 +40,22 @@ class State {
   }
 
   bool  Enables(const Action* action) const {
-    EntitySet required_entities, insufficient_entities;
     EntitySet unrequired_entities, forbidden_entities;
 
-    std::set_union(action->reader().begin(), action->reader().end(), action->eraser().begin(), action->eraser().end(), back_inserter(required_entities));
-    std::set_difference(required_entities.begin(), required_entities.end(), entities_.begin(), entities_.end(), back_inserter(insufficient_entities));
-    if (!insufficient_entities.empty()) return false;
+    if (!WeakEnables(action)) return false;
 
     std::set_union(action->embargoes().begin(), action->embargoes().end(), action->creator().begin(), action->creator().end(), back_inserter(unrequired_entities));
     std::set_intersection(unrequired_entities.begin(), unrequired_entities.end(), entities_.begin(), entities_.end(), back_inserter(forbidden_entities));
 
     return forbidden_entities.empty();
+  }
+
+  bool WeakEnables(const Action* action) const {
+    EntitySet required_entities, insufficient_entities;
+
+    std::set_union(action->reader().begin(), action->reader().end(), action->eraser().begin(), action->eraser().end(), back_inserter(required_entities));
+    std::set_difference(required_entities.begin(), required_entities.end(), entities_.begin(), entities_.end(), back_inserter(insufficient_entities));
+    return insufficient_entities.empty();
   }
 
   // void Visit() { visited_ = true; }
