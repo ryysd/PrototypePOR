@@ -104,8 +104,7 @@ class StateSpace {
       if (s->transitions().empty()) printf("  \"%s\" [color=red, style=bold];\n", s->hash().c_str());
       // if (s->reduced()) printf("  \"%s\" [style=filled, fillcolor=\"#999999\", fontcolor=white];\n", s->hash().c_str());
       for (Transition* t : s->transitions()) {
-        printf("  \"%s\"->\"%s\"%s;\n", t->source()->hash().c_str(), t->target()->hash().c_str(),
-            (/*(t->source()->reduced() || t->target()->reduced())*/ false ? "[style=dashed, color=\"#999999\"]" : ""));
+        printf("  \"%s\"->\"%s\" [label=\"%s\"];\n", t->source()->hash().c_str(), t->target()->hash().c_str(), t->action()->name().c_str());
         stack.push(t->target());
       }
     }

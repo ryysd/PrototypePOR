@@ -1,3 +1,4 @@
+require 'pp'
 require 'json'
 require_relative 'action'
 require_relative '../petrinet/petrinet'
@@ -41,27 +42,36 @@ class ATSFileGenerator
     states = petrinet.execute do |source, transition, target|
       source_entities = (petrinet.places.zip source.marking).select{|p, e| e > 0}.map{|p, e| "#{p.id}_#{e}"}
       target_entities = (petrinet.places.zip target.marking).select{|p, e| e > 0}.map{|p, e| "#{p.id}_#{e}"}
+      
+      source_guard_entities = (petrinet.places.zip source.marking).select{|p, e| e > 0}.map{|p, e| "@#{p.id}"}
+      target_guard_entities = (petrinet.places.zip target.marking).select{|p, e| e > 0}.map{|p, e| "@#{p.id}"}
+      forbidden_creator = target_guard_entities - source_guard_entities
+      forbidden_eraser = source_guard_entities - target_guard_entities
 
       state_entities[source.to_s] = source_entities
       state_entities[target.to_s] = target_entities
 
-      eraser = source_entities - target_entities
-      creator = target_entities - source_entities
+      eraser = (source_entities - target_entities) | forbidden_eraser
+      creator = (target_entities - source_entities) | forbidden_creator
 
       action = Action.new transition.id, creator, eraser
+      action = Action.new "#{transition.id}_#{action.to_s}", creator, eraser
 
-      tmp_actions[action.to_s] = action if tmp_actions[action.to_s].nil?
-      index = tmp_actions.select{|action_name, a| a.name == action.name}.length
-	 
-      action_name = "#{action.name}_#{index}"
-      actions[action_name] = Action.new action_name, creator, eraser if actions[action_name].nil?
+      tmp_actions[action.to_s] = action
 
-      transitions.push "#{source.to_s}-#{action_name}-#{target.to_s}"
+      # actions[action_name] = Action.new action_name, creator, eraser if actions[action_name].nil?
+
+      se = "[#{source_entities.join ','}]"
+      te = "[#{target_entities.join ','}]"
+      source.hash = se
+      target.hash = te
+      transitions.push "#{se}-#{action.name}-#{te}"
       # transitions.push "#{source.to_s}-#{transition.name}-#{target.to_s}"
     end
     Debug.puts_success "number of states: #{states.length}"
 
-    actions = actions.values
+    init_guard_entities = (petrinet.places.zip petrinet.init_state.marking).select{|p, e| e > 0}.map{|p, e| "@#{p.id}"}
+    actions = tmp_actions.values
 
     JSON.generate (
       {
@@ -71,7 +81,7 @@ class ATSFileGenerator
 	}, 
 	lts: {
 	  init: petrinet.init_state.to_s, 
-	  init_entities: state_entities[petrinet.init_state.to_s],
+	  init_entities: state_entities[petrinet.init_state.to_s] | init_guard_entities,
 	  transitions: transitions, 
 	  states: state_entities
 	}}

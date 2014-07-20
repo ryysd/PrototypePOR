@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cassert>
 
 class Word;
 /*! @class Action
@@ -12,8 +13,14 @@ class Word;
 */
 class Action {
  public:
+  // sorted entities are required.
   Action(const std::string& name, const EntitySet& creator, const EntitySet& eraser, const EntitySet& reader, const EntitySet& embargoes)
-    : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {}
+    : name_(name), creator_(creator), reader_(reader), eraser_(eraser), embargoes_(embargoes) {
+      assert(std::is_sorted(reader.begin(), reader.end()));
+      assert(std::is_sorted(creator.begin(), creator.end()));
+      assert(std::is_sorted(eraser.begin(), eraser.end()));
+      assert(std::is_sorted(embargoes.begin(), embargoes.end()));
+    }
 
   // void AddSimulate(const Action* action) { simulates_.insert(std::make_pair(action->name(), true)); }
   // void AddDisable(const Action* action) { disables_.insert(std::make_pair(action->name(), true)); }

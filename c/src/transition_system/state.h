@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
 // TODO(ryysd) use std::array instead of std::vector (if vector is bottleneck of performance)
 // class State<int EntitySize, int TransitionSize> {
@@ -21,11 +22,12 @@ class State {
   typedef std::string Hash;  // for debug
   // typedef unsigned& Hash;
 
-  State(const Hash& hash, const EntitySet& entities)
-    : /*reduced_(false),*/ hash_(hash), entities_(entities) {}
+  // sorted entities are required.
+  State(const Hash& hash, const EntitySet& entities) : /*reduced_(false),*/ hash_(hash), entities_(entities) {}
 
-  explicit State(const EntitySet& entities)
-    : hash_(MakeHash(entities)), entities_(entities) {}
+  explicit State(const EntitySet& entities) : hash_(MakeHash(entities)), entities_(entities) {
+    assert(std::is_sorted(entities.begin(), entities.end()));
+  }
 
   ~State() { for (auto t : transitions_) { delete t; } }
 

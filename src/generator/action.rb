@@ -1,5 +1,6 @@
 class Action
   attr_reader :name, :creator, :reader, :eraser, :embargoes
+  attr_writer :name
   def initialize(name="", c=[], d=[], r=[], n=[])
     @name = name
     @creator = c
