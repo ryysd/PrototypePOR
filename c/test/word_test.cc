@@ -59,3 +59,16 @@ TEST_F(WordTest, WeakPrefixTest) {
   EXPECT_TRUE(b1b2a1a2.IsWeakPrefixOf(a1a2b1b2c1c2));
   EXPECT_FALSE(b1b2a2a1.IsWeakPrefixOf(a1a2b1b2c1c2));
 }
+
+TEST_F(WordTest, AppendTest) {
+  Word a1a2b1b2c1c2{a1_, a2_, b1_, b2_, c1_, c2_};
+  WordPtr new_word = a1a2b1b2c1c2.Append(a1_);
+  EXPECT_EQ("[a1_1,a2_1,b1_1,b2_1,c1_1,c2_1,a1_1]", new_word->name());
+}
+
+TEST_F(WordTest, DiffTest) {
+  Word a1a2b1b2c1c2{a1_, a2_, b1_, b2_, c1_, c2_};
+  Word a1a2b1{a1_, a2_, b1_};
+  WordPtr new_word = a1a2b1b2c1c2.Diff(a1a2b1);
+  EXPECT_EQ("[b2_1,c1_1,c2_1]", new_word->name());
+}

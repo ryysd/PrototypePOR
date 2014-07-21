@@ -11,15 +11,14 @@ inline std::unique_ptr<Word> Action::CalcPrimeCause(const Word& word) const {
   std::vector<int> range(word.size());
   std::iota(range.begin(), range.end(), 0);
 
-  Action* action = NULL;
   for (int i : range) {
-    action = word[i];
+    const Action* action = word[i];
 
     auto is_necessary = [action, i, &rest_flags, &word](int j) { return i != j && rest_flags[j] && action->Influences(word[j]); };
     rest_flags[i] = action->Influences(this) || std::any_of(range.begin(), range.end(), is_necessary);
   }
 
-  std::vector<Action*> prime_cause;
+  std::vector<const Action*> prime_cause;
   for (int i : range) {
     if (rest_flags[i]) prime_cause.push_back(word[i]);
   }

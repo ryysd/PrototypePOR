@@ -29,19 +29,47 @@ class ProbeReducer {
 
   ~ProbeReducer() { /* delete action_table_; */ }
 
-  void Reduce() {
-    std::unordered_map<std::string, Vector*> explored_vectors;
+  void Reduce(const State* init_state) {
+    std::unordered_map<std::string, bool> explored_vectors;
     std::stack<Vector*> stack;
+    std::unique_ptr<Word> empty_word = std::unique_ptr<Word>(new Word());
+    std::unordered_map<std::string, bool> visited_states;
 
     ProbeSet probe_sets;
 
     Vector* vector = NULL;
+    stack.push(new Vector(init_state, empty_word.get()));
     while (!stack.empty()) {
       vector = stack.top();
       stack.pop();
 
+      if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
+      explored_vectors.insert(std::make_pair(vector->hash(), true));
+
+      if (visited_states.find(vector->state()->hash()) == visited_states.end()) {
+        visited_states.insert(std::make_pair(vector->state()->hash(), true));
+      }
+      std::cout << vector->hash() << std::endl;
+
       CalcProbeSet(vector, &probe_sets);
+      std::cout << "probe set ============================" << std::endl;
+      for (auto& kv : probe_sets) {
+        std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
+        stack.push(MakeNewVectorFromProbeSet(vector, kv));
+      }
+      std::cout << "======================================" << std::endl;
+      std::cout << std::endl;
+
+      delete vector;
     }
+
+    std::cout << visited_states.size() << std::endl;
+  }
+
+  Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set) const {
+    return new Vector(
+        vector->state()->After(probe_set.second.get()),
+        vector->word()->Append(probe_set.first)->Diff(*probe_set.second));
   }
 
   void CalcProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
@@ -63,7 +91,7 @@ class ProbeReducer {
 
     for (const Action* p : probe_set) {
       // TODO(ryysd) calc 2.10b, 2.10c
-      probe_sets->insert(std::make_pair(p, std::unique_ptr<Word>(new Word)));
+      probe_sets->insert(std::make_pair(p, p->CalcPrimeCause(*vector->word())));
     }
   }
 

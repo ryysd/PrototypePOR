@@ -75,7 +75,7 @@ class State {
     if (!word) return NULL;
 
     const State* s = this;
-    for (Action* action : *word) { if (!(s = s->After(action))) return NULL; }
+    for (const Action* action : *word) { if (!(s = s->After(action))) return NULL; }
     return s;
   }
 

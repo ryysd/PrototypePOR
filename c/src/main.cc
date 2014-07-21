@@ -24,4 +24,6 @@ int main(int argc, char** argv) {
   // auto pair = ATSFileReader::Read("../tmp/FMS-2/ats.json");
   // pair.first->dump();
   std::cout << "// " << pair.first->states().size() << std::endl;
+  ProbeReducer* reducer = new ProbeReducer(pair.second);
+  reducer->Reduce(pair.first->init_state());
 }

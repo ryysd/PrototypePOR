@@ -34,5 +34,9 @@ TEST_F(ProbeReducerTest, CalcProbeSetTest) {
   EXPECT_EQ("grf1_1", (++it)->first->name());
 }
 
+TEST_F(ProbeReducerTest, ReduceTest) {
+  reducer_->Reduce(philosopher_2_state_space_->init_state());
+}
+
 #endif  // PROBE_REDUCER_TEST_H_
 
