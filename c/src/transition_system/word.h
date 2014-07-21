@@ -20,7 +20,7 @@ class Word {
 
   bool WeakEquals(const Word& other) const {
     if (size() != other.size()) return false;
-    if (!ContainsSameActions(other)) return false;
+    // if (!ContainsSameActions(other)) return false;
 
     std::unique_ptr<Word> sorted = TopologicalSort();
     std::unique_ptr<Word> other_sorted = other.TopologicalSort();
@@ -29,16 +29,9 @@ class Word {
   }
 
   bool IsWeakPrefixOf(const Word& other) const {
-    if (size() >= other.size()) return false;
+    if (size() > other.size()) return false;
 
-    std::unique_ptr<Word> sorted = TopologicalSort();
-    std::unique_ptr<Word> other_sorted = other.TopologicalSort();
-
-    for (auto it = sorted->begin(), end = sorted->end(), other_it = other_sorted->begin(); it != end; ++it, ++other_it) {
-      if (!(*it)->Equals(*other_it)) return false;
-    }
-
-    return true;
+    return other.WeakEquals(*(other.Complement(*this)));
   }
 
   std::unique_ptr<Word> Append(const Action* action) const {
@@ -47,16 +40,16 @@ class Word {
     return std::unique_ptr<Word>(new Word(new_actions));
   }
 
+  // unefficient implementation
   std::unique_ptr<Word> Diff(const Word& other) const {
-    std::vector<const Action*> difference;
+    assert(other.IsWeakPrefixOf(*this));
 
-    auto this_it = begin(), this_end = end();
-    auto other_it = other.begin(), other_end = other.end();
-    for (; other_it != other_end; ++this_it, ++other_it) {
-      assert((*this_it)->Equals(*other_it));
+    std::vector<const Action*> difference;
+    std::copy(begin(), end(), std::back_inserter(difference));
+    for (const Action* action : other) {
+      difference.erase(std::find_if(difference.begin(), difference.end(), [action](const Action* a) { return a->Equals(action); }));
     }
 
-    for (; this_it != this_end; ++this_it) { difference.push_back(*this_it); }
     return std::unique_ptr<Word>(new Word(difference));
   }
 
@@ -101,20 +94,41 @@ class Word {
     return std::unique_ptr<Word>(new Word(sorted));
   }
 
-  bool ContainsSameActions(const Word& other) const {
+  // bool ContainsSameActions(const Word& other) const {
+  //   std::vector<const Action*> clone, other_clone;
+  //   std::copy(begin(), end(), back_inserter(clone));
+  //   std::copy(other.begin(), other.end(), back_inserter(other_clone));
+
+  //   auto compare = [](const Action* a, const Action* b) { return a->name() < b->name(); };
+  //   std::sort(clone.begin(), clone.end(), compare);
+  //   std::sort(other_clone.begin(), other_clone.end(), compare);
+
+  //   for (auto it = clone.begin(), end = clone.end(), other_it = other_clone.begin(); it != end; ++it, ++other_it) {
+  //     if (!(*it)->Equals(*other_it)) return false;
+  //   }
+
+  //   return true;
+  // }
+
+  std::unique_ptr<Word> Complement(const Word& other) const {
+    assert(size() >= other.size());
+    std::vector<const Action*> complemented;
+
     std::vector<const Action*> clone, other_clone;
     std::copy(begin(), end(), back_inserter(clone));
-    std::copy(other.begin(), other.end(), back_inserter(other_clone));
+    std::copy(other.begin(), other.end(), std::back_inserter(other_clone));
+    std::copy(other.begin(), other.end(), std::back_inserter(complemented));
 
     auto compare = [](const Action* a, const Action* b) { return a->name() < b->name(); };
     std::sort(clone.begin(), clone.end(), compare);
     std::sort(other_clone.begin(), other_clone.end(), compare);
 
-    for (auto it = clone.begin(), end = clone.end(), other_it = other_clone.begin(); it != end; ++it, ++other_it) {
-      if (!(*it)->Equals(*other_it)) return false;
-    }
+    std::vector<const Action*> difference;
+    std::set_difference(clone.begin(), clone.end(), other_clone.begin(), other_clone.end(), std::back_inserter(difference), compare);
+    for (const Action* action : difference) complemented.push_back(action);
 
-    return true;
+    assert(complemented.size() == size());
+    return std::unique_ptr<Word>(new Word(complemented));
   }
 
   const std::string MakeName() const {

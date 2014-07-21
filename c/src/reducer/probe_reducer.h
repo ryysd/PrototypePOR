@@ -46,8 +46,9 @@ class ProbeReducer {
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
-      if (visited_states.find(vector->state()->hash()) == visited_states.end()) {
-        visited_states.insert(std::make_pair(vector->state()->hash(), true));
+      if (visited_states.find(vector->After()->hash()) == visited_states.end()) {
+        std::cout << "visit: " << vector->After()->hash() << std::endl;
+        visited_states.insert(std::make_pair(vector->After()->hash(), true));
       }
       std::cout << vector->hash() << std::endl;
 
