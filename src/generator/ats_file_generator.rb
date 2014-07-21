@@ -36,8 +36,9 @@ class ATSFileGenerator
 
   def self.generate(petrinet)
     transitions = []
-    tmp_actions = {}
     actions = {}
+    indexes = {}
+    name_map = {}
     state_entities = {}
     states = petrinet.execute do |source, transition, target|
       source_entities = (petrinet.places.zip source.marking).select{|p, e| e > 0}.map{|p, e| "#{p.id}_#{e}"}
@@ -54,10 +55,18 @@ class ATSFileGenerator
       eraser = (source_entities - target_entities) | forbidden_eraser
       creator = (target_entities - source_entities) | forbidden_creator
 
-      action = Action.new transition.id, creator, eraser
-      action = Action.new "#{transition.id}_#{action.to_s}", creator, eraser
+      raw_action = Action.new transition.id, creator, eraser
+      tmp_action = Action.new "#{transition.id}_#{raw_action.to_s}", creator, eraser
+      unless name_map.has_key? tmp_action.to_s
+	indexes[raw_action.to_s] = 0 unless indexes.has_key? raw_action.to_s
+	indexes[raw_action.to_s] += 1
+      end
 
-      tmp_actions[action.to_s] = action
+      action = Action.new "#{transition.id}_#{indexes[raw_action.to_s]}", creator, eraser
+      unless name_map.has_key? tmp_action.to_s
+	actions[action.name] = action
+	name_map[tmp_action.to_s] = action.name
+      end
 
       # actions[action_name] = Action.new action_name, creator, eraser if actions[action_name].nil?
 
@@ -70,20 +79,24 @@ class ATSFileGenerator
     end
     Debug.puts_success "number of states: #{states.length}"
 
+    puts '**********************************'
+    pp name_map
+    puts '**********************************'
+
     init_guard_entities = (petrinet.places.zip petrinet.init_state.marking).select{|p, e| e > 0}.map{|p, e| "@#{p.id}"}
-    actions = tmp_actions.values
+    actions = actions.values
 
     JSON.generate (
       {
 	actions: {
-	  relations: (action_relations actions),
+	  # relations: (action_relations actions),
 	  entities: (action_entities actions)
 	}, 
 	lts: {
 	  init: petrinet.init_state.to_s, 
 	  init_entities: state_entities[petrinet.init_state.to_s] | init_guard_entities,
-	  transitions: transitions, 
-	  states: state_entities
+	  # transitions: transitions, 
+	  # states: state_entities
 	}}
     )
   end
