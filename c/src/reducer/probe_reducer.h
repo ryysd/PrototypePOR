@@ -29,7 +29,7 @@ class ProbeReducer {
 
   ~ProbeReducer() { /* delete action_table_; */ }
 
-  void Reduce(const State* init_state) {
+  void Reduce(const State* init_state) const {
     std::unordered_map<std::string, bool> explored_vectors;
     std::stack<Vector*> stack;
     std::unique_ptr<Word> empty_word = std::unique_ptr<Word>(new Word());
@@ -67,6 +67,7 @@ class ProbeReducer {
     std::cout << visited_states.size() << std::endl;
   }
 
+ private:
   Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set) const {
     return new Vector(
         vector->state()->After(probe_set.second.get()),
@@ -96,7 +97,6 @@ class ProbeReducer {
     }
   }
 
- private:
   ActionTable* action_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ProbeReducer);
