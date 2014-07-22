@@ -18,6 +18,9 @@ int main(int argc, char** argv) {
 
   parser.add<std::string>("ats", 'a');
   parser.add<std::string>("dot", 'd', "", false);
+  parser.add<bool>("hide-state-name", 's', "", false);
+  parser.add<bool>("hide-edge-name", 'e', "", false);
+
   if (!parser.parse(argc, argv)) {
     std::cout << parser.error_full() << parser.usage();
     return 0;
@@ -44,6 +47,9 @@ int main(int argc, char** argv) {
       ERROR("cannot open %s.", dot_file_name.c_str());
       return 0;
     }
-    ofs << pair.first->ToDot(visited_states, true);
+
+    bool display_state_name = !parser.exist("hide-state-name") || !parser.get<bool>("hide-state-name");
+    bool display_edge_name = !parser.exist("hide-edge-name") || !parser.get<bool>("hide-edge-name");
+    ofs << pair.first->ToDot(visited_states, display_state_name, display_edge_name);
   }
 }

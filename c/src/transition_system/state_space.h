@@ -70,7 +70,7 @@ class StateSpace {
   }
 
   // for debug (only for small state space)
-  std::string ToDot(const std::unordered_map<std::string, const State*>& non_reduced_states, bool display_entities) const {
+  std::string ToDot(const std::unordered_map<std::string, const State*>& non_reduced_states, bool display_state_name, bool display_edge_name) const {
     // Use map to retain visited state to not change State::visited flag.
     // So, memory performance is bad. Do not call this method for large state space
     std::map<std::string, bool> visited;
@@ -91,11 +91,12 @@ class StateSpace {
 
       if (s->transitions().empty()) sstream << "  \"" << s->hash() << "\" [color=red, style=bold];" << std::endl;
       if (is_reduced(s)) sstream << "  \"" << s->hash() << "\" [style=filled, fillcolor=\"#999999\", fontcolor=white];" << std::endl;
-      if (!display_entities) sstream << "  \"" << s->hash() << "\" [label=\"\"];" << std::endl;
+      if (!display_state_name) sstream << "  \"" << s->hash() << "\" [label=\"\"];" << std::endl;
       for (Transition* t : s->transitions()) {
         // data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : (color.empty? ? "  #{edge};" : "  #{edge} [#{color}];")
         std::string color = (is_reduced(t->source()) || is_reduced(t->target())) ?  ", style=dashed, color=\"#999999\"" : "";
-        sstream << "  \"" << t->source()->hash() << "\"->\"" << t->target()->hash() << "\"" << "[label=\"" << t->action()->name() << "\"" << color << "]" << std::endl;
+        std::string label = display_edge_name ? t->action()->name() : "";
+        sstream << "  \"" << t->source()->hash() << "\"->\"" << t->target()->hash() << "\"" << "[label=\"" << label << "\"" << color << "]" << std::endl;
         // printf("  \"%s\"->\"%s\" [label=\"%s\"];\n", t->source()->hash().c_str(), t->target()->hash().c_str(), t->action()->name().c_str());
         stack.push(t->target());
       }
