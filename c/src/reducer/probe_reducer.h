@@ -8,17 +8,11 @@
 #include <map>
 #include <unordered_map>
 
-// class StateInterface {
-//  public:
-//   State::Hash& hash();
-// };
-//
-// class ReducerCallbackObject {
-//  public:
-//   virtual State::Hash& GetInitStateHash();
-//   virtual StateInterface* GetSuccessorHashes(std::vector<State::Hash&>);
-//  private:
-// };
+class ReducerCallbackObject {
+ public:
+  virtual void OnVisit(const State* state) const = 0;
+  virtual void OnExpand(State* state) const = 0;
+};
 
 class ProbeReducer {
  public:
@@ -29,11 +23,12 @@ class ProbeReducer {
 
   ~ProbeReducer() { /* delete action_table_; */ }
 
-  void Reduce(const State* init_state) const {
+  void Reduce(const State* init_state, std::unordered_map<std::string, const State*>* visited_states) const {
     std::unordered_map<std::string, bool> explored_vectors;
     std::stack<Vector*> stack;
     std::unique_ptr<Word> empty_word = std::unique_ptr<Word>(new Word());
-    std::unordered_map<std::string, bool> visited_states;
+    // std::unordered_map<std::string, bool> visited_states;
+    visited_states->clear();
 
     ProbeSet probe_sets;
 
@@ -46,9 +41,10 @@ class ProbeReducer {
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
-      if (visited_states.find(vector->After()->hash()) == visited_states.end()) {
+      if (visited_states->find(vector->After()->hash()) == visited_states->end()) {
         std::cout << "visit: " << vector->After()->hash() << std::endl;
-        visited_states.insert(std::make_pair(vector->After()->hash(), true));
+        const State* after = vector->After();
+        visited_states->insert(std::make_pair(after->hash(), after));
       }
       std::cout << vector->hash() << std::endl;
 
@@ -63,8 +59,6 @@ class ProbeReducer {
 
       delete vector;
     }
-
-    std::cout << visited_states.size() << std::endl;
   }
 
  private:

@@ -79,24 +79,20 @@ class ATSFileGenerator
     end
     Debug.puts_success "number of states: #{states.length}"
 
-    puts '**********************************'
-    pp name_map
-    puts '**********************************'
-
     init_guard_entities = (petrinet.places.zip petrinet.init_state.marking).select{|p, e| e > 0}.map{|p, e| "@#{p.id}"}
     actions = actions.values
 
     JSON.generate (
       {
 	actions: {
-	  # relations: (action_relations actions),
+	  relations: (action_relations actions),
 	  entities: (action_entities actions)
 	}, 
 	lts: {
 	  init: petrinet.init_state.to_s, 
 	  init_entities: state_entities[petrinet.init_state.to_s] | init_guard_entities,
-	  # transitions: transitions, 
-	  # states: state_entities
+	  transitions: transitions, 
+	  states: state_entities
 	}}
     )
   end

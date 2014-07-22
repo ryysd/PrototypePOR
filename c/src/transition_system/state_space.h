@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <unordered_map>
 
 // TODO(ryysd) generate state space by State::Expand
 class StateSpace {
@@ -69,14 +70,17 @@ class StateSpace {
   }
 
   // for debug (only for small state space)
-  void dump() const {
+  std::string ToDot(const std::unordered_map<std::string, const State*>& non_reduced_states, bool display_entities) const {
     // Use map to retain visited state to not change State::visited flag.
     // So, memory performance is bad. Do not call this method for large state space
     std::map<std::string, bool> visited;
     std::stack<const State*> stack;
+    std::stringstream sstream;
+
+    auto is_reduced = [&non_reduced_states](const State* s) { return non_reduced_states.find(s->hash()) == non_reduced_states.end(); };
 
     stack.push(init_state_);
-    printf("digraph g{\n");
+    sstream << "digraph g{" << std::endl;
     while (!stack.empty()) {
       const State* s = stack.top();
       stack.pop();
@@ -85,14 +89,21 @@ class StateSpace {
 
       visited.insert(std::make_pair(s->hash(), true));
 
-      if (s->transitions().empty()) printf("  \"%s\" [color=red, style=bold];\n", s->hash().c_str());
-      // if (s->reduced()) printf("  \"%s\" [style=filled, fillcolor=\"#999999\", fontcolor=white];\n", s->hash().c_str());
+      if (s->transitions().empty()) sstream << "  \"" << s->hash() << "\" [color=red, style=bold];" << std::endl;
+      if (is_reduced(s)) sstream << "  \"" << s->hash() << "\" [style=filled, fillcolor=\"#999999\", fontcolor=white];" << std::endl;
+      if (!display_entities) sstream << "  \"" << s->hash() << "\" [label=\"\"];" << std::endl;
       for (Transition* t : s->transitions()) {
-        printf("  \"%s\"->\"%s\" [label=\"%s\"];\n", t->source()->hash().c_str(), t->target()->hash().c_str(), t->action()->name().c_str());
+        // data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : (color.empty? ? "  #{edge};" : "  #{edge} [#{color}];")
+        std::string color = (is_reduced(t->source()) || is_reduced(t->target())) ?  ", style=dashed, color=\"#999999\"" : "";
+        sstream << "  \"" << t->source()->hash() << "\"->\"" << t->target()->hash() << "\"" << "[label=\"" << t->action()->name() << "\"" << color << "]" << std::endl;
+        // printf("  \"%s\"->\"%s\" [label=\"%s\"];\n", t->source()->hash().c_str(), t->target()->hash().c_str(), t->action()->name().c_str());
         stack.push(t->target());
       }
     }
-    printf("}\n");
+    sstream << "}" << std::endl;
+    // printf("}\n");
+
+    return sstream.str();
   }
 
   const std::map<std::string, State*>& states() const { return states_; }
