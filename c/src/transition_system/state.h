@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cassert>
+#include <algorithm>
 
 // TODO(ryysd) use std::array instead of std::vector (if vector is bottleneck of performance)
 // class State<int EntitySize, int TransitionSize> {
@@ -78,6 +79,17 @@ class State {
     for (const Action* action : *word) { if (!(s = s->After(action))) return NULL; }
     return s;
   }
+
+  std::unique_ptr<State> WeakAfter(const Word* word) const {
+    EntitySet new_entities;
+
+    std::copy(entities_.begin(), entities_.end(), std::back_inserter(new_entities));
+    for (const Action* action : *word) new_entities.insert(new_entities.end(), action->creator().begin(), action->creator().end());
+
+    std::sort(new_entities.begin(), new_entities.end());
+    return std::unique_ptr<State>(new State(new_entities));
+  }
+  std::unique_ptr<State> WeakAfter(const Word& word) const { return WeakAfter(&word); }
 
   const State* After(const Word& word) const { return After(&word); }
 

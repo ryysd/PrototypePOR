@@ -39,5 +39,16 @@ TEST_F(ProbeReducerTest, ReduceTest) {
   // reducer_->Reduce(philosopher_2_state_space_->init_state());
 }
 
+TEST_F(ProbeReducerTest, PotentiallyMissedActionTest) {
+  MissedAction missed_actions;
+  Word glf1_glf2{get_left_fork1_, get_left_fork2_};
+  Vector s0_glf1_glf2(philosopher_2_state_space_->init_state(), &glf1_glf2);
+
+  reducer_->CalcPotentiallyMissedAction(&s0_glf1_glf2, &missed_actions);
+  EXPECT_EQ(1, missed_actions.size());
+  // EXPECT_EQ("glf2_1", missed_actions.front().first->name());
+  // EXPECT_EQ("grf2_1", missed_actions.front().second->name());
+}
+
 #endif  // PROBE_REDUCER_TEST_H_
 

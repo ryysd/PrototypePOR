@@ -6,6 +6,7 @@
 #include <stack>
 #include <memory>
 #include <map>
+#include <utility>
 #include <unordered_map>
 
 class ReducerCallbackObject {
@@ -13,6 +14,8 @@ class ReducerCallbackObject {
   virtual void OnVisit(const State* state) const = 0;
   virtual void OnExpand(State* state) const = 0;
 };
+
+typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
 
 class ProbeReducer {
  public:
@@ -32,6 +35,7 @@ class ProbeReducer {
 
     ProbeSet probe_sets;
 
+    MissedAction missed_actions;
     Vector* vector = NULL;
     stack.push(new Vector(init_state, empty_word.get()));
     while (!stack.empty()) {
@@ -40,6 +44,12 @@ class ProbeReducer {
 
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
+
+      CalcPotentiallyMissedAction(vector, &missed_actions);
+      for (auto& missed_action : missed_actions) {
+        std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
+        new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get());
+      }
 
       if (visited_states->find(vector->After()->hash()) == visited_states->end()) {
         std::cout << "visit: " << vector->After()->hash() << std::endl;
@@ -58,6 +68,28 @@ class ProbeReducer {
       std::cout << std::endl;
 
       delete vector;
+    }
+  }
+
+  void CalcPotentiallyMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+    if (vector->word()->size() < 1) return;
+    missed_actions->clear();
+
+    const std::vector<const Action*> word_actions = std::vector<const Action*>(vector->word()->begin(), vector->word()->end() - 1);
+    const Word word(word_actions);
+    const Action* last_action = vector->word()->actions().back();
+
+    std::vector<const Action*> actions;
+    action_table_->GetActionsVector(&actions);
+
+    for (const Action* action : actions) {
+      if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
+      // if (!vector->state()->WeakAfter(vector->word())->WeakEnables(action)) continue; /*correct?*/
+      if (!std::any_of(word.begin(), word.end(), [action](const Action* c) { return c->Disables(action); })) continue; // NOLINT
+      if (!last_action->Simulates(action)) continue;
+
+      // TODO(ryysd) check prime_cause(vector->word()) + action is enable at vector->state()
+      missed_actions->push_back(std::make_pair(std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()/*correct?*/)), action));
     }
   }
 

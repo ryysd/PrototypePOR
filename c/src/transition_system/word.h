@@ -13,7 +13,7 @@ class Word {
  public:
   Word() : name_(MakeName()) {}
   Word(std::initializer_list<const Action*> actions) : actions_(actions), name_(MakeName()) {}
-  explicit Word(std::vector<const Action*>& actions) : actions_(actions), name_(MakeName()) {}
+  explicit Word(const std::vector<const Action*>& actions) : actions_(actions), name_(MakeName()) {}
 
   const std::vector<const Action*>::const_iterator begin() const { return actions_.begin(); }
   const std::vector<const Action*>::const_iterator end() const { return actions_.end(); }
