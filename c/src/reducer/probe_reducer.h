@@ -58,7 +58,7 @@ class ProbeReducer {
       }
       std::cout << vector->hash() << std::endl;
 
-      CalcProbeSet(vector, &probe_sets);
+      CalcIndependentProbeSet(vector, &probe_sets);
       std::cout << "probe set ============================" << std::endl;
       for (auto& kv : probe_sets) {
         std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
@@ -97,7 +97,7 @@ class ProbeReducer {
   Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set) const {
     return new Vector(
         vector->state()->After(probe_set.second.get()),
-        vector->word()->Append(probe_set.first)->Diff(*probe_set.second));
+        vector->word()->Append(probe_set.first)->CalcWeakDifference(*probe_set.second));
   }
 
   void CalcProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
@@ -121,6 +121,35 @@ class ProbeReducer {
       // TODO(ryysd) calc 2.10b, 2.10c
       probe_sets->insert(std::make_pair(p, p->CalcPrimeCause(*vector->word())));
     }
+  }
+
+  void CalcIndependentProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
+    probe_sets->clear();
+
+    std::vector<const Action*> actions, enable_actions;
+    action_table_->GetActionsVector(&actions);
+    vector->After()->CalcEnableActions(actions, &enable_actions);
+    if (enable_actions.empty()) return;
+
+    const Action* independent_action = CalcIndependentAction(enable_actions);
+
+    if (independent_action) {
+      probe_sets->insert(std::make_pair(independent_action, std::unique_ptr<Word>(new Word())));
+    } else {
+      for (const Action* action : enable_actions) {
+        probe_sets->insert(std::make_pair(action, std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()))));
+      }
+    }
+  }
+
+  const Action* CalcIndependentAction(const std::vector<const Action*>& enable_actions) const {
+    for (const Action* a : enable_actions) {
+      if (std::all_of(enable_actions.begin(), enable_actions.end(), [a](const Action* b) { return a->Equals(b) || (!a->Disables(b) && !b->Disables(a)); })) {
+        return a;
+      }
+    }
+
+    return NULL;
   }
 
   ActionTable* action_table_;

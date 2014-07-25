@@ -40,9 +40,15 @@ class Word {
     return std::unique_ptr<Word>(new Word(new_actions));
   }
 
-  // unefficient implementation
-  std::unique_ptr<Word> Diff(const Word& other) const {
+  std::unique_ptr<Word> CalcWeakDifference(const Word& other) const {
     assert(other.IsWeakPrefixOf(*this));
+
+    return CalcDifference(other);
+  }
+
+  // unefficient implementation
+  std::unique_ptr<Word> CalcDifference(const Word& other) const {
+    assert(size() >= other.size());
 
     std::vector<const Action*> difference;
     std::copy(begin(), end(), std::back_inserter(difference));
@@ -110,22 +116,36 @@ class Word {
   //   return true;
   // }
 
+  // bug: the order of actin is changed in complemented word.
+  // std::unique_ptr<Word> Complement(const Word& other) const {
+  //   assert(size() >= other.size());
+  //   std::vector<const Action*> complemented;
+
+  //   std::vector<const Action*> clone, other_clone;
+  //   std::copy(begin(), end(), back_inserter(clone));
+  //   std::copy(other.begin(), other.end(), std::back_inserter(other_clone));
+  //   std::copy(other.begin(), other.end(), std::back_inserter(complemented));
+
+  //   auto compare = [](const Action* a, const Action* b) { return a->name() < b->name(); };
+  //   std::sort(clone.begin(), clone.end(), compare);
+  //   std::sort(other_clone.begin(), other_clone.end(), compare);
+
+  //   std::vector<const Action*> difference;
+  //   std::set_difference(clone.begin(), clone.end(), other_clone.begin(), other_clone.end(), std::back_inserter(difference), compare);
+  //   for (const Action* action : difference) complemented.push_back(action);
+
+  //   assert(complemented.size() == size());
+  //   return std::unique_ptr<Word>(new Word(complemented));
+  // }
+
   std::unique_ptr<Word> Complement(const Word& other) const {
     assert(size() >= other.size());
     std::vector<const Action*> complemented;
 
-    std::vector<const Action*> clone, other_clone;
-    std::copy(begin(), end(), back_inserter(clone));
-    std::copy(other.begin(), other.end(), std::back_inserter(other_clone));
+    std::unique_ptr<Word> difference = CalcDifference(other);
     std::copy(other.begin(), other.end(), std::back_inserter(complemented));
 
-    auto compare = [](const Action* a, const Action* b) { return a->name() < b->name(); };
-    std::sort(clone.begin(), clone.end(), compare);
-    std::sort(other_clone.begin(), other_clone.end(), compare);
-
-    std::vector<const Action*> difference;
-    std::set_difference(clone.begin(), clone.end(), other_clone.begin(), other_clone.end(), std::back_inserter(difference), compare);
-    for (const Action* action : difference) complemented.push_back(action);
+    for (const Action* action : *difference) complemented.push_back(action);
 
     assert(complemented.size() == size());
     return std::unique_ptr<Word>(new Word(complemented));
