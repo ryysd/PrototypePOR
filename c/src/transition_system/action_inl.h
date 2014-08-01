@@ -26,4 +26,14 @@ inline std::unique_ptr<Word> Action::CalcPrimeCause(const Word& word) const {
   return std::unique_ptr<Word>(new Word(prime_cause));
 }
 
+inline std::unique_ptr<Word> Action::CalcReversingActions(const Word& word) const {
+  std::vector<const Action*> reversings;
+
+  for (const Action* action : word) {
+    if (IsReversing(action)) reversings.push_back(action);
+  }
+
+  return std::unique_ptr<Word>(new Word(reversings));
+}
+
 #endif  // TRANSITION_SYSTEM_ACTION_INL_H_

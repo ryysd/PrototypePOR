@@ -3,6 +3,7 @@ require 'json'
 require_relative 'action'
 require_relative '../petrinet/petrinet'
 
+# bug: if there is t <-> p struct, invalid state space is generated
 class ATSFileGenerator
   def self.create_actions(petrinet)
     (petrinet.input_matrix.column_vectors.zip petrinet.output_matrix.column_vectors).map.with_index do |(readers, erasers), i|
@@ -58,11 +59,14 @@ class ATSFileGenerator
       raw_action = Action.new transition.id, creator, eraser
       tmp_action = Action.new "#{transition.id}_#{raw_action.to_s}", creator, eraser
       unless name_map.has_key? tmp_action.to_s
-	indexes[raw_action.to_s] = 0 unless indexes.has_key? raw_action.to_s
-	indexes[raw_action.to_s] += 1
+	indexes[raw_action.name] = 0 unless indexes.has_key? raw_action.name
+	indexes[raw_action.name] += 1
+	name = "#{transition.id}_#{indexes[raw_action.name]}"
+      else 
+	name = name_map[tmp_action.to_s]
       end
 
-      action = Action.new "#{transition.id}_#{indexes[raw_action.to_s]}", creator, eraser
+      action = Action.new name, creator, eraser
       unless name_map.has_key? tmp_action.to_s
 	actions[action.name] = action
 	name_map[tmp_action.to_s] = action.name

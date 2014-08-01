@@ -58,9 +58,14 @@ TEST_F(WordTest, WeakPrefixTest) {
   Word b1{b1_};
   Word b1a1a2{a1_, a2_, b1_};
 
+  Word glf2{get_left_fork2_};
+  Word glf1_glf2{get_left_fork1_, get_left_fork2_};
+
   EXPECT_TRUE(b1b2a1a2.IsWeakPrefixOf(a1a2b1b2c1c2));
   EXPECT_TRUE(b1.IsWeakPrefixOf(b1a1a2));
   EXPECT_FALSE(b1b2a2a1.IsWeakPrefixOf(a1a2b1b2c1c2));
+
+  EXPECT_TRUE(glf2.IsWeakPrefixOf(glf1_glf2));
 }
 
 TEST_F(WordTest, AppendTest) {
@@ -69,14 +74,20 @@ TEST_F(WordTest, AppendTest) {
   EXPECT_EQ("[a1_1,a2_1,b1_1,b2_1,c1_1,c2_1,a1_1]", new_word->name());
 }
 
-TEST_F(WordTest, DiffTest) {
+TEST_F(WordTest, CalcWeakDifferenceTest) {
   Word a1a2b1b2c1c2{a1_, a2_, b1_, b2_, c1_, c2_};
   Word a1a2b1{a1_, a2_, b1_};
   Word c1a1a2b1{c1_,a1_, a2_, b1_};
   Word b1c1{b1_,c1_};
   Word b1{b1_};
 
-  EXPECT_EQ("[b2_1,c1_1,c2_1]", a1a2b1b2c1c2.Diff(a1a2b1)->name());
-  EXPECT_EQ("[a1_1,a2_1]", a1a2b1.Diff(b1)->name());
-  EXPECT_EQ("[a1_1,a2_1]", c1a1a2b1.Diff(b1c1)->name());
+  EXPECT_EQ("[b2_1,c1_1,c2_1]", a1a2b1b2c1c2.CalcWeakDifference(a1a2b1)->name());
+  EXPECT_EQ("[a1_1,a2_1]", a1a2b1.CalcWeakDifference(b1)->name());
+  EXPECT_EQ("[a1_1,a2_1]", c1a1a2b1.CalcWeakDifference(b1c1)->name());
+}
+
+TEST_F(WordTest, IsReversingFreeTest) {
+  Word glf1_glf2{get_left_fork1_, get_left_fork2_};
+
+  EXPECT_TRUE(glf1_glf2.IsReversingFree());
 }

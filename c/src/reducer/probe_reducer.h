@@ -45,7 +45,10 @@ class ProbeReducer {
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
-      CalcPotentiallyMissedAction(vector, &missed_actions);
+      std::cout << vector->hash() << std::endl;
+
+      // CalcPotentiallyMissedAction(vector, &missed_actions);
+      CalcFreshMissedAction(vector, &missed_actions);
       for (auto& missed_action : missed_actions) {
         std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
         new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get());
@@ -56,9 +59,8 @@ class ProbeReducer {
         const State* after = vector->After();
         visited_states->insert(std::make_pair(after->hash(), after));
       }
-      std::cout << vector->hash() << std::endl;
 
-      CalcIndependentProbeSet(vector, &probe_sets);
+      CalcProbeSet(vector, &probe_sets);
       std::cout << "probe set ============================" << std::endl;
       for (auto& kv : probe_sets) {
         std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
@@ -69,6 +71,20 @@ class ProbeReducer {
 
       delete vector;
     }
+  }
+
+  void CalcFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+    assert(vector->word()->IsReversingFree());
+
+    CalcPotentiallyMissedAction(vector, missed_actions);
+    auto is_enables = [vector](MissedAction::value_type& missed_action) {
+      const Action* action = missed_action.second;
+      vector->state()->Enables(action->CalcPrimeCause(*vector->word())->Append(action).get());
+      return missed_action.second;
+    };
+
+    auto new_end = std::remove_if(missed_actions->begin(), missed_actions->end(), is_enables);
+    missed_actions->erase(new_end, missed_actions->end());
   }
 
   void CalcPotentiallyMissedAction(const Vector* vector, MissedAction* missed_actions) const {
@@ -108,18 +124,42 @@ class ProbeReducer {
     vector->After()->CalcEnableActions(actions, &enable_actions);
     if (enable_actions.empty()) return;
 
-    std::vector<const Action*> probe_set;
-    probe_set.push_back(enable_actions.front());
+    const Action* independent_action = CalcIndependentAction(enable_actions);
+    const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
 
+    std::vector<const Action*> probe_set;
+    probe_set.push_back(first_probe_set);
+
+    // 2.10a
     for (const Action* b : enable_actions) {
       if (std::all_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
         probe_set.push_back(b);
       }
     }
 
+    // 2.10b
+    // std::vector<const Action*> new_probe_set;
+    // do {
+    //   new_probe_set.clear();
+    //   for (const Action* b : enable_actions) {
+    //     for (const Action* p : probe_set) {
+    //       // unefficient implementation
+    //       if (std::find(probe_set.begin(), probe_set.end(), b) != probe_set.end()) continue;
+    //       if (!p->CalcPrimeCause(*vector->word())->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word())))) {
+    //         new_probe_set.push_back(b);
+    //       }
+    //     }
+    //   }
+
+    //   probe_set.insert(probe_set.end(), new_probe_set.begin(), new_probe_set.end());
+    // } while (!new_probe_set.empty());
+
+    // 2.10c
     for (const Action* p : probe_set) {
       // TODO(ryysd) calc 2.10b, 2.10c
+      // probe_sets->insert(std::make_pair(p, std::unique_ptr<Word>(new Word())));
       probe_sets->insert(std::make_pair(p, p->CalcPrimeCause(*vector->word())));
+      // probe_sets->insert(std::make_pair(p, p->CalcReversingActions(*(p->CalcPrimeCause(*vector->word())))));
     }
   }
 
@@ -141,6 +181,9 @@ class ProbeReducer {
       }
     }
   }
+
+  // void CalcReversingProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
+  // }
 
   const Action* CalcIndependentAction(const std::vector<const Action*>& enable_actions) const {
     for (const Action* a : enable_actions) {

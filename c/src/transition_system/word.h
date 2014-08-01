@@ -53,10 +53,21 @@ class Word {
     std::vector<const Action*> difference;
     std::copy(begin(), end(), std::back_inserter(difference));
     for (const Action* action : other) {
-      difference.erase(std::find_if(difference.begin(), difference.end(), [action](const Action* a) { return a->Equals(action); }));
+      auto it = std::find_if(difference.begin(), difference.end(), [action](const Action* a) { return a->Equals(action); });
+      if (it != difference.end()) difference.erase(it);
     }
 
     return std::unique_ptr<Word>(new Word(difference));
+  }
+
+  bool IsReversingFree() const {
+    for (const Action* a : actions_) {
+      for (const Action* b : actions_) {
+        if (!a->Equals(b) && a->IsReversing(b)) return false;
+      }
+    }
+
+    return true;
   }
 
   const Action* operator[](int index) const { return actions_[index]; }
@@ -147,7 +158,7 @@ class Word {
 
     for (const Action* action : *difference) complemented.push_back(action);
 
-    assert(complemented.size() == size());
+    // assert(complemented.size() == size());
     return std::unique_ptr<Word>(new Word(complemented));
   }
 

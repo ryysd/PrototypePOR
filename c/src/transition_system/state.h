@@ -52,6 +52,8 @@ class State {
     return forbidden_entities.empty();
   }
 
+  bool Enables(const Word* word) const { return After(word) != NULL; }
+
   bool WeakEnables(const Action* action) const {
     EntitySet required_entities, insufficient_entities;
 

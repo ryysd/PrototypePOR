@@ -4,6 +4,8 @@
 #include "./action_test.h"
 #include "../src/reducer/probe_reducer.h"
 
+// TODO(ryysd) test: all actions are explored
+
 class ProbeReducerTest : public ActionTest {
  public:
   virtual void SetUp() {

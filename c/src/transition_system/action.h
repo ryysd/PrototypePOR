@@ -52,6 +52,17 @@ class Action {
 
   bool Influences(const Action* action) const { return Simulates(action) || action->Disables(this); }
 
+  bool IsReversing(const Action* other) const {
+    EntitySet intersection1, intersection2;
+    std::set_intersection(creator_.begin(), creator_.end(), other->eraser().begin(), other->eraser().end(), std::back_inserter(intersection1));
+    if (!intersection1.empty()) return true;
+
+    std::set_intersection(eraser_.begin(), eraser_.end(), other->creator().begin(), other->creator().end(), std::back_inserter(intersection2));
+    return !intersection2.empty();
+  }
+
+  std::unique_ptr<Word> CalcReversingActions(const Word& word) const;
+
   std::unique_ptr<Word> CalcPrimeCause(const Word& word) const;
 
   bool Equals(const Action* other) const { return name_ == other->name(); }
