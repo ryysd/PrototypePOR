@@ -50,6 +50,7 @@ class ProbeReducer {
       // CalcPotentiallyMissedAction(vector, &missed_actions);
       CalcFreshMissedAction(vector, &missed_actions);
       for (auto& missed_action : missed_actions) {
+        assert(false);
         std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
         new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get());
       }
@@ -73,11 +74,31 @@ class ProbeReducer {
     }
   }
 
+  // impractical
+  // for debug
+  // void CalcMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+  //   missed_actions->clear();
+
+  //   const Word* word = vector->word();
+  //   const std::vector<const Action*> actions = word->actions();
+  //   std::vector<const Action*> actions_permutation;
+
+  //   std::copy(actions.begin(), actions.end(), std::back_inserter(actions_permutation));
+
+  //   do {
+  //     const Word word_permutation = Word(actions_permutation);
+  //
+  //     if (word_permutation.WeakEquals(word)) {
+  //     }
+  //   } while(next_permutation(actions_permutation.begin(), actions_permutation.end(), [](const Action* a, const Action* b) { return a->name() < b->name(); } ));
+  // }
+
   void CalcFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
     assert(vector->word()->IsReversingFree());
 
     CalcPotentiallyMissedAction(vector, missed_actions);
     auto is_enables = [vector](MissedAction::value_type& missed_action) {
+      INFO(missed_action.second->name().c_str());
       const Action* action = missed_action.second;
       vector->state()->Enables(action->CalcPrimeCause(*vector->word())->Append(action).get());
       return missed_action.second;
@@ -99,8 +120,8 @@ class ProbeReducer {
     action_table_->GetActionsVector(&actions);
 
     for (const Action* action : actions) {
-      if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
-      // if (!vector->state()->WeakAfter(vector->word())->WeakEnables(action)) continue; /*correct?*/
+      // if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
+      if (!vector->state()->WeakAfter(vector->word())->WeakEnables(action)) continue; /*correct?*/
       if (!std::any_of(word.begin(), word.end(), [action](const Action* c) { return c->Disables(action); })) continue; // NOLINT
       if (!last_action->Simulates(action)) continue;
 

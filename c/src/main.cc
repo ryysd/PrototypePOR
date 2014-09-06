@@ -12,6 +12,7 @@
 #include "../thirdparty/cmdline.h"
 #include "./ats_file_reader.h"
 #include "./reducer/probe_reducer.h"
+#include "./reducer/validation_checker.h"
 
 int main(int argc, char** argv) {
   cmdline::parser parser;
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
   float reduction_ratio = static_cast<float>(full_size - reduced_size)*100 / full_size;
 
   std::cout << full_size << " -> " << reduced_size << "(" << reduction_ratio << "%)" << std::endl;
+  ValidationChecker::DumpValidation(pair.first, visited_states);
   if (parser.exist("dot")) {
     std::string dot_file_name = parser.get<std::string>("dot");
     std::ofstream ofs(dot_file_name);
