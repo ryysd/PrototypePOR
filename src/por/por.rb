@@ -15,6 +15,8 @@ ats = ATSFileReader.read env.ats_file
 actions = ats[:action_table]
 state_space = ats[:state_space]
 
+# actions.dump
+
 Debug.enable if env.debug
 
 unless env.full_dot_file.nil?

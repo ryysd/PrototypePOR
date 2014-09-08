@@ -65,7 +65,7 @@ if !env.use_cache || !(File.exist? env.ats_json_file)
   end
 
   if env.use_scala
-    options['worker-num'] = 8
+    options['worker-num'] = 1
     exit unless execute_script "-jar ./scala/target/petrinet-por-assembly-1.0-SNAPSHOT.jar", options, "generate state space...", 'java'
   else
     exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."

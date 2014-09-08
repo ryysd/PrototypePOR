@@ -21,3 +21,9 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+
+c/build/
+c/build/*
+
+gtest-svn/
+gtest-svn/*

@@ -1,5 +1,6 @@
 class State
   attr_reader :marking
+  attr_writer :hash
 
   def initialize(marking)
     @marking = marking

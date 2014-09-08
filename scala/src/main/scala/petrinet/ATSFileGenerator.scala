@@ -20,8 +20,8 @@ object ATSFileGenerator {
     val relations = new scala.collection.mutable.ArrayBuffer[String]
     actions.foreach{a => {
       actions.foreach{b => {
-        if(a isSimulate b) relations += a.name + " s " + b.name
-        if(a isDisable b) relations += a.name + " d " + b.name
+        if(a isSimulate b) relations += a.name + "-s-" + b.name
+        if(a isDisable b) relations += a.name + "-d-" + b.name
       }}
     }}
 
@@ -42,7 +42,7 @@ object ATSFileGenerator {
 
     val start = System.currentTimeMillis
     val states = petrinet.execute({(source, transition, target) =>{
-        transitions += (source.toString + "-" + transition.name + "->" + target.toString)
+        transitions += (source.toString + "-" + transition.name + "-" + target.toString)
       }}, core)
 
     val actions = createActions(petrinet)
