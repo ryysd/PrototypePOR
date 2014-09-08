@@ -33,8 +33,14 @@ int main(int argc, char** argv) {
   std::cout << "// " << pair.first->states().size() << std::endl;
 
   std::unordered_map<std::string, const State*> visited_states;
+  std::unordered_map<std::string, const Action*> executed_actions;
   ProbeReducer* reducer = new ProbeReducer(pair.second);
-  reducer->Reduce(pair.first->init_state(), &visited_states);
+  reducer->Reduce(pair.first->init_state(), &visited_states, &executed_actions);
+
+  std::cout << executed_actions.size() << std::endl;
+  std::cout << pair.second->actions().size() << std::endl;
+  std::cout << executed_actions << std::endl;
+  std::cout << pair.second->actions() << std::endl;
 
   int full_size = pair.first->states().size();
   int reduced_size = visited_states.size();
