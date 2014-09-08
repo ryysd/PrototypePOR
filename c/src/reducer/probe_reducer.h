@@ -11,11 +11,11 @@
 #include <algorithm>
 #include "../util/combination.h"
 
-class ReducerCallbackObject {
- public:
-  virtual void OnVisit(const State* state) const = 0;
-  virtual void OnExpand(State* state) const = 0;
-};
+// class ReducerCallbackObject {
+//  public:
+//   virtual void OnVisit(const State* state) const = 0;
+//   virtual void OnExpand(State* state) const = 0;
+// };
 
 typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
 
