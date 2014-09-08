@@ -103,8 +103,6 @@ class ProbeReducer {
       do {
         const std::vector<const Action*> trace_cand_actions(begin, it);
         std::unique_ptr<Word> trace_cand_word = std::unique_ptr<Word>(new Word(trace_cand_actions));
-        INFO("trace_cand_word");
-        std::cout << trace_cand_word->name() << std::endl;
         if (trace_cand_word->IsWeakPrefixOf(*word)) {
           if (vector->state()->Enables(trace_cand_word->Append(missed_action).get())) {
             return trace_cand_word;
