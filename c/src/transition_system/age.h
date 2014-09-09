@@ -9,18 +9,26 @@
 
 class Age {
  public:
-  Age() : action_ages_([](const Action* a, const Action* b){ return a->name() < b->name(); }) {};  //NOLINT
+  typedef std::map<const Action*, int, std::function<bool(const Action*, const Action*)>> ActionAges;
 
-  void Add(const std::vector<const Action*> actions) {
-    for (auto& kv : action_ages_) { ++(action_ages_[kv.first]); }
+  Age() : action_ages_([](const Action* a, const Action* b){ return a->name() < b->name(); }) {}
+  explicit Age(const ActionAges& action_ages) : action_ages_(action_ages) {}
+
+  std::unique_ptr<Age> Add(const std::vector<const Action*>& actions) const {
+    ActionAges new_action_ages = action_ages_;
+    for (auto& kv : new_action_ages) { ++(new_action_ages[kv.first]); }
 
     for (const Action* action : actions) {
-      if (action_ages_.find(action) == action_ages_.end()) action_ages_.insert(std::make_pair(action, 0));
+      if (new_action_ages.find(action) == new_action_ages.end()) new_action_ages.insert(std::make_pair(action, 0));
     }
+
+    return std::unique_ptr<Age>(new Age(new_action_ages));
   }
 
-  void Remove(const std::vector<const Action*> actions) {
-    for (const Action* action : actions) action_ages_.erase(action);
+  std::unique_ptr<Age> Remove(const std::vector<const Action*>& actions) const {
+    ActionAges new_action_ages = action_ages_;
+    for (const Action* action : actions) new_action_ages.erase(action);
+    return std::unique_ptr<Age>(new Age(new_action_ages));
   }
 
   void Max(std::vector<const Action*>* results) const {
@@ -53,7 +61,7 @@ class Age {
 
  private:
   typedef std::pair<const Action*, int> action_ages_pair;
-  std::map<const Action*, int, std::function<bool(const Action*, const Action*)>> action_ages_;
+  const ActionAges action_ages_;
 };
 
 #endif  // TRANSITION_SYSTEM_AGE_H_
