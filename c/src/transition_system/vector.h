@@ -2,6 +2,7 @@
 #define TRANSITION_SYSTEM_VECTOR_H_
 
 #include <string>
+#include "./age.h"
 
 class Vector {
  public:

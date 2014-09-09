@@ -65,6 +65,7 @@ class ProbeReducer {
         // avoid duplicate search
         if (executed_actions->find(missed_action.second->name()) == executed_actions->end()) {
           executed_actions->insert(std::make_pair(missed_action.second->name(), missed_action.second));
+          // TODO(ryysd) implement correct fresh detection
           stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
         }
       }
