@@ -64,4 +64,6 @@ class Age {
   const ActionAges action_ages_;
 };
 
+typedef std::unique_ptr<Age> AgePtr;
+
 #endif  // TRANSITION_SYSTEM_AGE_H_
