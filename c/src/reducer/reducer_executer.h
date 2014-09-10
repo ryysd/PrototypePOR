@@ -8,6 +8,7 @@
 #include "../ats_file_reader.h"
 #include "./reducer_option.h"
 #include "./probe_reducer.h"
+#include "../analyzer/transition_system_analyzer.h"
 
 class ReducerExecuter {
  public:
@@ -17,13 +18,30 @@ class ReducerExecuter {
     action_table_ = pair.second;
 
     reducer_ = new ProbeReducer(action_table_);
+    analyzer_ = new TransitionSystemAnalyzer(action_table_, state_space_);
+  }
+
+  ~ReducerExecuter() {
+    delete reducer_;
+    delete analyzer_;
+  }
+
+  void BeforeExecute() {
+    analyzer_->Dump();
+
+    visited_states_.clear();
+    executed_actions_.clear();
+  }
+
+  void AfterExecute() {
   }
 
   void Execute() {
-    visited_states_.clear();
-    executed_actions_.clear();
+    BeforeExecute();
 
     reducer_->Reduce(state_space_->init_state(), &visited_states_, &executed_actions_);
+
+    AfterExecute();
   }
 
   void DumpResult() {
@@ -91,6 +109,7 @@ class ReducerExecuter {
   std::unordered_map<std::string, const State*> visited_states_;
   std::unordered_map<std::string, const Action*> executed_actions_;
   ProbeReducer* reducer_;
+  TransitionSystemAnalyzer* analyzer_;
   unsigned int execution_time_;
 
   DISALLOW_COPY_AND_ASSIGN(ReducerExecuter);
