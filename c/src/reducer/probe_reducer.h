@@ -60,11 +60,12 @@ class ProbeReducer {
 
       CalcFreshMissedAction(vector, &missed_actions);
       for (auto& missed_action : missed_actions) {
-        std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
-
         // avoid duplicate search
         if (executed_actions->find(missed_action.second->name()) == executed_actions->end()) {
+          std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
+
           executed_actions->insert(std::make_pair(missed_action.second->name(), missed_action.second));
+          // TODO(ryysd) implement correct fresh detection
           stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
         }
       }
@@ -79,13 +80,25 @@ class ProbeReducer {
       std::cout << "probe set ============================" << std::endl;
       for (auto& kv : probe_sets) {
         std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
-        stack.push(MakeNewVectorFromProbeSet(vector, kv));
+        stack.push(MakeNewVectorFromProbeSet(vector, kv, probe_sets));
       }
       std::cout << "======================================" << std::endl;
       std::cout << std::endl;
 
       delete vector;
     }
+  }
+
+  AgePtr UpdateAge(const Vector* vector, const ProbeSet& probe_sets) const {
+    std::vector<const Action*> actions, enable_actions;
+
+    action_table_->GetActionsVector(&actions);
+    vector->After()->CalcEnableActions(actions, &enable_actions);
+
+    std::vector<const Action*> probe_set_domain;
+    std::transform(probe_sets.begin(), probe_sets.end(), std::back_inserter(probe_set_domain), [](const ProbeSet::value_type& kv) { return kv.first; });
+
+    return vector->age()->Add(enable_actions)->Remove(probe_set_domain);
   }
 
   // impractical (for debug)
@@ -152,10 +165,11 @@ class ProbeReducer {
   }
 
  private:
-  Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set) const {
+  Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set, const ProbeSet& probe_sets) const {
     return new Vector(
         vector->state()->After(probe_set.second.get()),
-        vector->word()->Append(probe_set.first)->CalcWeakDifference(*probe_set.second));
+        vector->word()->Append(probe_set.first)->CalcWeakDifference(*probe_set.second),
+        UpdateAge(vector, probe_sets));
   }
 
   void CalcProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
@@ -166,43 +180,74 @@ class ProbeReducer {
     vector->After()->CalcEnableActions(actions, &enable_actions);
     if (enable_actions.empty()) return;
 
+    std::vector<const Action*> max;
+    vector->age()->Max(&max);
+
     const Action* independent_action = CalcIndependentAction(enable_actions);
-    const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
+    const Action* first_probe_set = !max.empty() ? max.front() : independent_action ? independent_action : enable_actions.front();
+    // const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
 
     std::vector<const Action*> probe_set;
     probe_set.push_back(first_probe_set);
 
     // 2.10a
-    for (const Action* b : enable_actions) {
-      if (std::all_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
-        probe_set.push_back(b);
+    bool updated = false;
+    do {
+      updated = false;
+      for (const Action* b : enable_actions) {
+        if (std::any_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
+          if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
+            updated = true;
+            probe_set.push_back(b);
+          }
+        }
       }
-    }
+    } while (updated);
+
+    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };
+    // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
+    auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*(a->CalcPrimeCause(*vector->word()))); };
 
     // 2.10b
-    // std::vector<const Action*> new_probe_set;
-    // do {
-    //   new_probe_set.clear();
-    //   for (const Action* b : enable_actions) {
-    //     for (const Action* p : probe_set) {
-    //       // unefficient implementation
-    //       if (std::find(probe_set.begin(), probe_set.end(), b) != probe_set.end()) continue;
-    //       if (!p->CalcPrimeCause(*vector->word())->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word())))) {
-    //         new_probe_set.push_back(b);
-    //       }
-    //     }
-    //   }
-
-    //   probe_set.insert(probe_set.end(), new_probe_set.begin(), new_probe_set.end());
-    // } while (!new_probe_set.empty());
+    do {
+      updated = false;
+      for (const Action* b : enable_actions) {
+        if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
+          if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
+            updated = true;
+            probe_set.push_back(b);
+          }
+        }
+      }
+    } while (updated);
 
     // 2.10c
     for (const Action* p : probe_set) {
-      // TODO(ryysd) calc 2.10b, 2.10c
-      // probe_sets->insert(std::make_pair(p, std::unique_ptr<Word>(new Word())));
-      probe_sets->insert(std::make_pair(p, p->CalcPrimeCause(*vector->word())));
-      // probe_sets->insert(std::make_pair(p, p->CalcReversingActions(*(p->CalcPrimeCause(*vector->word())))));
+      probe_sets->insert(std::make_pair(p, calc_trace(p)));
     }
+
+    assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
+  }
+
+  // for debug
+  bool IsValidProbeSet(const Vector* vector, const ProbeSet& probe_sets, const std::vector<const Action*>& enable_actions) const {
+    auto check = [vector, &probe_sets, &enable_actions](const ProbeSet::value_type& probe_set) {
+      auto check_inner = [vector, &probe_sets, &enable_actions, &probe_set](const Action* b) {
+        const Action* a = probe_set.first;
+        const Word* trace = probe_set.second.get();
+
+        bool cond_a = !((a->Disables(b) || b->Disables(a)) && probe_sets.find(b) == probe_sets.end());
+        bool cond_b = !(!(trace->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word())))) && probe_sets.find(b) == probe_sets.end());
+        bool cond_c = trace->IsWeakPrefixOf(*(a->CalcPrimeCause(*(vector->word())).get()));
+        bool cond_d = !(!enable_actions.empty() && probe_sets.empty());
+
+        return cond_a && cond_b && cond_c && cond_d;
+      };
+
+      return std::all_of(enable_actions.begin(), enable_actions.end(), check_inner);
+    };
+
+    return std::all_of(probe_sets.begin(), probe_sets.end(), check);
   }
 
   void CalcIndependentProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
