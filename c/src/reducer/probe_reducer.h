@@ -230,7 +230,7 @@ class ProbeReducer {
     // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };
     // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
     // auto calc_trace = [vector](const Action* a) {
-    //   return (vector->word()->size() < 100) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
+    //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
     // };
 
     auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
@@ -290,6 +290,7 @@ class ProbeReducer {
   }
 
   void CalcIndependentProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
+    // TODO(ryysd): implement cycle proviso
     probe_sets->clear();
 
     std::vector<const Action*> actions, enable_actions;
