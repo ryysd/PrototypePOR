@@ -62,6 +62,8 @@ class Age {
  private:
   typedef std::pair<const Action*, int> action_ages_pair;
   const ActionAges action_ages_;
+
+  DISALLOW_COPY_AND_ASSIGN(Age);
 };
 
 typedef std::unique_ptr<Age> AgePtr;
