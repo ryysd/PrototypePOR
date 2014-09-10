@@ -44,6 +44,7 @@ class ProbeReducer {
       vector = stack.top();
       stack.pop();
 
+      // if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
@@ -190,6 +191,14 @@ class ProbeReducer {
     std::vector<const Action*> probe_set;
     probe_set.push_back(first_probe_set);
 
+    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };
+    // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
+    // auto calc_trace = [vector](const Action* a) {
+    //   return (vector->word()->size() < 100) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
+    // };
+
+    auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
+
     // 2.10a
     bool updated = false;
     do {
@@ -202,15 +211,8 @@ class ProbeReducer {
           }
         }
       }
-    } while (updated);
 
-    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };
-    // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
-    auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*(a->CalcPrimeCause(*vector->word()))); };
-
-    // 2.10b
-    do {
-      updated = false;
+      // 2.10b
       for (const Action* b : enable_actions) {
         if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
           if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
@@ -226,6 +228,7 @@ class ProbeReducer {
       probe_sets->insert(std::make_pair(p, calc_trace(p)));
     }
 
+    std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 
@@ -267,10 +270,11 @@ class ProbeReducer {
         probe_sets->insert(std::make_pair(action, std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()))));
       }
     }
+
+    std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+    assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 
-  // void CalcReversingProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
-  // }
 
   const Action* CalcIndependentAction(const std::vector<const Action*>& enable_actions) const {
     for (const Action* a : enable_actions) {
