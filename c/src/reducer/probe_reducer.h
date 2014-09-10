@@ -63,12 +63,11 @@ class ProbeReducer {
       for (auto& missed_action : missed_actions) {
         // avoid duplicate search
         if (executed_actions->find(missed_action.second->name()) == executed_actions->end()) {
-          std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
-
           executed_actions->insert(std::make_pair(missed_action.second->name(), missed_action.second));
-          // TODO(ryysd) implement correct fresh detection
-          stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
         }
+        // TODO(ryysd) implement correct fresh detection
+        std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
+        stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
       }
 
       if (visited_states->find(vector->After()->hash()) == visited_states->end()) {
@@ -128,23 +127,60 @@ class ProbeReducer {
     return std::unique_ptr<Word>(new Word{});
   }
 
-  void CalcFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+  void CalcReversingFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
     assert(vector->word()->IsReversingFree());
 
+    missed_actions->clear();
     CalcPotentiallyMissedAction(vector, missed_actions);
-    auto is_not_enables = [vector](MissedAction::value_type& missed_action) {
+    auto is_not_enable = [vector](MissedAction::value_type& missed_action) {
       INFO(missed_action.second->name().c_str());
       const Action* action = missed_action.second;
       return !vector->state()->Enables(missed_action.first->Append(action).get());
     };
 
-    auto new_end = std::remove_if(missed_actions->begin(), missed_actions->end(), is_not_enables);
+    auto new_end = std::remove_if(missed_actions->begin(), missed_actions->end(), is_not_enable);
+    missed_actions->erase(new_end, missed_actions->end());
+  }
+
+  void CalcFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+    missed_actions->clear();
+    if (vector->word()->size() <= 0) return;
+
+    CalcPotentiallyMissedAction(vector, missed_actions);
+
+    const std::vector<const Action*> word_actions = std::vector<const Action*>(vector->word()->begin(), vector->word()->end() - 1);
+    const Word word(word_actions);
+    const Vector pre_vector(vector->state(), &word);
+
+    MissedAction pre_missed_actions;
+    CalcPotentiallyMissedAction(&pre_vector, &pre_missed_actions);
+
+    auto is_not_fresh = [vector, &pre_missed_actions](const MissedAction::value_type& missed_action) {
+      const Action* action = missed_action.second;
+
+      auto comp = [action](const MissedAction::value_type& kv) { return action->Equals(kv.second); };
+      return std::find_if(pre_missed_actions.begin(), pre_missed_actions.end(), comp) != pre_missed_actions.end();
+    };
+
+    auto is_not_enable = [vector](MissedAction::value_type& missed_action) {
+      INFO(missed_action.second->name().c_str());
+      const Action* action = missed_action.second;
+      return !vector->state()->Enables(missed_action.first->Append(action).get());
+    };
+
+    auto new_end = std::remove_if(missed_actions->begin(), missed_actions->end(), is_not_fresh);
+    missed_actions->erase(new_end, missed_actions->end());
+
+    auto convert = [this, vector](MissedAction::value_type& kv) { return std::make_pair(CalcMissedActionTrace(vector, kv.second), kv.second); };
+    std::transform(missed_actions->begin(), missed_actions->end(), missed_actions->begin(), convert);
+
+    new_end = std::remove_if(missed_actions->begin(), missed_actions->end(), is_not_enable);
     missed_actions->erase(new_end, missed_actions->end());
   }
 
   void CalcPotentiallyMissedAction(const Vector* vector, MissedAction* missed_actions) const {
-    if (vector->word()->size() < 1) return;
     missed_actions->clear();
+    if (vector->word()->size() < 1) return;
 
     const std::vector<const Action*> word_actions = std::vector<const Action*>(vector->word()->begin(), vector->word()->end() - 1);
     const Word word(word_actions);
@@ -160,8 +196,8 @@ class ProbeReducer {
       if (!last_action->Simulates(action)) continue;
 
       // TODO(ryysd) check prime_cause(vector->word()) + action is enable at vector->state()
-      // missed_actions->push_back(std::make_pair(std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()/*correct?*/)), action));
-      missed_actions->push_back(std::make_pair(CalcMissedActionTrace(vector, action), action));  // for debug
+      missed_actions->push_back(std::make_pair(std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()/*correct?*/)), action));
+      // missed_actions->push_back(std::make_pair(CalcMissedActionTrace(vector, action), action));  // for debug
     }
   }
 
