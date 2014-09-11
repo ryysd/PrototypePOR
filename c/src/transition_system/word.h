@@ -1,6 +1,7 @@
 #ifndef TRANSITION_SYSTEM_WORD_H_
 #define TRANSITION_SYSTEM_WORD_H_
 
+#include <map>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -68,6 +69,18 @@ class Word {
     }
 
     return true;
+  }
+
+  bool ContainsDuplicateAction() const {
+    std::map<std::string, bool> exist_actions;
+
+    for (const Action* action : actions_) {
+      if (exist_actions.find(action->name()) != exist_actions.end()) return true;
+
+      exist_actions.insert(std::make_pair(action->name(), true));
+    }
+
+    return false;
   }
 
   const Action* operator[](int index) const { return actions_[index]; }

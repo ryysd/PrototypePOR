@@ -91,3 +91,11 @@ TEST_F(WordTest, IsReversingFreeTest) {
 
   EXPECT_TRUE(glf1_glf2.IsReversingFree());
 }
+
+TEST_F(WordTest, ContainsDuplicateActionText) {
+  Word a1a2a1{a1_, a2_, a1_};
+  Word a1a2b1{a1_, a2_, b1_};
+
+  EXPECT_TRUE(a1a2a1.ContainsDuplicateAction());
+  EXPECT_FALSE(a1a2b1.ContainsDuplicateAction());
+}
