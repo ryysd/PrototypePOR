@@ -44,11 +44,12 @@ class ProbeReducer {
       vector = stack.top();
       stack.pop();
 
-      // if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;
+      // if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;  // best
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
       std::cout << vector->hash() << std::endl;
+      // assert(!vector->word()->ContainsDuplicateAction());
 
       // for debug
       if (executed_actions) {
@@ -65,7 +66,6 @@ class ProbeReducer {
         if (executed_actions->find(missed_action.second->name()) == executed_actions->end()) {
           executed_actions->insert(std::make_pair(missed_action.second->name(), missed_action.second));
         }
-        // TODO(ryysd) implement correct fresh detection
         std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
         stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
       }
@@ -77,6 +77,7 @@ class ProbeReducer {
       }
 
       CalcProbeSet(vector, &probe_sets);
+      // CalcIndependentProbeSetWithCycleProviso(vector, &probe_sets);
       std::cout << "probe set ============================" << std::endl;
       for (auto& kv : probe_sets) {
         std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
@@ -105,6 +106,7 @@ class ProbeReducer {
   std::unique_ptr<Word> CalcMissedActionTrace(const Vector* vector, const Action* missed_action) const {
     const Word* word = vector->word();
     const std::vector<const Action*> actions = word->actions();
+    // const std::vector<const Action*> actions = missed_action->CalcPrimeCause(*vector->word())->actions();  // best
 
     if (word->size() < 2) return std::unique_ptr<Word>(new Word{});
 
@@ -145,6 +147,8 @@ class ProbeReducer {
   void CalcFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
     missed_actions->clear();
     if (vector->word()->size() <= 0) return;
+
+    assert(vector->word()->IsReversingFree());
 
     CalcPotentiallyMissedAction(vector, missed_actions);
 
@@ -227,7 +231,7 @@ class ProbeReducer {
     std::vector<const Action*> probe_set;
     probe_set.push_back(first_probe_set);
 
-    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };
+    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };  // best
     // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
     // auto calc_trace = [vector](const Action* a) {
     //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
@@ -290,7 +294,6 @@ class ProbeReducer {
   }
 
   void CalcIndependentProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
-    // TODO(ryysd): implement cycle proviso
     probe_sets->clear();
 
     std::vector<const Action*> actions, enable_actions;
@@ -310,6 +313,71 @@ class ProbeReducer {
 
     std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
+  }
+
+  void NoDuplicateCycleProviso(const Vector* vector, ProbeSet* probe_sets) const {
+    bool contains_duplicate = false;
+    for (auto& probe_set : *probe_sets) {
+      const Action* action = probe_set.first;
+
+      if (std::find(vector->word()->begin(), vector->word()->end(), action) != vector->word()->end()) {
+        contains_duplicate = true;
+        break;
+      }
+    }
+
+    if (!contains_duplicate) return;
+
+    std::vector<const Action*> actions, enable_actions;
+    action_table_->GetActionsVector(&actions);
+    vector->After()->CalcEnableActions(actions, &enable_actions);
+
+    probe_sets->clear();
+    for (const Action* action : enable_actions) {
+      std::unique_ptr<Word> word_ptr = std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()));
+      if (std::find(word_ptr->actions().begin(), word_ptr->actions().end(), action) == word_ptr->actions().end()) {
+        probe_sets->insert(std::make_pair(action, word_ptr->Append(action)));
+      } else {
+        probe_sets->insert(std::make_pair(action, std::move(word_ptr)));
+      }
+    }
+  }
+
+  void CalcIndependentProbeSetWithCycleProviso(const Vector* vector, ProbeSet* probe_sets) const {
+    CalcIndependentProbeSet(vector, probe_sets);
+    NoDuplicateCycleProviso(vector, probe_sets);
+
+    std::vector<const Action*> actions, enable_actions;
+    action_table_->GetActionsVector(&actions);
+    vector->After()->CalcEnableActions(actions, &enable_actions);
+    assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
+
+    // probe_sets->clear();
+
+    // std::vector<const Action*> actions, enable_actions;
+    // action_table_->GetActionsVector(&actions);
+    // vector->After()->CalcEnableActions(actions, &enable_actions);
+    // if (enable_actions.empty()) return;
+
+    // const Action* independent_action = CalcIndependentAction(enable_actions);
+
+    // const std::vector<const Action*>& trace_actions = vector->word()->actions();
+
+    // if (independent_action && std::find(trace_actions.begin(), trace_actions.end(), independent_action) == trace_actions.end()) {
+    //   probe_sets->insert(std::make_pair(independent_action, std::unique_ptr<Word>(new Word())));
+    // } else {
+    //   for (const Action* action : enable_actions) {
+    //     std::unique_ptr<Word> word_ptr = std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()));
+    //     if (std::find(word_ptr->actions().begin(), word_ptr->actions().end(), action) == word_ptr->actions().end()) {
+    //       probe_sets->insert(std::make_pair(action, word_ptr->Append(action)));
+    //     } else {
+    //       probe_sets->insert(std::make_pair(action, std::move(word_ptr)));
+    //     }
+    //   }
+    // }
+
+    // std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+    // assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 
 
