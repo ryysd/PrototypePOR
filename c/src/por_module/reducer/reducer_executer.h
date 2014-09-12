@@ -1,5 +1,5 @@
-#ifndef REDUCER_REDUCER_EXECUTER_H_
-#define REDUCER_REDUCER_EXECUTER_H_
+#ifndef POR_MODULE_REDUCER_REDUCER_EXECUTER_H_
+#define POR_MODULE_REDUCER_REDUCER_EXECUTER_H_
 
 #include <string>
 #include <vector>
@@ -115,4 +115,4 @@ class ReducerExecuter {
   DISALLOW_COPY_AND_ASSIGN(ReducerExecuter);
 };
 
-#endif  // REDUCER_REDUCER_EXECUTER_H_
+#endif  // POR_MODULE_REDUCER_REDUCER_EXECUTER_H_

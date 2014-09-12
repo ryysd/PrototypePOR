@@ -1,5 +1,5 @@
-#ifndef UTIL_PROFILER_H_
-#define UTIL_PROFILER_H_
+#ifndef POR_MODULE_UTIL_PROFILER_H_
+#define POR_MODULE_UTIL_PROFILER_H_
 
 #include <chrono> // NOLINT
 #include <sstream>
@@ -134,4 +134,4 @@ namespace profiler {
   inline void dump() { Profiler::GetInstance().Dump(); }
 }  // namespace profiler
 
-#endif  // UTIL_PROFILER_H_
+#endif  // POR_MODULE_UTIL_PROFILER_H_

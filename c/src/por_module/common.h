@@ -1,5 +1,5 @@
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef POR_MODULE_COMMON_H_
+#define POR_MODULE_COMMON_H_
 
 #include <string>
 #include <vector>
@@ -10,4 +10,4 @@ void operator=(const TypeName&)
 
 typedef std::vector<std::string> EntitySet;
 
-#endif  // COMMON_H_
+#endif  // POR_MODULE_COMMON_H_

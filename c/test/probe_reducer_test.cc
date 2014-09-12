@@ -2,7 +2,7 @@
 #define PROBE_REDUCER_TEST_H_
 
 #include "./action_test.h"
-#include "../src/reducer/probe_reducer.h"
+#include "../src/por_module/reducer/probe_reducer.h"
 
 // TODO(ryysd) test: all actions are explored
 

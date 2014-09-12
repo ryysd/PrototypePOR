@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 #include "./por_test.h"
-#include "../src/ats_file_reader.h"
+#include "../src/por_module/ats_file_reader.h"
 
 class StateSpaceTest : public PorTest {};
 

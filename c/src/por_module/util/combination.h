@@ -1,5 +1,5 @@
-#ifndef UTIL_COMBINATION_H_
-#define UTIL_COMBINATION_H_
+#ifndef POR_MODULE_UTIL_COMBINATION_H_
+#define POR_MODULE_UTIL_COMBINATION_H_
 
 // possible implementation introduced at http://en.cppreference.com/w/cpp/algorithm/rotate with slight modification to handle parted ranges
 template<typename FI>
@@ -48,4 +48,4 @@ inline bool prev_combination(BI first, BI mid, BI last) {
   return next_combination_imp(mid, last, first, mid);
 }
 
-#endif  // UTIL_COMBINATION_H_
+#endif  // POR_MODULE_UTIL_COMBINATION_H_

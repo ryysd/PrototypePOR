@@ -3,8 +3,8 @@
  *  @brief    File containing reader of ATS file
  */
 
-#ifndef ATS_FILE_READER_H_
-#define ATS_FILE_READER_H_
+#ifndef POR_MODULE_ATS_FILE_READER_H_
+#define POR_MODULE_ATS_FILE_READER_H_
 
 #include <string>
 #include <fstream>
@@ -14,8 +14,8 @@
 #include <map>
 #include <utility>
 
-#include "../thirdparty/picojson.h"
-#include "../thirdparty//logger.h"
+#include "../../thirdparty/picojson.h"
+#include "../../thirdparty//logger.h"
 
 #include "./common.h"
 #include "./util/profiler.h"
@@ -126,4 +126,4 @@ class ATSFileReader {
   }
 };
 
-#endif  // ATS_FILE_READER_H_
+#endif  // POR_MODULE_ATS_FILE_READER_H_

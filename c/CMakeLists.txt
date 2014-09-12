@@ -2,6 +2,7 @@ PROJECT(PORModule)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 set(MODULE_NAME "por_module")
+set(PETRINET_MODULE_NAME "petrinet")
 set(TEST_MODULE_NAME "por_module_test")
 
 set(CMAKE_CXX_COMPILER g++)
@@ -18,7 +19,8 @@ include_directories($ENV{GTEST_DIR}/include)
 
 #add_definitions(-DDEBUG)
 
-add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/src/main.cc)
+add_executable(${MODULE_NAME} ${PROJECT_SOURCE_DIR}/src/por_module/main.cc)
+add_executable(${PETRINET_MODULE_NAME} ${PROJECT_SOURCE_DIR}/src/petrinet/main.cc)
 
 file(GLOB CC_SOURCES ${PROJECT_SOURCE_DIR}/test/*.cc)
 add_executable(${TEST_MODULE_NAME} ${CC_SOURCES})
