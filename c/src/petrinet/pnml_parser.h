@@ -7,11 +7,17 @@
 #include <string>
 #include <memory>
 #include <algorithm>
+#include <stack>
 #include <map>
+#include <unordered_map>
+#include <sstream>
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
 #include "../../thirdparty/rapidxml/rapidxml.hpp"
+
+// #include <iomanip>
+// #include "../por_module/util/profiler.h"
 
 class PetrinetNode;
 class Arc {
@@ -162,29 +168,42 @@ class PNMLParser {
 typedef std::vector<std::vector<int>> Matrix;
 class State {
  public:
-  explicit State(const std::vector<int>& marking) : marking_(marking) {}
+  explicit State(const std::vector<int>& marking) : marking_(marking), marking_ptr_(&(marking_.front())), marking_size(marking_.size()) { MakeHash(); }
+  State(const int* marking, int marking_length) : marking_(marking, marking + marking_length), marking_ptr_(&(marking_.front())), marking_size(marking_.size()) { MakeHash(); }
 
+  // TODO(ryysd): optimize
   void CalcSuccessors(const Matrix& incidence_column_vectors, const std::vector<Transition*>& transitions, std::map<Transition*, State*>* successors) const {
+    int* new_marking_ptr = new int[marking_.size()];
+    bool valid = true;
+
     for (int i = 0, n = transitions.size(); i < n; ++i) {
-      bool valid = true;
-      std::vector<int> new_marking(marking_.size());
+      const int* incidence_column_vector_ptr = &(incidence_column_vectors[i].front());
 
       for (int j = 0, m = marking_.size(); j < m; ++j) {
-        new_marking[j] = marking_[j] + incidence_column_vectors[i][j];
-        valid = valid && new_marking[j] >= 0;
+        int sum = marking_ptr_[j] + incidence_column_vector_ptr[j];
+        if ((valid = sum >= 0)) new_marking_ptr[j] = sum; else break;  // NOLINT
       }
 
-      if (valid) successors->insert(std::make_pair(transitions[i], new State(new_marking)));
+      if (valid) successors->insert(std::make_pair(transitions[i], new State(new_marking_ptr, marking_.size())));
     }
+
+    delete new_marking_ptr;
   }
 
-  bool Equals(const State& other) const { return std::equal(marking_.begin(), marking_.end(), other.marking().begin()); }
+  bool Equals(const State& other) const { return std::memcmp(marking_ptr_, other.marking_ptr(), sizeof(int) * marking_.size()) == 0; }
   const std::vector<int>& marking() const { return marking_; }
+  const int* marking_ptr() const { return marking_ptr_; }
+  const std::string& hash() const { return hash_; }
 
  private:
+  void MakeHash() { std::stringstream ss; ss << "["; for (auto i : marking_) {ss << i << ",";} ss << "]"; hash_ = ss.str();}  // NOLINT
   const std::vector<int> marking_;
+  const int* marking_ptr_;
+  const int marking_size;
+  std::string hash_;
 };
 
+typedef void (*ExecuteCallback)(const Transition*, const State*);
 class Petrinet {
  public:
   Petrinet(const std::vector<Place*> places, const std::vector<Transition*> transitions) : places_(places), transitions_(transitions) {
@@ -194,29 +213,37 @@ class Petrinet {
     CreateMatrix(&input_matrix_, &output_matrix_, &incidence_matrix_);
   }
 
-  void Execute(std::vector<std::unique_ptr<State>>* states) const {
+  void Execute(std::vector<std::unique_ptr<State>>* states, ExecuteCallback callback) const {
     std::vector<int> initial_marking;
     std::transform(places_.begin(), places_.end(), std::back_inserter(initial_marking), [](const Place* place) { return place->initial_marking(); });
-    std::vector<State*> stack{new State(initial_marking)};
+    std::stack<State*> stack;
+    stack.push(new State(initial_marking));
 
     Matrix column_vectors;
     CalcColumnVectors(places_.size(), transitions_.size(), incidence_matrix_, &column_vectors);
 
+    std::unordered_map<std::string, State*> states_map;
+
+    std::map<Transition*, State*> successors;
     while (!stack.empty()) {
-      State* state = stack.back();
-      stack.pop_back();
+      State* state = stack.top();
+      stack.pop();
 
-      if (std::find_if(states->begin(), states->end(), [state](const std::unique_ptr<State>& explored_state) { return state->Equals(*explored_state); }) != states->end()) continue;  // NOLINT
+      if (states_map.find(state->hash()) != states_map.end()) continue;  // NOLINT
+      states_map.insert(std::make_pair(state->hash(), state));
 
-      states->push_back(std::unique_ptr<State>(state));
+      if (states_map.size() % 10000 == 0) std::cout << states_map.size() << std::endl;
 
-      std::map<Transition*, State*> successors;
+      successors.clear();
       state->CalcSuccessors(column_vectors, transitions_, &successors);
 
       for (auto kv : successors) {
-        stack.push_back(kv.second);
+        callback(kv.first, kv.second);
+        stack.push(kv.second);
       }
     }
+
+    std::transform(states_map.begin(), states_map.end(), std::back_inserter(*states), [](const std::unordered_map<std::string, State*>::value_type& kv) { return std::unique_ptr<State>(kv.second); });
   }
 
  private:
