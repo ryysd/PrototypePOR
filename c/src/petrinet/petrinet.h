@@ -12,6 +12,7 @@
 #include "./transition.h"
 #include "./place.h"
 #include "./state.h"
+#include "../util/debug.h"
 
 class Petrinet {
  public:
@@ -44,7 +45,7 @@ class Petrinet {
       if (states_map.find(state->hash()) != states_map.end()) continue;  // NOLINT
       states_map.insert(std::make_pair(state->hash(), state));
 
-      if (states_map.size() % 10000 == 0) std::cout << states_map.size() << std::endl;
+      if (states_map.size() % 10000 == 0) { dprint("%d states are expanded...\n", states_map.size()); }
 
       successors.clear();
       state->CalcSuccessors(column_vectors, transitions_, &successors);

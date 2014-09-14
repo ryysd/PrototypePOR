@@ -11,6 +11,7 @@ class PetrinetOption {
   bool Parse(int argc, char** argv) {
     parser_.add<std::string>("pnml", 'p');
     parser_.add<std::string>("output", 'o');
+    parser_.add("debug", 'd');
 
     if (!parser_.parse(argc, argv)) {
       std::cout << parser_.error_full() << parser_.usage();
@@ -22,6 +23,7 @@ class PetrinetOption {
 
   std::string pnml_file_name() const { return parser_.exist("pnml") ? std::move(parser_.get<std::string>("pnml")) : ""; }
   std::string output_file_name() const { return parser_.exist("output") ? std::move(parser_.get<std::string>("output")) : ""; }
+  bool debug() const { return parser_.exist("debug"); }
  private:
   cmdline::parser parser_;
 

@@ -46,10 +46,12 @@ class PNMLParser {
 
     std::vector<const rapidxml::xml_node<>*> place_nodes, transition_nodes, arc_nodes;
     for (rapidxml::xml_node<>* node  = base->first_node(); node; node = node->next_sibling()) {
-      if (strcmp(node->name(), "place") == 0) place_nodes.push_back(node);
-      else if (strcmp(node->name(), "transition") == 0) transition_nodes.push_back(node);
-      else if (strcmp(node->name(), "arc") == 0) arc_nodes.push_back(node);
-      else std::cout << "unknown node is found: " << node->name() << std::endl;  // NOLINT
+      if (strcmp(node->name(), "place") == 0) { place_nodes.push_back(node); }  // NOLINT
+      else if (strcmp(node->name(), "transition") == 0) {transition_nodes.push_back(node); }  // NOLINT
+      else if (strcmp(node->name(), "arc") == 0) { arc_nodes.push_back(node); }  // NOLINT
+      else if (strcmp(node->name(), "token") == 0) {}  // NOLINT
+      else if (strcmp(node->name(), "name") == 0) {}  // NOLINT
+      else { std::cout << "unknown node is found: " << node->name() << std::endl; }  // NOLINT
     }
 
     ParsePlaces(value_key, place_nodes, places);
