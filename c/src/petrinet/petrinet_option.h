@@ -23,7 +23,7 @@ class PetrinetOption {
  private:
   cmdline::parser parser_;
 
-  // DISALLOW_COPY_AND_ASSIGN(PetrinetOption);
+  DISALLOW_COPY_AND_ASSIGN(PetrinetOption);
 };
 
 #endif  // PETRINET_PETRINET_OPTION_H_

@@ -7,44 +7,12 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
-
-namespace simplejson {
-  std::string make_json_document(const std::string& string) {
-    return "{" + string + "}";
-  }
-
-  std::string make_json_key_value(const std::string& key, const std::string& value) {
-    return "\"" + key + "\":" + value;
-  }
-
-  std::string make_json_array(const std::vector<std::string>& string_array) {
-    std::string array_string;
-    for (auto string : string_array) array_string += "\"" + string + "\"" + ",";
-    if (!array_string.empty()) array_string.erase( --array_string.end() );
-    return "[" + array_string + "]";
-  }
-
-  std::string make_json_hash(const std::string& key, const std::string& value) {
-    return "\"" + key + "\":{" + value + "}";
-  }
-
-  std::string make_json_hash(const std::map<std::string, std::string>& hash) {
-    std::string hash_string;
-    for (auto kv : hash) hash_string += make_json_hash(kv.first, kv.second) + ",";
-    if (!hash_string.empty()) hash_string.erase( --hash_string.end() );
-    return hash_string;
-  }
-
-  std::string make_json_key_values(const std::map<std::string, std::string>& hash) {
-    std::string hash_string;
-    for (auto kv : hash) hash_string += make_json_key_value(kv.first, kv.second) + ",";
-    if (!hash_string.empty()) hash_string.erase( --hash_string.end() );
-    return hash_string;
-  }
-};  // namespace simplejson
+#include "../util/simple_json.h"
 
 class ATSFileGenerator {
  public:
+  ATSFileGenerator() {}
+
   void Generate(const std::string& file_name) const {
     PNMLParser parser;
     std::vector<Place*> places;
@@ -55,7 +23,8 @@ class ATSFileGenerator {
     Petrinet petrinet(places, transitions);
 
     std::vector<std::tuple<const State*, const Transition*, const State*>> relations;
-    State* init_state = petrinet.Execute(&states, [&relations](const State* source, const Transition* transition, const State* target) { relations.push_back(std::make_tuple(source, transition, target)); });
+    auto callback = [&relations](const State* source, const Transition* transition, const State* target) { relations.push_back(std::make_tuple(source, transition, target)); };
+    State* init_state = petrinet.Execute(&states, callback);
 
     // std::cout << states.size() << std::endl;
 
@@ -174,6 +143,8 @@ class ATSFileGenerator {
     make_entity_string(eraser, "d_");
     make_entity_string(embargoes, "n_");
   }
+
+  DISALLOW_COPY_AND_ASSIGN(ATSFileGenerator);
 };
 
 #endif  // PETRINET_ATS_FILE_GENERATOR_H_
