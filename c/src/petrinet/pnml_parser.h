@@ -196,14 +196,19 @@ class State {
   const std::string& hash() const { return hash_; }
 
  private:
-  void MakeHash() { std::stringstream ss; ss << "["; for (auto i : marking_) {ss << i << ",";} ss << "]"; hash_ = ss.str();}  // NOLINT
+  void MakeHash() {
+    hash_ =  "[";
+    for (auto i : marking_) hash_ += std::to_string(i) + ",";
+    if (!hash_.empty()) hash_.erase( --hash_.end() );
+    hash_ += "]";
+  }
+
   const std::vector<int> marking_;
   const int* marking_ptr_;
   const int marking_size;
   std::string hash_;
 };
 
-typedef void (*ExecuteCallback)(const Transition*, const State*);
 class Petrinet {
  public:
   Petrinet(const std::vector<Place*> places, const std::vector<Transition*> transitions) : places_(places), transitions_(transitions) {
@@ -213,11 +218,14 @@ class Petrinet {
     CreateMatrix(&input_matrix_, &output_matrix_, &incidence_matrix_);
   }
 
-  void Execute(std::vector<std::unique_ptr<State>>* states, ExecuteCallback callback) const {
+  template <class ExecuteCallback>
+  State* Execute(std::vector<std::unique_ptr<State>>* states, ExecuteCallback callback) const {
     std::vector<int> initial_marking;
     std::transform(places_.begin(), places_.end(), std::back_inserter(initial_marking), [](const Place* place) { return place->initial_marking(); });
     std::stack<State*> stack;
-    stack.push(new State(initial_marking));
+
+    State* init_state = new State(initial_marking);
+    stack.push(init_state);
 
     Matrix column_vectors;
     CalcColumnVectors(places_.size(), transitions_.size(), incidence_matrix_, &column_vectors);
@@ -238,12 +246,14 @@ class Petrinet {
       state->CalcSuccessors(column_vectors, transitions_, &successors);
 
       for (auto kv : successors) {
-        callback(kv.first, kv.second);
+        callback(state, kv.first, kv.second);
         stack.push(kv.second);
       }
     }
 
     std::transform(states_map.begin(), states_map.end(), std::back_inserter(*states), [](const std::unordered_map<std::string, State*>::value_type& kv) { return std::unique_ptr<State>(kv.second); });
+
+    return init_state;
   }
 
  private:

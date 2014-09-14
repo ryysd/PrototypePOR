@@ -1,21 +1,26 @@
 #include <iostream>
-#include <vector>
 #include "./pnml_parser.h"
+#include "./petrinet_option.h"
+#include "./ats_file_generator.h"
 
-int main() {
-  PNMLParser parser;
-  std::vector<Place*> places;
-  std::vector<Transition*> transitions;
-  parser.Parse("../benchmark/HouseCOnstruction-005.pnml", &places, &transitions);
-  // parser.Parse("../benchmark/neoelection-2.unf.pnml", &places, &transitions);
-  // parser.Parse("../benchmark/FMS-2.pnml", &places, &transitions);
+int main(int argc, char** argv) {
+  PetrinetOption option;
+  option.Parse(argc, argv);
 
-  std::vector<std::unique_ptr<State>> states;
-  Petrinet petrinet(places, transitions);
-  petrinet.Execute(&states, [](const Transition* transition, const State* state) {});
+  ATSFileGenerator generator;
+  generator.Generate(option.pnml_file_name());
 
-  std::cout << states.size() << std::endl;
+  // PNMLParser parser;
+  // std::vector<Place*> places;
+  // std::vector<Transition*> transitions;
+  // parser.Parse(option.pnml_file_name(), &places, &transitions);
 
-  for (auto place : places) delete place;
-  for (auto transition : transitions) delete transition;
+  // std::vector<std::unique_ptr<State>> states;
+  // Petrinet petrinet(places, transitions);
+  // petrinet.Execute(&states, [](const Transition* transition, const State* state) {});
+
+  // std::cout << states.size() << std::endl;
+
+  // for (auto place : places) delete place;
+  // for (auto transition : transitions) delete transition;
 }
