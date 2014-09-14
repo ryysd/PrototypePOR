@@ -13,7 +13,7 @@ class ATSFileGenerator {
  public:
   ATSFileGenerator() {}
 
-  void Generate(const std::string& file_name) const {
+  std::string Generate(const std::string& file_name) const {
     PNMLParser parser;
     std::vector<Place*> places;
     std::vector<Transition*> transitions;
@@ -26,18 +26,20 @@ class ATSFileGenerator {
     auto callback = [&relations](const State* source, const Transition* transition, const State* target) { relations.push_back(std::make_tuple(source, transition, target)); };
     State* init_state = petrinet.Execute(&states, callback);
 
-    // std::cout << states.size() << std::endl;
+    std::cout << states.size() << std::endl;
 
-    GenerateJSON(init_state, relations, places);
+    std::string json = GenerateJSON(init_state, relations, places);
 
     for (auto place : places) delete place;
     for (auto transition : transitions) delete transition;
+
+    return json;
   }
 
  private:
   typedef std::vector<std::string> Entity;
   typedef struct _action {std::string name; Entity c; Entity r; Entity d; Entity n;} Action;
-  void GenerateJSON(const State* init_state, const std::vector<std::tuple<const State*, const Transition*, const State*>>& relations, const std::vector<Place*>& places) const {
+  std::string GenerateJSON(const State* init_state, const std::vector<std::tuple<const State*, const Transition*, const State*>>& relations, const std::vector<Place*>& places) const {
     std::unordered_map<std::string, std::string> name_map;  // conplex name to simple name (action name + entities -> action + appearance count)
     std::unordered_map<std::string, int> appearance_counts;
     std::vector<std::unique_ptr<Action>> actions;
@@ -127,7 +129,7 @@ class ATSFileGenerator {
     hash.insert(std::make_pair("actions", make_json_actions(actions)));
     hash.insert(std::make_pair("lts", make_json_lts(init_entities)));
 
-    std::cout << simplejson::make_json_document(simplejson::make_json_hash(hash));
+    return simplejson::make_json_document(simplejson::make_json_hash(hash));
   }
 
   void MakeEntityString(const Entity& creator, const Entity& reader, const Entity& eraser, const Entity& embargoes, std::string* entity_string) const {
