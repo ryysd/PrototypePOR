@@ -1,5 +1,5 @@
-#ifndef REDUCER_PROBE_REDUCER_H_
-#define REDUCER_PROBE_REDUCER_H_
+#ifndef POR_MODULE_REDUCER_PROBE_REDUCER_H_
+#define POR_MODULE_REDUCER_PROBE_REDUCER_H_
 
 #include <vector>
 #include <string>
@@ -9,7 +9,7 @@
 #include <utility>
 #include <unordered_map>
 #include <algorithm>
-#include "../util/combination.h"
+#include "../../util/combination.h"
 
 // class ReducerCallbackObject {
 //  public:
@@ -396,4 +396,4 @@ class ProbeReducer {
   DISALLOW_COPY_AND_ASSIGN(ProbeReducer);
 };
 
-#endif  // REDUCER_PROBE_REDUCER_H_
+#endif  // POR_MODULE_REDUCER_PROBE_REDUCER_H_

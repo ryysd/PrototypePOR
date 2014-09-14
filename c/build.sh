@@ -24,6 +24,8 @@ do
   esac
 done
 
+echo "mode: ${mode}"
+
 function print_header() {
   echo "${blue}******************************************************************${default}"
   echo "${blue}* $1  ${white}"

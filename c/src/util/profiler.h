@@ -7,7 +7,6 @@
 #include <queue>
 #include <vector>
 #include <string>
-#include "../common.h"
 
 namespace profiler {
   class Profiler {

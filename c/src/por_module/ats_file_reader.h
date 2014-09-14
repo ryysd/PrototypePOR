@@ -3,8 +3,8 @@
  *  @brief    File containing reader of ATS file
  */
 
-#ifndef ATS_FILE_READER_H_
-#define ATS_FILE_READER_H_
+#ifndef POR_MODULE_ATS_FILE_READER_H_
+#define POR_MODULE_ATS_FILE_READER_H_
 
 #include <string>
 #include <fstream>
@@ -14,11 +14,11 @@
 #include <map>
 #include <utility>
 
-#include "../thirdparty/picojson.h"
-#include "../thirdparty//logger.h"
+#include "../../thirdparty/picojson.h"
+#include "../../thirdparty//logger.h"
 
 #include "./common.h"
-#include "./util/profiler.h"
+#include "./../util/profiler.h"
 #include "./transition_system/transition_system.h"
 
 
@@ -86,7 +86,7 @@ class ATSFileReader {
     // const picojson::object& entities_object = lts_object.at("states").get<picojson::object>();
     const picojson::array& init_entities_array = lts_object.at("init_entities").get<picojson::array>();
 
-    std::string init_state_name = lts_object.at("init").get<std::string>();
+    // std::string init_state_name = lts_object.at("init").get<std::string>();
     std::vector<std::string> init_entities;
     PicojsonArrayToStringVector(init_entities_array, &init_entities);
 
@@ -126,4 +126,4 @@ class ATSFileReader {
   }
 };
 
-#endif  // ATS_FILE_READER_H_
+#endif  // POR_MODULE_ATS_FILE_READER_H_

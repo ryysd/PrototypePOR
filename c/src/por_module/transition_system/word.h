@@ -1,5 +1,5 @@
-#ifndef TRANSITION_SYSTEM_WORD_H_
-#define TRANSITION_SYSTEM_WORD_H_
+#ifndef POR_MODULE_TRANSITION_SYSTEM_WORD_H_
+#define POR_MODULE_TRANSITION_SYSTEM_WORD_H_
 
 #include <map>
 #include <vector>
@@ -191,4 +191,4 @@ class Word {
 
 typedef std::unique_ptr<Word> WordPtr;
 
-#endif  // TRANSITION_SYSTEM_WORD_H_
+#endif  // POR_MODULE_TRANSITION_SYSTEM_WORD_H_

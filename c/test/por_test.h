@@ -2,7 +2,7 @@
 #define TEST_POR_TEST_H_
 
 #include "gtest/gtest.h"
-#include "../src/ats_file_reader.h"
+#include "../src/por_module/ats_file_reader.h"
 
 class PorTest : public testing::Test {
  protected:

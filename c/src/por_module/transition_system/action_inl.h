@@ -1,5 +1,5 @@
-#ifndef TRANSITION_SYSTEM_ACTION_INL_H_
-#define TRANSITION_SYSTEM_ACTION_INL_H_
+#ifndef POR_MODULE_TRANSITION_SYSTEM_ACTION_INL_H_
+#define POR_MODULE_TRANSITION_SYSTEM_ACTION_INL_H_
 
 #include <vector>
 #include <memory>
@@ -36,4 +36,4 @@ inline std::unique_ptr<Word> Action::CalcReversingActions(const Word& word) cons
   return std::unique_ptr<Word>(new Word(reversings));
 }
 
-#endif  // TRANSITION_SYSTEM_ACTION_INL_H_
+#endif  // POR_MODULE_TRANSITION_SYSTEM_ACTION_INL_H_

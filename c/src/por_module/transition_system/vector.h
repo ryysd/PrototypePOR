@@ -1,5 +1,5 @@
-#ifndef TRANSITION_SYSTEM_VECTOR_H_
-#define TRANSITION_SYSTEM_VECTOR_H_
+#ifndef POR_MODULE_TRANSITION_SYSTEM_VECTOR_H_
+#define POR_MODULE_TRANSITION_SYSTEM_VECTOR_H_
 
 #include <string>
 #include "./age.h"
@@ -31,4 +31,4 @@ class Vector {
 
 typedef std::unique_ptr<Vector> VectorPtr;
 
-#endif  // TRANSITION_SYSTEM_VECTOR_H_
+#endif  // POR_MODULE_TRANSITION_SYSTEM_VECTOR_H_

@@ -1,8 +1,8 @@
-#ifndef REDUCER_REDUCER_OPTION_H_
-#define REDUCER_REDUCER_OPTION_H_
+#ifndef POR_MODULE_REDUCER_REDUCER_OPTION_H_
+#define POR_MODULE_REDUCER_REDUCER_OPTION_H_
 
 #include <string>
-#include "../../thirdparty/cmdline.h"
+#include "../../../thirdparty/cmdline.h"
 
 class ReducerOption {
  public:
@@ -28,4 +28,4 @@ class ReducerOption {
   DISALLOW_COPY_AND_ASSIGN(ReducerOption);
 };
 
-#endif  // REDUCER_REDUCER_OPTION_H_
+#endif  // POR_MODULE_REDUCER_REDUCER_OPTION_H_

@@ -1,5 +1,5 @@
-#ifndef TRANSITION_SYSTEM_AGE_H_
-#define TRANSITION_SYSTEM_AGE_H_
+#ifndef POR_MODULE_TRANSITION_SYSTEM_AGE_H_
+#define POR_MODULE_TRANSITION_SYSTEM_AGE_H_
 
 #include <map>
 #include <string>
@@ -68,4 +68,4 @@ class Age {
 
 typedef std::unique_ptr<Age> AgePtr;
 
-#endif  // TRANSITION_SYSTEM_AGE_H_
+#endif  // POR_MODULE_TRANSITION_SYSTEM_AGE_H_
