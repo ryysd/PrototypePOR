@@ -50,6 +50,11 @@ class Petrinet {
       successors.clear();
       state->CalcSuccessors(column_vectors, transitions_, &successors);
 
+      if (debug::enable) {
+        DumpMarking(state);
+        DumpSuccessors(successors);
+      }
+
       for (auto kv : successors) {
         callback(state, kv.first, kv.second);
         stack.push(kv.second);
@@ -62,6 +67,22 @@ class Petrinet {
   }
 
  private:
+  void DumpMarking(const State* state) const {
+    for (int i = 0, n = state->marking().size(); i < n; ++i) {
+      if (state->marking()[i] > 0) std::cout << places_[i]->name() << " ";
+    }
+
+    std::cout << std::endl;
+  }
+
+  void DumpSuccessors(const std::map<Transition*, State*>& successors) const {
+    std::cout << successors.size() << " transitions" << std::endl;
+    for (auto& kv : successors) {
+      std::cout << kv.first->name() << " ";
+    }
+    std::cout << std::endl;
+  }
+
   void CreateMatrix(Matrix* input_matrix, Matrix* output_matrix, Matrix* incidence_matrix) const {
     int row_size = places_.size();
     int col_size = transitions_.size();
@@ -104,9 +125,9 @@ class Petrinet {
     for (auto row_vector : output_matrix) { for (auto column : row_vector) { std::cout << column << ","; } std::cout << std::endl; }
     for (auto row_vector : incidence_matrix) { for (auto column : row_vector) { std::cout << column << ","; } std::cout << std::endl; }
 
-    for (auto transition : transitions_) std::cout << transition->id() << ",";
+    for (auto transition : transitions_) std::cout << transition->name() << ",";
     std::cout << std::endl;
-    for (auto place : places_) std::cout << place->id() << std::endl;
+    for (auto place : places_) std::cout << place->name() << std::endl;
   }
 
   const std::vector<Place*> places_;
