@@ -19,8 +19,8 @@
 // #define SKIP_210B
 
 // necassary options
-#define ENABLE_ASSERT
-// #define USE_AGE_FUNCTION
+// #define ENABLE_ASSERT
+#define USE_AGE_FUNCTION
 
 typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
 
@@ -46,7 +46,6 @@ class ProbeReducer {
     Vector* vector = NULL;
     stack.push(new Vector(init_state, empty_word.get()));
 
-    int count = 0;
     while (!stack.empty()) {
       vector = stack.top();
       stack.pop();
@@ -100,8 +99,6 @@ class ProbeReducer {
 
       delete vector;
     }
-
-    std::cout << count << std::endl;
   }
 
   AgePtr UpdateAge(const Vector* vector, const ProbeSet& probe_sets) const {
