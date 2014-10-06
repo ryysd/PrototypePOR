@@ -11,11 +11,16 @@
 #include <algorithm>
 #include "../../util/combination.h"
 
-// class ReducerCallbackObject {
-//  public:
-//   virtual void OnVisit(const State* state) const = 0;
-//   virtual void OnExpand(State* state) const = 0;
-// };
+// debug options
+#define BEST_REDUCTION
+// #define USE_THESIS_METHOD
+// #define DISCHARGE_ALL_TRACE
+// #define SKIP_MISSED_ACTION_PHASE
+// #define SKIP_210B
+
+// necassary options
+// #define ENABLE_ASSERT
+#define USE_AGE_FUNCTION
 
 typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
 
@@ -40,12 +45,16 @@ class ProbeReducer {
     MissedAction missed_actions;
     Vector* vector = NULL;
     stack.push(new Vector(init_state, empty_word.get()));
+
     while (!stack.empty()) {
       vector = stack.top();
       stack.pop();
 
-      // if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;  // best
+#ifdef BEST_REDUCTION
+      if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;  // best
+#else
       if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
+#endif
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
       std::cout << vector->hash() << std::endl;
@@ -60,6 +69,7 @@ class ProbeReducer {
         }
       }
 
+#ifndef SKIP_MISSED_ACTION_PHASE
       CalcFreshMissedAction(vector, &missed_actions);
       for (auto& missed_action : missed_actions) {
         // avoid duplicate search
@@ -69,6 +79,7 @@ class ProbeReducer {
         std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
         stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
       }
+#endif
 
       if (visited_states->find(vector->After()->hash()) == visited_states->end()) {
         std::cout << "visit: " << vector->After()->hash() << std::endl;
@@ -105,8 +116,12 @@ class ProbeReducer {
   // impractical (for debug)
   std::unique_ptr<Word> CalcMissedActionTrace(const Vector* vector, const Action* missed_action) const {
     const Word* word = vector->word();
+
+#ifdef BEST_REDUCTION
+    const std::vector<const Action*> actions = missed_action->CalcPrimeCause(*vector->word())->actions();  // best
+#else
     const std::vector<const Action*> actions = word->actions();
-    // const std::vector<const Action*> actions = missed_action->CalcPrimeCause(*vector->word())->actions();  // best
+#endif
 
     if (word->size() < 2) return std::unique_ptr<Word>(new Word{});
 
@@ -130,7 +145,9 @@ class ProbeReducer {
   }
 
   void CalcReversingFreshMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+#ifdef ENABLE_ASSERT
     assert(vector->word()->IsReversingFree());
+#endif
 
     missed_actions->clear();
     CalcPotentiallyMissedAction(vector, missed_actions);
@@ -148,7 +165,9 @@ class ProbeReducer {
     missed_actions->clear();
     if (vector->word()->size() <= 0) return;
 
+#ifdef ENABLE_ASSERT
     assert(vector->word()->IsReversingFree());
+#endif
 
     CalcPotentiallyMissedAction(vector, missed_actions);
 
@@ -194,8 +213,11 @@ class ProbeReducer {
     action_table_->GetActionsVector(&actions);
 
     for (const Action* action : actions) {
-      // if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
+#ifdef USE_THESIS_METHOD
+      if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
+#else
       if (!vector->state()->WeakAfter(vector->word())->WeakEnables(action)) continue; /*correct?*/
+#endif
       if (!std::any_of(word.begin(), word.end(), [action](const Action* c) { return c->Disables(action); })) continue; // NOLINT
       if (!last_action->Simulates(action)) continue;
 
@@ -225,19 +247,25 @@ class ProbeReducer {
     vector->age()->Max(&max);
 
     const Action* independent_action = CalcIndependentAction(enable_actions);
+#ifdef USE_AGE_FUNCTION
     const Action* first_probe_set = !max.empty() ? max.front() : independent_action ? independent_action : enable_actions.front();
-    // const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
+#else
+    const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
+#endif
 
     std::vector<const Action*> probe_set;
     probe_set.push_back(first_probe_set);
 
-    // auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };  // best
     // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
     // auto calc_trace = [vector](const Action* a) {
     //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
     // };
 
+#ifdef DISCHARGE_ALL_TRACE
+    auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };  // best
+#else
     auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
+#endif
 
     // 2.10a
     bool updated = false;
@@ -252,6 +280,7 @@ class ProbeReducer {
         }
       }
 
+#ifndef SKIP_210B
       // 2.10b
       for (const Action* b : enable_actions) {
         if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
@@ -261,6 +290,7 @@ class ProbeReducer {
           }
         }
       }
+#endif
     } while (updated);
 
     // 2.10c
@@ -269,7 +299,10 @@ class ProbeReducer {
     }
 
     std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+
+#ifdef ENABLE_ASSERT
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
+#endif
   }
 
   // for debug
