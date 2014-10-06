@@ -14,6 +14,7 @@
 #include <cctype>
 #include "../../thirdparty/rapidxml/rapidxml.hpp"
 #include "./../util/stoi.h"
+#include "./../util/debug.h"
 #include "./petrinet.h"
 
 // #include <iomanip>
@@ -56,6 +57,7 @@ class PNMLParser {
 
     ParsePlaces(value_key, place_nodes, places);
     ParseTransitions(value_key, transition_nodes, transitions);
+    dprint_info("%d places, %d transitions.\n", places->size(), transitions->size());
     ParseArcs(value_key, arc_nodes, places, transitions);
   }
 

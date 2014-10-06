@@ -89,7 +89,7 @@ class ReducerExecuter {
       return;
     }
 
-    ofs << state_space_->ToDot(visited_states_, false, true);
+    ofs << state_space_->ToDot(visited_states_, true, true);
   }
 
  private:
