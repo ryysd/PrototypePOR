@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include "../util/simple_json.h"
 #include "../util/debug.h"
+#include "../util/stoi.h"
 #include "../util/simple_timer.h"
 
 class ATSFileGenerator {
@@ -49,6 +50,7 @@ class ATSFileGenerator {
   std::string GenerateJSON(const State* init_state, const std::vector<std::tuple<const State*, const Transition*, const State*>>& relations, const std::vector<Place*>& places) const {
     std::unordered_map<std::string, std::string> name_map;  // conplex name to simple name (action name + entities -> action + appearance count)
     std::unordered_map<std::string, int> appearance_counts;
+    std::unordered_map<std::string, std::vector<std::tuple<Place*, int>>> loopback_places;
     std::vector<std::unique_ptr<Action>> actions;
     Entity init_entities;
     Entity empty_vector;
@@ -68,8 +70,14 @@ class ATSFileGenerator {
         init_entities.insert(init_entities.end(), source_entities.begin(), source_entities.end());
       }
 
-      Entity creator, eraser;
-      CreateCreatorEraser(source_entities, source_guard_entities, target_entities, target_guard_entities, &creator, &eraser);
+      if (loopback_places.find(transition->id()) == loopback_places.end()) {
+        CalcLoopbackPLaces(places, transition, &loopback_places[transition->id()]);
+      }
+
+      Entity creator, eraser, reader, embargoes;
+      CreateReader(loopback_places.at(transition->id()), &reader);
+      CreateCreatorEraser(source_entities, source_guard_entities, target_entities, target_guard_entities, reader, &creator, &eraser);
+      CreateEmbargoes(eraser, &embargoes);
 
       std::string entity_string;
       MakeEntityString(creator, eraser, empty_vector, empty_vector, &entity_string);
@@ -77,10 +85,12 @@ class ATSFileGenerator {
       if (name_map.find(action_entities_name) == name_map.end()) {
         appearance_counts[transition->id()] += 1;
         std::string action_name = transition->id() + "_" + std::to_string(appearance_counts[transition->id()]);
-        actions.push_back(std::unique_ptr<Action>(new Action{action_name, creator, empty_vector, eraser, empty_vector}));
+        actions.push_back(std::unique_ptr<Action>(new Action{action_name, creator, reader, eraser, embargoes}));
         name_map.insert(std::make_pair(action_entities_name, action_name));
       }
     }
+
+    if (!loopback_places.empty()) dprint_warn("%d loopback was found. Result is may be incorrect.\n", loopback_places.size());
 
     std::map<std::string, std::string> hash;
     hash.insert(std::make_pair("actions", MakeActionsJson(actions)));
@@ -89,9 +99,51 @@ class ATSFileGenerator {
     return simplejson::make_json_document(simplejson::make_json_hash(hash));
   }
 
+  void CalcLoopbackPLaces(const std::vector<Place*>& places, const Transition* transition, std::vector<std::tuple<Place*, int>>* loopbacks) const {
+    for (auto place : places) {
+      const Arc* source_arc = place->FindArc(transition);
+      const Arc* target_arc = transition->FindArc(place);
+      if (source_arc && target_arc && source_arc->inscription() == target_arc->inscription()) {
+        loopbacks->push_back(std::make_tuple(place, source_arc->inscription()));
+      }
+    }
+  }
+
+  void CreateReader(const std::vector<std::tuple<Place*, int>>& loopbacks, Entity* reader) const {
+    for (auto& loopback : loopbacks) {
+      for (int i = 1, n = std::get<1>(loopback); i <= n; ++i) {
+        reader->push_back(std::get<0>(loopback)->id() + '_' + std::to_string(i));
+      }
+    }
+    // std::transform(loopbacks.begin(), loopbacks.end(), std::back_inserter(*reader), [](const Place* place) { return place->id() + '_' + std::to_string(i); });
+  }
+
+  void CreateEmbargoes(const Entity& eraser, Entity* embargoes) const {
+    std::unordered_map<std::string, int> maxes;
+
+    for (auto& entity : eraser) {
+      std::vector<std::string> splitted;
+      split(entity, '_', &splitted);
+      int num = stoi(splitted.back());
+      std::string entity_name = "";
+      for (int i = 0, n = splitted.size() - 1; i < n; ++i) entity_name += splitted[i];
+
+      if (maxes.find(entity_name) != maxes.end()) {
+        if (maxes[entity_name] < num) maxes[entity_name] = num;
+      } else {
+        maxes[entity_name] = num;
+      }
+    }
+
+    for (auto& kv : maxes) {
+      embargoes->push_back(kv.first + "_" + std::to_string(kv.second + 1));
+    }
+  }
+
   void CreateCreatorEraser(
       const Entity& source_entities, const Entity& source_guard_entities,
       const Entity& target_entities, const Entity& target_guard_entities,
+      const Entity& reader,
       Entity* creator, Entity* eraser) const {
     Entity forbitten_creator, forbitten_eraser;
     std::set_difference(target_guard_entities.begin(), target_guard_entities.end(), source_guard_entities.begin(), source_guard_entities.end(), std::back_inserter(forbitten_creator));
@@ -101,17 +153,22 @@ class ATSFileGenerator {
     std::set_difference(target_entities.begin(), target_entities.end(), source_entities.begin(), source_entities.end(), std::back_inserter(real_creator));
     std::set_difference(source_entities.begin(), source_entities.end(), target_entities.begin(), target_entities.end(), std::back_inserter(real_eraser));
 
-    *creator = forbitten_creator;
-    *eraser = forbitten_eraser;
-    creator->insert(creator->end(), real_creator.begin(), real_creator.end());
-    eraser->insert(eraser->end(), real_eraser.begin(), real_eraser.end());
+    Entity duplicate_creator = forbitten_creator;
+    Entity duplicate_eraser = forbitten_eraser;
+    duplicate_creator.insert(duplicate_creator.end(), real_creator.begin(), real_creator.end());
+    duplicate_eraser.insert(duplicate_eraser.end(), real_eraser.begin(), real_eraser.end());
+
+    std::set_difference(duplicate_creator.begin(), duplicate_creator.end(), reader.begin(), reader.end(), std::back_inserter(*creator));
+    std::set_difference(duplicate_eraser.begin(), duplicate_eraser.end(), reader.begin(), reader.end(), std::back_inserter(*eraser));
   }
 
   void CreateEntities(const std::vector<int>& marking, const std::vector<Place*>& places, Entity* entities, Entity* guard_entities) const {
     for (int i = 0, n = marking.size(); i < n; ++i) {
       if (marking[i] > 0) {
-        entities->push_back(places[i]->id() + "_" + std::to_string(marking[i]));
-        guard_entities->push_back("@" + places[i]->id());
+        for (int j = 0, m = marking[i]; j < m; ++j) {
+          entities->push_back(places[i]->id() + "_" + std::to_string(j+1));
+        }
+        // guard_entities->push_back("@" + places[i]->id());
       }
     }
 

@@ -94,7 +94,7 @@ class StateSpace {
       if (!display_state_name) sstream << "  \"" << s->hash() << "\" [label=\"\"];" << std::endl;
       for (Transition* t : s->transitions()) {
         // data.push label ? "  #{edge} [label=\"#{t.action.name}\", #{color}];" : (color.empty? ? "  #{edge};" : "  #{edge} [#{color}];")
-        std::string color = (is_reduced(t->source()) || is_reduced(t->target())) ?  ", style=dashed, color=\"#999999\"" : "";
+        std::string color = (is_reduced(t->source()) || is_reduced(t->target())) ?  ", style=dashed, color=\"#999999\", fontcolor=\"#999999\"" : "";
         std::string label = display_edge_name ? t->action()->name() : "";
         sstream << "  \"" << t->source()->hash() << "\"->\"" << t->target()->hash() << "\"" << "[label=\"" << label << "\"" << color << "]" << std::endl;
         // printf("  \"%s\"->\"%s\" [label=\"%s\"];\n", t->source()->hash().c_str(), t->target()->hash().c_str(), t->action()->name().c_str());
