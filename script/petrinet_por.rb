@@ -3,7 +3,7 @@ require 'fileutils'
 require_relative '../src/util/debug'
 
 class ScriptEnv
-  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file, :use_scala, :use_cpp, :check_all, :algorithm
+  attr_reader :debug, :png, :pnml_file, :script_path, :disable_reduction, :use_cache, :output_file, :use_scala, :use_cpp, :check_all, :algorithm, :use_tina
 
   def initialize
     @debug = @@params['debug']
@@ -14,17 +14,18 @@ class ScriptEnv
     @output_file = @@params['out']
     @use_scala = @@params['use-scala']
     @use_cpp = @@params['use-cpp']
+    @use_tina = @@params['use-tina']
     @check_all = @@params['all']
     @algorithm = @@params['algorithm'] || :probe
     @script_path = './src'
   end
 
-  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'out:', 'use-cache', 'use-scala', 'all', 'algorithm:', 'use-cpp'
+  @@params = ARGV.getopts '', 'debug', 'png', 'pnml:', 'disable-reduction', 'out:', 'use-cache', 'use-scala', 'all', 'algorithm:', 'use-cpp', 'use-tina'
   file_name = File.basename @@params['pnml'], '.*'
   tmp_dir = "./tmp/#{file_name}"
   FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
-  ['ats', 'full', 'reduced'].each do |name|
-    ['json', 'dot', 'png'].each do |ext|
+  ['ats', 'full', 'reduced', 'tina'].each do |name|
+    ['txt', 'json', 'dot', 'png'].each do |ext|
       define_method("#{name}_#{ext}_file"){"#{tmp_dir}/#{name}.#{ext}"}
     end
   end
@@ -70,7 +71,20 @@ if !env.use_cache || !(File.exist? env.ats_json_file)
     exit unless execute_script "-jar ./scala/target/petrinet-por-assembly-1.0-SNAPSHOT.jar", options, "generate state space...", 'java'
   elsif env.use_cpp
     options.delete :ats
-    options[:debug] = nil if env.debug
+    options.delete :pnml
+    # options[:debug] = nil if env.debug
+    options[:file] = env.pnml_file
+    exit unless execute_script "./c/build/petrinet", options, "generate state space...", ''
+  elsif env.use_tina
+    cmd = "tina -PNML -g < #{env.pnml_file} > #{env.tina_txt_file}"
+    Dumper.puts_information cmd
+    exit unless system cmd
+
+    options.delete :ats
+    options.delete :pnml
+    options[:tina] = true
+    # options[:debug] = nil if env.debug
+    options[:file] = env.tina_txt_file
     exit unless execute_script "./c/build/petrinet", options, "generate state space...", ''
   else
     exit unless execute_script "#{env.script_path}/generator/generator.rb", options, "generate state space..."

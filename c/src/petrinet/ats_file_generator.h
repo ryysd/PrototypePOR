@@ -26,7 +26,7 @@ class ATSFileGenerator {
     std::vector<std::tuple<const State*, const Transition*, const State*>> relations;
     auto callback = [&relations](const State* source, const Transition* transition, const State* target) { relations.push_back(std::make_tuple(source, transition, target)); };
     tina_parser.Parse(file_name, &places, &transitions, &states, callback);
-    std::cout << states.size() << std::endl;
+    dprint("%d states.\n", states.size());
 
     std::string json = GenerateJSON(states[0].get(), relations, places);
 

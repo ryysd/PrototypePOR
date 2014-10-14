@@ -39,6 +39,7 @@ class TransitionSystemAnalyzer {
       }
     }
 
+    results->insert(std::make_pair("state num", state_space_->states().size()));
     results->insert(std::make_pair("action num", actions.size()));
     results->insert(std::make_pair("average disable count", static_cast<float>(disable_count) / actions.size()));
     results->insert(std::make_pair("average simulate count", static_cast<float>(simulate_count) / actions.size()));

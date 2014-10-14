@@ -26,8 +26,7 @@ class TinaParser {
 
     ParsePlaceTransition(&ifs, places, transitions, &place_indexes);
 
-    std::cout << transitions->size() << std::endl;
-    std::cout << places->size() << std::endl;
+    dprint("%d transitions, %d places.\n", transitions->size(), places->size());
 
     ParseMarkings(places->size(), place_indexes, &ifs, states);
     ParseReachabilityGraph(*transitions, *states, &ifs, callback);
