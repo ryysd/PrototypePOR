@@ -50,11 +50,6 @@ class Petrinet {
       successors.clear();
       state->CalcSuccessors(column_vectors, transitions_, &successors);
 
-      // if (debug::enable) {
-      //   DumpMarking(state);
-      //   DumpSuccessors(successors);
-      // }
-
       for (auto kv : successors) {
         callback(state, kv.first, kv.second);
         stack.push(kv.second);
