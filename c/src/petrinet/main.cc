@@ -13,5 +13,10 @@ int main(int argc, char** argv) {
 
   ATSFileGenerator generator;
   std::ofstream ofs(option.output_file_name());
-  ofs << generator.Generate(option.pnml_file_name());
+
+  if (option.tina()) {
+    ofs << generator.GenerateFromTina(option.file_name());
+  } else {
+    ofs << generator.Generate(option.file_name());
+  }
 }

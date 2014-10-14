@@ -20,6 +20,7 @@ class PetrinetNode {
   const std::string& id() const { return id_; }
   const std::string& name() const { return name_; }
   const std::vector<std::unique_ptr<Arc>>& arcs() const { return arcs_; }
+
  private:
   const std::string id_;
   const std::string name_;

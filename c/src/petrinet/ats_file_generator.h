@@ -11,10 +11,30 @@
 #include "../util/debug.h"
 #include "../util/stoi.h"
 #include "../util/simple_timer.h"
+#include "./tina_parser.h"
 
 class ATSFileGenerator {
  public:
   ATSFileGenerator() {}
+
+  std::string GenerateFromTina(const std::string& file_name) const {
+    TinaParser tina_parser;
+    std::vector<Place*> places;
+    std::vector<Transition*> transitions;
+
+    std::vector<std::unique_ptr<State>> states;
+    std::vector<std::tuple<const State*, const Transition*, const State*>> relations;
+    auto callback = [&relations](const State* source, const Transition* transition, const State* target) { relations.push_back(std::make_tuple(source, transition, target)); };
+    tina_parser.Parse(file_name, &places, &transitions, &states, callback);
+    dprint("%d states.\n", states.size());
+
+    std::string json = GenerateJSON(states[0].get(), relations, places);
+
+    for (auto place : places) delete place;
+    for (auto transition : transitions) delete transition;
+
+    return json;
+  }
 
   std::string Generate(const std::string& file_name) const {
     PNMLParser parser;
@@ -71,7 +91,7 @@ class ATSFileGenerator {
       }
 
       if (loopback_places.find(transition->id()) == loopback_places.end()) {
-        CalcLoopbackPLaces(places, transition, &loopback_places[transition->id()]);
+        CalcLoopbackPlaces(places, transition, &loopback_places[transition->id()]);
       }
 
       Entity creator, eraser, reader, embargoes;
@@ -99,7 +119,7 @@ class ATSFileGenerator {
     return simplejson::make_json_document(simplejson::make_json_hash(hash));
   }
 
-  void CalcLoopbackPLaces(const std::vector<Place*>& places, const Transition* transition, std::vector<std::tuple<Place*, int>>* loopbacks) const {
+  void CalcLoopbackPlaces(const std::vector<Place*>& places, const Transition* transition, std::vector<std::tuple<Place*, int>>* loopbacks) const {
     for (auto place : places) {
       const Arc* source_arc = place->FindArc(transition);
       const Arc* target_arc = transition->FindArc(place);
@@ -126,7 +146,8 @@ class ATSFileGenerator {
       split(entity, '_', &splitted);
       int num = stoi(splitted.back());
       std::string entity_name = "";
-      for (int i = 0, n = splitted.size() - 1; i < n; ++i) entity_name += splitted[i];
+      for (int i = 0, n = splitted.size() - 1; i < n; ++i) entity_name += splitted[i] + "_";
+      entity_name.erase(--entity_name.end());
 
       if (maxes.find(entity_name) != maxes.end()) {
         if (maxes[entity_name] < num) maxes[entity_name] = num;
