@@ -98,6 +98,7 @@ class ATSFileGenerator {
       CreateReader(loopback_places.at(transition->id()), &reader);
       CreateCreatorEraser(source_entities, source_guard_entities, target_entities, target_guard_entities, reader, &creator, &eraser);
       CreateEmbargoes(eraser, &embargoes);
+      CreateGuardReader(creator, eraser, &reader);
 
       std::string entity_string;
       MakeEntityString(creator, eraser, empty_vector, empty_vector, &entity_string);
@@ -126,6 +127,24 @@ class ATSFileGenerator {
       if (source_arc && target_arc && source_arc->inscription() == target_arc->inscription()) {
         loopbacks->push_back(std::make_tuple(place, source_arc->inscription()));
       }
+    }
+  }
+
+  void CreateGuardReader(const Entity& creator, const Entity& eraser, Entity* reader) const {
+    for (const auto& entity : creator) {
+      std::vector<std::string> splitted;
+      split(entity, '_', &splitted);
+      int num = stoi(splitted.back());
+      std::string entity_name = "";
+      for (int i = 0, n = splitted.size() - 1; i < n; ++i) entity_name += splitted[i] + "_";
+      entity_name.erase(--entity_name.end());
+
+      if (num <= 1) continue;
+
+      std::string new_entity_name = entity_name + "_" + std::to_string(num - 1);
+      if (std::find(eraser.begin(), eraser.end(), new_entity_name) != eraser.end()) continue;
+
+      reader->push_back(new_entity_name);
     }
   }
 
