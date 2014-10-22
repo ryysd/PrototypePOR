@@ -53,10 +53,12 @@ class TinaParser {
           std::vector<std::string> action_detail;
           split(action, '/', &action_detail);
 
-          assert(action_detail.size() == 2);
+          assert(action_detail.size() >= 2);
 
-          std::string action_name = action_detail[0];
-          unsigned int successor_id = stoi(action_detail[1]);
+          std::string action_name = "";
+          unsigned int successor_id = stoi(action_detail.back());
+          for (int i = 0, n = action_detail.size() - 1; i < n; ++i) action_name += action_detail[i] + "/";
+          action_name.erase(--action_name.end());
 
           assert(successor_id < states.size());
 
