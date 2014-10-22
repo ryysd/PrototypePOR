@@ -98,6 +98,7 @@ class ATSFileGenerator {
       CreateReader(loopback_places.at(transition->id()), &reader);
       CreateCreatorEraser(source_entities, source_guard_entities, target_entities, target_guard_entities, reader, &creator, &eraser);
       CreateEmbargoes(eraser, &embargoes);
+      CreateGuardReader(creator, eraser, &reader);
 
       std::string entity_string;
       MakeEntityString(creator, eraser, empty_vector, empty_vector, &entity_string);
@@ -129,6 +130,20 @@ class ATSFileGenerator {
     }
   }
 
+  void CreateGuardReader(const Entity& creator, const Entity& eraser, Entity* reader) const {
+    for (const auto& entity : creator) {
+      std::string entity_name;
+      int num = GetEntityNameAndNum(entity, &entity_name);
+
+      if (num <= 1) continue;
+
+      std::string new_entity_name = entity_name + "_" + std::to_string(num - 1);
+      if (std::find(eraser.begin(), eraser.end(), new_entity_name) != eraser.end()) continue;
+
+      reader->push_back(new_entity_name);
+    }
+  }
+
   void CreateReader(const std::vector<std::tuple<Place*, int>>& loopbacks, Entity* reader) const {
     for (auto& loopback : loopbacks) {
       for (int i = 1, n = std::get<1>(loopback); i <= n; ++i) {
@@ -142,12 +157,8 @@ class ATSFileGenerator {
     std::unordered_map<std::string, int> maxes;
 
     for (auto& entity : eraser) {
-      std::vector<std::string> splitted;
-      split(entity, '_', &splitted);
-      int num = stoi(splitted.back());
-      std::string entity_name = "";
-      for (int i = 0, n = splitted.size() - 1; i < n; ++i) entity_name += splitted[i] + "_";
-      entity_name.erase(--entity_name.end());
+      std::string entity_name;
+      int num = GetEntityNameAndNum(entity, &entity_name);
 
       if (maxes.find(entity_name) != maxes.end()) {
         if (maxes[entity_name] < num) maxes[entity_name] = num;
@@ -220,6 +231,16 @@ class ATSFileGenerator {
     std::map<std::string, std::string> hash;
     hash.insert(std::make_pair("init_entities", simplejson::make_json_array(init_entities)));
     return simplejson::make_json_key_values(hash);
+  }
+
+  int GetEntityNameAndNum(const std::string& entity, std::string* entity_name) const {
+    std::vector<std::string> splitted;
+    split(entity, '_', &splitted);
+    *entity_name = "";
+    for (int i = 0, n = splitted.size() - 1; i < n; ++i) (*entity_name) += splitted[i] + "_";
+    entity_name->erase(--(entity_name->end()));
+
+    return stoi(splitted.back());
   }
 
   void MakeEntityString(const Entity& creator, const Entity& reader, const Entity& eraser, const Entity& embargoes, std::string* entity_string) const {

@@ -13,13 +13,14 @@
 
 // debug options
 #define BEST_REDUCTION
+#define DISCHARGE_PRIME_CAUSE
 // #define USE_THESIS_METHOD
 // #define DISCHARGE_ALL_TRACE
 // #define SKIP_MISSED_ACTION_PHASE
 // #define SKIP_210B
 
 // necassary options
-// #define ENABLE_ASSERT
+#define ENABLE_ASSERT
 #define USE_AGE_FUNCTION
 
 typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
@@ -261,9 +262,12 @@ class ProbeReducer {
     //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
     // };
 
-#ifdef DISCHARGE_ALL_TRACE
+#if defined DISCHARGE_ALL_TRACE
     auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };  // best
+#elif defined DISCHARGE_PRIME_CAUSE
+    auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
 #else
+    // bug: Reversing free actions are not a weak prefix of prime cause...
     auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
 #endif
 
