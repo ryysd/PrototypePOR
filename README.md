@@ -11,6 +11,7 @@ usage
     --disable-reduction - Generate state space without reduction
     --use-cache         - Use existing ats file. ats file is created only if it does not exis
     --use-scala         - Use petrinet of scala implementation
+    --use-tina          - Use tina to generate state space
     --all               - Continue reduction, even if a deadlock state is found
 
 usage (for LMNtal)
@@ -22,7 +23,7 @@ usage (for LMNtal)
 `ruby script/por_using_slim.rb --slim <slim_file> --pnml <pnml_file>`
 
 ### petrinet -> probe por
-`ruby script/petrinet_por.rb --pnml <pnml_file>`
+`ruby script/petrinet_por.rb --use-tina --pnml <pnml_file>`
 
 PNML (PetriNet Markup Language)
 ------

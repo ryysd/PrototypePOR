@@ -1,5 +1,6 @@
 require 'optparse'
 require 'pathname'
+require 'fileutils'
 require_relative '../src/util/debug'
 
 class Env
@@ -11,6 +12,8 @@ class Env
     @pnml_file = params['pnml']
     @tmp_dir = "./tmp/#{File.basename @pnml_file, ".*"}"
     @lmntal_file = File.expand_path "#{@tmp_dir}/lmntal.lmn"
+
+    FileUtils.mkdir_p tmp_dir unless FileTest.exist? tmp_dir
   end
 end
 

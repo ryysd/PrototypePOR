@@ -1,5 +1,6 @@
 require 'optparse'
 require 'pathname'
+require 'fileutils'
 require_relative '../src/util/debug'
 
 class Env
@@ -14,6 +15,8 @@ class Env
     @lmntal_file = File.expand_path "#{@tmp_dir}/lmntal.lmn"
     @delta_file = File.expand_path "#{@tmp_dir}/lmntal.delta.json"
     @ats_file = File.expand_path "#{@tmp_dir}/lmntal.ats.json"
+
+    FileUtils.mkdir_p @tmp_dir unless FileTest.exist? @tmp_dir
   end
 end
 
