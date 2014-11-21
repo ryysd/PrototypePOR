@@ -132,11 +132,11 @@ class Delta2ATSConverter
 
     duplications = @action_names[rule_name]
     duplications.map.with_index do |e, idx|
-      return "#{rule_name}:#{idx}" if e == entities
+      return "#{rule_name}:#{idx + 1}" if e == entities
     end
 
     duplications.push entities
-    return "#{rule_name}:#{duplications.size - 1}"
+    return "#{rule_name}:#{duplications.size}"
   end
 
   def convert_delta_mem_to_action(delta_mem)
