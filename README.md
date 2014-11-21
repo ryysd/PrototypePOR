@@ -15,13 +15,13 @@ usage
 
 usage (for LMNtal)
 ------
-### petrinet → lmntal → ats → probe por
+### petrinet -> lmntal -> ats -> probe por
 ` script/por_via_slim.rb --slim <slim_file> --pnml <pnml_file>`
 
-### petrinet → lmntal → critical por
+### petrinet -> lmntal -> critical por
 `ruby script/por_using_slim.rb --slim <slim_file> --pnml <pnml_file>`
 
-### petrinet → probe por
+### petrinet -> probe por
 `ruby script/petrinet_por.rb --pnml <pnml_file>`
 
 PNML (PetriNet Markup Language)
