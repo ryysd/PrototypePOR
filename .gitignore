@@ -1,6 +1,7 @@
 *.project
 .DS_Store
 *.swp
+*.swo
 tmp
 tmp/*
 input

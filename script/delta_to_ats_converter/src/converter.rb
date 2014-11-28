@@ -105,11 +105,13 @@ class Delta2ATSConverter
 
   def make_entity_from_atom(atom)
     links = atom.links.map {|l| l.data}.join ','
-    "#{atom.id}_#{atom.name}_(#{links})"
+    #"#{atom.id}_#{atom.name}_(#{links})"
+    "#{atom.name}_(#{links})"
   end
 
   def make_entity_from_membrane(membrane)
-    "#{membrane.id}_#{membrane.name}"
+    #"#{membrane.id}_#{membrane.name}"
+    "#{membrane.name}"
   end
 
   def convert_membrane_to_entity(membrane)
@@ -145,7 +147,11 @@ class Delta2ATSConverter
     del_atom_entities = delta_mem.del_atoms.map {|atom| convert_atom_to_entity atom}
     del_mem_entities = delta_mem.del_mems.map {|mem| convert_membrane_to_entity mem}
 
-    entities = {c: (new_atom_entities + new_mem_entities).sort, d: (del_atom_entities + del_mem_entities).sort, r: [], n: []}
+    creator = (new_atom_entities + new_mem_entities).sort
+    eraser = (del_atom_entities + del_mem_entities).sort
+    reader = creator & eraser
+
+    entities = {c: creator - reader, d: eraser - reader, r: reader, n: []}
     action_name = make_action_name delta_mem.rule_name, entities
 
     ["#{action_name}".to_s, entities]
