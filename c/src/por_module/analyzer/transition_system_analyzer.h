@@ -31,6 +31,11 @@ class TransitionSystemAnalyzer {
 
     action_table_->GetActionsVector(&actions);
 
+    int out_edge_sum = 0;
+    for (auto kv : state_space_->states()) {
+      out_edge_sum += kv.second->transitions().size();
+    }
+
     for (const Action* a : actions) {
       for (const Action* b : actions) {
         if (a->Disables(b)) disable_count++;
@@ -44,6 +49,7 @@ class TransitionSystemAnalyzer {
     results->insert(std::make_pair("average disable count", static_cast<float>(disable_count) / actions.size()));
     results->insert(std::make_pair("average simulate count", static_cast<float>(simulate_count) / actions.size()));
     results->insert(std::make_pair("average influence count", static_cast<float>(influence_count) / actions.size()));
+    results->insert(std::make_pair("average output edge", static_cast<float>(out_edge_sum) / state_space_->states().size()));
   }
 
   const ActionTable* action_table_;

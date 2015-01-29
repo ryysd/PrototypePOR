@@ -40,6 +40,7 @@ class ReducerExecuter {
     BeforeExecute();
 
     reducer_->Reduce(state_space_->init_state(), &visited_states_, &executed_actions_);
+    // reducer_->DebugReduce(state_space_->init_state(), &visited_states_);
 
     AfterExecute();
   }

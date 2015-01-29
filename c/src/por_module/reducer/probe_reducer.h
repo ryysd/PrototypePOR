@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <algorithm>
 #include "../../util/combination.h"
+#include "../../util/simple_timer.h"
+#include "../../util/profiler.h"
 
 // debug options
 #define BEST_REDUCTION
@@ -47,6 +49,9 @@ class ProbeReducer {
     Vector* vector = NULL;
     stack.push(new Vector(init_state, empty_word.get()));
 
+    // simpletimer_start();
+    profiler::reset();
+    profiler::start_scope();
     while (!stack.empty()) {
       vector = stack.top();
       stack.pop();
@@ -58,9 +63,10 @@ class ProbeReducer {
 #endif
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
-      std::cout << vector->hash() << std::endl;
+      // std::cout << vector->hash() << std::endl;
       // assert(!vector->word()->ContainsDuplicateAction());
 
+      profiler::start("executed_actions");
       // for debug
       if (executed_actions) {
         for (const Action* action : vector->word()->actions()) {
@@ -69,37 +75,85 @@ class ProbeReducer {
           }
         }
       }
+      profiler::stop("executed_actions");
 
 #ifndef SKIP_MISSED_ACTION_PHASE
+      profiler::start("missed_action");
       CalcFreshMissedAction(vector, &missed_actions);
       for (auto& missed_action : missed_actions) {
         // avoid duplicate search
         if (executed_actions->find(missed_action.second->name()) == executed_actions->end()) {
           executed_actions->insert(std::make_pair(missed_action.second->name(), missed_action.second));
         }
-        std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
+        // std::cout << "missed : " << missed_action.first->name() << " : " << missed_action.second->name() << std::endl;
         stack.push(new Vector(vector->state()->After(missed_action.first.get())->After(missed_action.second), empty_word.get()));
       }
+      profiler::stop("missed_action");
 #endif
 
+      profiler::start("visited_states");
       if (visited_states->find(vector->After()->hash()) == visited_states->end()) {
-        std::cout << "visit: " << vector->After()->hash() << std::endl;
+        // std::cout << "visit: " << vector->After()->hash() << std::endl;
         const State* after = vector->After();
         visited_states->insert(std::make_pair(after->hash(), after));
       }
+      profiler::stop("visited_states");
 
+      profiler::start("probe_set");
       CalcProbeSet(vector, &probe_sets);
+      profiler::stop("probe_set");
       // CalcIndependentProbeSetWithCycleProviso(vector, &probe_sets);
-      std::cout << "probe set ============================" << std::endl;
+      // std::cout << "probe set ============================" << std::endl;
+
+      profiler::start("new_vector");
       for (auto& kv : probe_sets) {
-        std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
+        // std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
         stack.push(MakeNewVectorFromProbeSet(vector, kv, probe_sets));
       }
-      std::cout << "======================================" << std::endl;
-      std::cout << std::endl;
+      profiler::stop("new_vector");
+      // std::cout << "======================================" << std::endl;
+      // std::cout << std::endl;
 
       delete vector;
     }
+    profiler::end_scope();
+    profiler::dump();
+    // std::cout << simpletimer_stop() << "ms" << std::endl;
+  }
+
+  // construct state space only. no reduce.
+  void DebugReduce(const State* init_state, std::unordered_map<std::string, const State*>* visited_states) const {
+    std::stack<Vector*> stack;
+    visited_states->clear();
+
+    ProbeSet probe_sets;
+    Vector* vector = NULL;
+    stack.push(new Vector(init_state, new Word()));
+
+    std::vector<const Action*> actions;
+    action_table_->GetActionsVector(&actions);
+
+    simpletimer_start();
+    while (!stack.empty()) {
+      vector = stack.top();
+      stack.pop();
+
+      const State* after = vector->After();
+      if (visited_states->find(after->hash()) != visited_states->end()) continue;
+      visited_states->insert(std::make_pair(after->hash(), after));
+
+      std::vector<const Action*> enable_actions;
+      after->CalcEnableActions(actions, &enable_actions);
+
+      for (const auto p : enable_actions) {
+        // stack.push(new Vector(vector->state(), vector->word()->Append(p), std::unique_ptr<Age>(new Age())));
+        // stack.push(MakeNewVectorFromProbeSet(vector, kv, probe_sets));
+        stack.push(new Vector(vector->state()->After(p), std::unique_ptr<Word>(new Word), std::unique_ptr<Age>(new Age())));
+      }
+
+      delete vector;
+    }
+    std::cout << simpletimer_stop() << "ms" << std::endl;
   }
 
   AgePtr UpdateAge(const Vector* vector, const ProbeSet& probe_sets) const {
@@ -187,7 +241,7 @@ class ProbeReducer {
     };
 
     auto is_not_enable = [vector](MissedAction::value_type& missed_action) {
-      INFO(missed_action.second->name().c_str());
+      // INFO(missed_action.second->name().c_str());
       const Action* action = missed_action.second;
       return !vector->state()->Enables(missed_action.first->Append(action).get());
     };
@@ -302,7 +356,7 @@ class ProbeReducer {
       probe_sets->insert(std::make_pair(p, calc_trace(p)));
     }
 
-    std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+    // std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
 
 #ifdef ENABLE_ASSERT
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
@@ -348,7 +402,7 @@ class ProbeReducer {
       }
     }
 
-    std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+    // std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 
@@ -413,7 +467,7 @@ class ProbeReducer {
     //   }
     // }
 
-    // std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
+    // //std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
     // assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 

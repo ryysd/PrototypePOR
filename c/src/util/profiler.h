@@ -27,6 +27,10 @@ namespace profiler {
       timers_.at(name)->Stop();
     }
 
+    void Reset() {
+      timers_.clear();
+    }
+
     void Dump() {
       unsigned column_width = 15;
       unsigned fix_width = 2;
@@ -130,6 +134,7 @@ namespace profiler {
   inline void stop(const std::string& name) { Profiler::GetInstance().Stop(name); }
   inline void start_scope() { Profiler::GetInstance().Start("total"); }
   inline void end_scope() { Profiler::GetInstance().Stop("total"); }
+  inline void reset() { Profiler::GetInstance().Reset(); }
   inline void dump() { Profiler::GetInstance().Dump(); }
 }  // namespace profiler
 
