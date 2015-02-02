@@ -39,7 +39,11 @@ class ReducerExecuter {
   void Execute() {
     BeforeExecute();
 
-    reducer_->Reduce(state_space_->init_state(), &visited_states_, &executed_actions_);
+    if (!option_->disable_reduction()) {
+      reducer_->Reduce(state_space_->init_state(), &visited_states_, &executed_actions_);
+    } else {
+      reducer_->DebugReduce(state_space_->init_state(), &visited_states_);
+    }
 
     AfterExecute();
   }
