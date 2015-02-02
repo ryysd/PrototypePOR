@@ -13,30 +13,41 @@
 #include "../../util/simple_timer.h"
 #include "../../util/profiler.h"
 
-// debug options
+// debug option
 #define BEST_REDUCTION
-#define DISCHARGE_PRIME_CAUSE
-// #define USE_THESIS_METHOD
+
+// this option improves reduction performance
+// sometimes segmentation fault occurs (in this case, reversing action is not weak prefix of prime cause).
+// if segmentation fault occurs, disable this option
+#define USE_REVERSING_ACTION
+
+// enable assertion
+#define ENABLE_ASSERT
+
+// use age function
+#define USE_AGE_FUNCTION
+
+// debug options (do not use)
 // #define DISCHARGE_ALL_TRACE
+// #define USE_THESIS_METHOD
 // #define SKIP_MISSED_ACTION_PHASE
 // #define SKIP_210B
 
-// necassary options
-#define ENABLE_ASSERT
-#define USE_AGE_FUNCTION
-
 typedef std::vector<std::pair<std::unique_ptr<Word>, const Action*>> MissedAction;
+typedef std::vector<const Action*> Actions;
 
 class ProbeReducer {
  public:
   typedef std::map<const Action*, std::unique_ptr<Word>> ProbeSet;
 
   ProbeReducer() : action_table_(new ActionTable) {}
-  explicit ProbeReducer(ActionTable* action_table) : action_table_(action_table) {}
+  explicit ProbeReducer(ActionTable* action_table) : action_table_(action_table) { action_table_->GetActionsVector(&action_vectors_); }
 
   ~ProbeReducer() { /* delete action_table_; */ }
 
   void Reduce(const State* init_state, std::unordered_map<std::string, const State*>* visited_states, std::unordered_map<std::string, const Action*>* executed_actions = NULL) const {
+    PrintAssert();
+
     std::unordered_map<std::string, bool> explored_vectors;
     std::stack<Vector*> stack;
     std::unique_ptr<Word> empty_word = std::unique_ptr<Word>(new Word());
@@ -56,11 +67,7 @@ class ProbeReducer {
       vector = stack.top();
       stack.pop();
 
-#ifdef BEST_REDUCTION
-      if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;  // best
-#else
-      if (explored_vectors.find(vector->hash()) != explored_vectors.end()) continue;
-#endif
+      if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
 
       // std::cout << vector->hash() << std::endl;
@@ -99,8 +106,13 @@ class ProbeReducer {
       }
       profiler::stop("visited_states");
 
+      profiler::start("enable_actions");
+      Actions enable_actions;
+      vector->After()->CalcEnableActions(action_vectors_, &enable_actions);
+      profiler::stop("enable_actions");
+
       profiler::start("probe_set");
-      CalcProbeSet(vector, &probe_sets);
+      CalcProbeSet(vector, enable_actions, &probe_sets);
       profiler::stop("probe_set");
       // CalcIndependentProbeSetWithCycleProviso(vector, &probe_sets);
       // std::cout << "probe set ============================" << std::endl;
@@ -108,7 +120,7 @@ class ProbeReducer {
       profiler::start("new_vector");
       for (auto& kv : probe_sets) {
         // std::cout << kv.first->name() << ":" << kv.second->name()  << std::endl;
-        stack.push(MakeNewVectorFromProbeSet(vector, kv, probe_sets));
+        stack.push(MakeNewVectorFromProbeSet(vector, kv, probe_sets, enable_actions));
       }
       profiler::stop("new_vector");
       // std::cout << "======================================" << std::endl;
@@ -130,7 +142,7 @@ class ProbeReducer {
     Vector* vector = NULL;
     stack.push(new Vector(init_state, new Word()));
 
-    std::vector<const Action*> actions;
+    Actions actions;
     action_table_->GetActionsVector(&actions);
 
     simpletimer_start();
@@ -142,7 +154,7 @@ class ProbeReducer {
       if (visited_states->find(after->hash()) != visited_states->end()) continue;
       visited_states->insert(std::make_pair(after->hash(), after));
 
-      std::vector<const Action*> enable_actions;
+      Actions enable_actions;
       after->CalcEnableActions(actions, &enable_actions);
 
       for (const auto p : enable_actions) {
@@ -156,37 +168,33 @@ class ProbeReducer {
     std::cout << simpletimer_stop() << "ms" << std::endl;
   }
 
-  AgePtr UpdateAge(const Vector* vector, const ProbeSet& probe_sets) const {
-    std::vector<const Action*> actions, enable_actions;
-
-    action_table_->GetActionsVector(&actions);
-    vector->After()->CalcEnableActions(actions, &enable_actions);
-
-    std::vector<const Action*> probe_set_domain;
+  AgePtr UpdateAge(const Vector* vector, const ProbeSet& probe_sets, Actions enable_actions) const {
+    profiler::start("trans");
+    Actions probe_set_domain;
     std::transform(probe_sets.begin(), probe_sets.end(), std::back_inserter(probe_set_domain), [](const ProbeSet::value_type& kv) { return kv.first; });
+    profiler::stop("trans");
 
-    return vector->age()->Add(enable_actions)->Remove(probe_set_domain);
+    profiler::start("add_rm");
+    auto ret = vector->age()->Add(enable_actions)->Remove(probe_set_domain);
+    profiler::stop("add_rm");
+    return ret;
   }
 
   // impractical (for debug)
   std::unique_ptr<Word> CalcMissedActionTrace(const Vector* vector, const Action* missed_action) const {
     const Word* word = vector->word();
 
-#ifdef BEST_REDUCTION
-    const std::vector<const Action*> actions = missed_action->CalcPrimeCause(*vector->word())->actions();  // best
-#else
-    const std::vector<const Action*> actions = word->actions();
-#endif
+    const Actions actions = missed_action->CalcPrimeCause(*vector->word())->actions();
 
     if (word->size() < 2) return std::unique_ptr<Word>(new Word{});
 
-    std::vector<const Action*> actions_combination;
+    Actions actions_combination;
 
     std::copy(actions.begin(), actions.end(), std::back_inserter(actions_combination));
 
     for (auto begin = actions_combination.begin(), it = actions_combination.begin() + 1, end = actions_combination.end(); it != end; ++it) {
       do {
-        const std::vector<const Action*> trace_cand_actions(begin, it);
+        const Actions trace_cand_actions(begin, it);
         std::unique_ptr<Word> trace_cand_word = std::unique_ptr<Word>(new Word(trace_cand_actions));
         if (trace_cand_word->IsWeakPrefixOf(*word)) {
           if (vector->state()->Enables(trace_cand_word->Append(missed_action).get())) {
@@ -226,7 +234,7 @@ class ProbeReducer {
 
     CalcPotentiallyMissedAction(vector, missed_actions);
 
-    const std::vector<const Action*> word_actions = std::vector<const Action*>(vector->word()->begin(), vector->word()->end() - 1);
+    const Actions word_actions = Actions(vector->word()->begin(), vector->word()->end() - 1);
     const Word word(word_actions);
     const Vector pre_vector(vector->state(), &word);
 
@@ -257,48 +265,89 @@ class ProbeReducer {
   }
 
   void CalcPotentiallyMissedAction(const Vector* vector, MissedAction* missed_actions) const {
+    profiler::start("potentially");
     missed_actions->clear();
     if (vector->word()->size() < 1) return;
 
-    const std::vector<const Action*> word_actions = std::vector<const Action*>(vector->word()->begin(), vector->word()->end() - 1);
-    const Word word(word_actions);
+    const Word word(Actions(vector->word()->begin(), vector->word()->end() - 1));
     const Action* last_action = vector->word()->actions().back();
 
-    std::vector<const Action*> actions;
-    action_table_->GetActionsVector(&actions);
-
-    for (const Action* action : actions) {
-#ifdef USE_THESIS_METHOD
-      if (!vector->state()->WeakAfter(word)->WeakEnables(action)) continue;
-#else
-      if (!vector->state()->WeakAfter(vector->word())->WeakEnables(action)) continue; /*correct?*/
-#endif
-      if (!std::any_of(word.begin(), word.end(), [action](const Action* c) { return c->Disables(action); })) continue; // NOLINT
+    std::unique_ptr<State> weak_after = NULL;
+    for (const Action* action : action_vectors_) {
       if (!last_action->Simulates(action)) continue;
+      if (!std::any_of(word.begin(), word.end(), [action](const Action* c) { return c->Disables(action); })) continue; // NOLINT
+
+#ifdef USE_THESIS_METHOD
+      if (!weak_after) weak_after = vector->state()->WeakAfter(word);
+#else
+      if (!weak_after) weak_after = vector->state()->WeakAfter(vector->word());  // correct?
+#endif
+      if (!weak_after->WeakEnables(action)) continue;
 
       // TODO(ryysd) check prime_cause(vector->word()) + action is enable at vector->state()
       missed_actions->push_back(std::make_pair(std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()/*correct?*/)), action));
       // missed_actions->push_back(std::make_pair(CalcMissedActionTrace(vector, action), action));  // for debug
     }
+    profiler::stop("potentially");
   }
 
  private:
-  Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set, const ProbeSet& probe_sets) const {
+  Vector* MakeNewVectorFromProbeSet(const Vector* vector, const ProbeSet::value_type& probe_set, const ProbeSet& probe_sets, const Actions& enable_actions) const {
+#ifdef USE_AGE_FUNCTION
     return new Vector(
         vector->state()->After(probe_set.second.get()),
         vector->word()->Append(probe_set.first)->CalcWeakDifference(*probe_set.second),
-        UpdateAge(vector, probe_sets));
+        UpdateAge(vector, probe_sets, enable_actions));
+#else
+    return new Vector(
+        vector->state()->After(probe_set.second.get()),
+        vector->word()->Append(probe_set.first)->CalcWeakDifference(*probe_set.second),
+        std::unique_ptr<Age>(new Age()));
+#endif
   }
 
-  void CalcProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
+  void CalcProbeSetConditionAB(const Vector* vector, const Actions& enable_actions, const Action* a, std::unordered_map<const Action*, WordPtr>* prime_table, Actions* probe_set) const {
+    CalcProbeSetConditionA(vector, enable_actions, a, prime_table, probe_set);
+    CalcProbeSetConditionB(vector, enable_actions, a, prime_table, probe_set);
+  }
+
+  void CalcProbeSetConditionA(const Vector* vector, const Actions& enable_actions, const Action* a, std::unordered_map<const Action*, WordPtr>* prime_table, Actions* probe_set) const {
+    for (const Action* b : enable_actions) {
+      if (a == b || std::find(probe_set->begin(), probe_set->end(), b) != probe_set->end()) continue;
+      if ((b->Disables(a) || a->Disables(b))) {
+        probe_set->push_back(b);
+        CalcProbeSetConditionAB(vector, enable_actions, b, prime_table, probe_set);
+      }
+    }
+  }
+
+  void CalcProbeSetConditionB(const Vector* vector, const Actions& enable_actions, const Action* a, std::unordered_map<const Action*, WordPtr>* prime_table, Actions* probe_set) const {
+#ifdef USE_REVERSING_ACTION
+    auto calc_trace =  [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
+#else
+    auto calc_trace = [vector, prime_table](const Action* a) {
+      auto it = prime_table->find(a);
+      return it == prime_table->end() ? prime_table->insert(std::make_pair(a, std::move(a->CalcPrimeCause(*vector->word())))).first->second.get() : it->second.get();
+    };
+#endif
+
+    for (const Action* b : enable_actions) {
+      if (a == b || std::find(probe_set->begin(), probe_set->end(), b) != probe_set->end()) continue;
+      auto it = prime_table->find(b);
+      const Word* prime_cause = it == prime_table->end() ? prime_table->insert(std::make_pair(b, std::move(b->CalcPrimeCause(*vector->word())))).first->second.get() : it->second.get();
+      if (!calc_trace(a)->IsWeakPrefixOf(*prime_cause)) {
+        probe_set->push_back(b);
+        CalcProbeSetConditionAB(vector, enable_actions, b, prime_table, probe_set);
+      }
+    }
+  }
+
+  void CalcProbeSet(const Vector* vector, const Actions& enable_actions, ProbeSet* probe_sets)  const {
     probe_sets->clear();
 
-    std::vector<const Action*> actions, enable_actions;
-    action_table_->GetActionsVector(&actions);
-    vector->After()->CalcEnableActions(actions, &enable_actions);
     if (enable_actions.empty()) return;
 
-    std::vector<const Action*> max;
+    Actions max;
     vector->age()->Max(&max);
 
     const Action* independent_action = CalcIndependentAction(enable_actions);
@@ -308,7 +357,7 @@ class ProbeReducer {
     const Action* first_probe_set = independent_action ? independent_action : enable_actions.front();
 #endif
 
-    std::vector<const Action*> probe_set;
+    Actions probe_set;
     probe_set.push_back(first_probe_set);
 
     // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
@@ -316,44 +365,43 @@ class ProbeReducer {
     //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
     // };
 
-#if defined DISCHARGE_ALL_TRACE
-    auto calc_trace = [vector](const Action* a) { return std::unique_ptr<Word>(new Word()); };  // best
-#elif defined DISCHARGE_PRIME_CAUSE
-    auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
-#else
-    // bug: Reversing free actions are not a weak prefix of prime cause...
-    auto calc_trace = [vector](const Action* a) { return a->CalcReversingActions(*vector->word()); };
-#endif
-
+    std::unordered_map<const Action*, WordPtr> prime_table;
+    CalcProbeSetConditionAB(vector, enable_actions, first_probe_set, &prime_table, &probe_set);
     // 2.10a
-    bool updated = false;
-    do {
-      updated = false;
-      for (const Action* b : enable_actions) {
-        if (std::any_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
-          if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
-            updated = true;
-            probe_set.push_back(b);
-          }
-        }
-      }
+//     bool updated = false;
+//     do {
+//       updated = false;
+//       for (const Action* b : enable_actions) {
+//         if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
+//           if (std::any_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
+//             updated = true;
+//             probe_set.push_back(b);
+//           }
+//         }
+//       }
+//
+// #ifndef SKIP_210B
+//       // 2.10b
+//       for (const Action* b : enable_actions) {
+//         if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
+//           if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
+//             updated = true;
+//             probe_set.push_back(b);
+//           }
+//         }
+//       }
+// #endif
+//     } while (updated);
 
-#ifndef SKIP_210B
-      // 2.10b
-      for (const Action* b : enable_actions) {
-        if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
-          if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
-            updated = true;
-            probe_set.push_back(b);
-          }
-        }
-      }
-#endif
-    } while (updated);
 
     // 2.10c
     for (const Action* p : probe_set) {
-      probe_sets->insert(std::make_pair(p, calc_trace(p)));
+#ifdef USE_REVERSING_ACTION
+      auto it = prime_table.find(p);
+      probe_sets->insert(std::make_pair(p, it == prime_table.end() ? p->CalcPrimeCause(*vector->word()) : std::move(it->second)));
+#else
+      probe_sets->insert(std::make_pair(p, p->CalcReversingActions(*vector->word())));
+#endif
     }
 
     // std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
@@ -364,7 +412,7 @@ class ProbeReducer {
   }
 
   // for debug
-  bool IsValidProbeSet(const Vector* vector, const ProbeSet& probe_sets, const std::vector<const Action*>& enable_actions) const {
+  bool IsValidProbeSet(const Vector* vector, const ProbeSet& probe_sets, const Actions& enable_actions) const {
     auto check = [vector, &probe_sets, &enable_actions](const ProbeSet::value_type& probe_set) {
       auto check_inner = [vector, &probe_sets, &enable_actions, &probe_set](const Action* b) {
         const Action* a = probe_set.first;
@@ -387,7 +435,7 @@ class ProbeReducer {
   void CalcIndependentProbeSet(const Vector* vector, ProbeSet* probe_sets) const {
     probe_sets->clear();
 
-    std::vector<const Action*> actions, enable_actions;
+    Actions actions, enable_actions;
     action_table_->GetActionsVector(&actions);
     vector->After()->CalcEnableActions(actions, &enable_actions);
     if (enable_actions.empty()) return;
@@ -419,7 +467,7 @@ class ProbeReducer {
 
     if (!contains_duplicate) return;
 
-    std::vector<const Action*> actions, enable_actions;
+    Actions actions, enable_actions;
     action_table_->GetActionsVector(&actions);
     vector->After()->CalcEnableActions(actions, &enable_actions);
 
@@ -438,21 +486,21 @@ class ProbeReducer {
     CalcIndependentProbeSet(vector, probe_sets);
     NoDuplicateCycleProviso(vector, probe_sets);
 
-    std::vector<const Action*> actions, enable_actions;
+    Actions actions, enable_actions;
     action_table_->GetActionsVector(&actions);
     vector->After()->CalcEnableActions(actions, &enable_actions);
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
 
     // probe_sets->clear();
 
-    // std::vector<const Action*> actions, enable_actions;
+    // Actions actions, enable_actions;
     // action_table_->GetActionsVector(&actions);
     // vector->After()->CalcEnableActions(actions, &enable_actions);
     // if (enable_actions.empty()) return;
 
     // const Action* independent_action = CalcIndependentAction(enable_actions);
 
-    // const std::vector<const Action*>& trace_actions = vector->word()->actions();
+    // const Actions& trace_actions = vector->word()->actions();
 
     // if (independent_action && std::find(trace_actions.begin(), trace_actions.end(), independent_action) == trace_actions.end()) {
     //   probe_sets->insert(std::make_pair(independent_action, std::unique_ptr<Word>(new Word())));
@@ -472,7 +520,7 @@ class ProbeReducer {
   }
 
 
-  const Action* CalcIndependentAction(const std::vector<const Action*>& enable_actions) const {
+  const Action* CalcIndependentAction(const Actions& enable_actions) const {
     for (const Action* a : enable_actions) {
       if (std::all_of(enable_actions.begin(), enable_actions.end(), [a](const Action* b) { return a->Equals(b) || (!a->Disables(b) && !b->Disables(a)); })) {
         return a;
@@ -482,7 +530,15 @@ class ProbeReducer {
     return NULL;
   }
 
+  void PrintAssert() const {
+#ifdef USE_REVERSING_ACTION
+    printf("\x1B[33mUSE_REVERSING_ACTION is enabled.\n");
+    printf("if segmentation fault occurs, disable USE_REVERSING_ACTION.\x1B[39m\n");
+#endif
+  }
+
   ActionTable* action_table_;
+  Actions action_vectors_;
 
   DISALLOW_COPY_AND_ASSIGN(ProbeReducer);
 };

@@ -39,6 +39,7 @@ namespace profiler {
       float total_time = timers_.at("total")->total();
       std::stringstream sstream;
 
+      sstream << "Profiler Result ========================================" << std::endl;
       sstream << MakeLabels(labels, column_width, separator) << std::endl;
 
       auto comp = [](DumpObject a, DumpObject b) { return a.inclusive_time_ratio() > b.inclusive_time_ratio(); };
@@ -62,6 +63,7 @@ namespace profiler {
         sstream << dump_objects.top().ToString(column_width, fix_width, separator) << std::endl;
         dump_objects.pop();
       }
+      sstream << "========================================================" << std::endl;
 
       std::cout << sstream.str();
     }
