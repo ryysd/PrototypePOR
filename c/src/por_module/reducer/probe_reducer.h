@@ -51,7 +51,6 @@ class ProbeReducer {
     std::unordered_map<std::string, bool> explored_vectors;
     std::stack<Vector*> stack;
     std::unique_ptr<Word> empty_word = std::unique_ptr<Word>(new Word());
-    // std::unordered_map<std::string, bool> visited_states;
     visited_states->clear();
 
     ProbeSet probe_sets;
@@ -60,7 +59,6 @@ class ProbeReducer {
     Vector* vector = NULL;
     stack.push(new Vector(init_state, empty_word.get()));
 
-    // simpletimer_start();
     profiler::reset();
     profiler::start_scope();
     while (!stack.empty()) {
@@ -69,9 +67,6 @@ class ProbeReducer {
 
       if (visited_states->find(vector->After()->hash()) != visited_states->end()) continue;
       explored_vectors.insert(std::make_pair(vector->hash(), true));
-
-      // std::cout << vector->hash() << std::endl;
-      // assert(!vector->word()->ContainsDuplicateAction());
 
       profiler::start("executed_actions");
       // for debug
@@ -130,7 +125,6 @@ class ProbeReducer {
     }
     profiler::end_scope();
     profiler::dump();
-    // std::cout << simpletimer_stop() << "ms" << std::endl;
   }
 
   // construct state space only. no reduce.
@@ -360,39 +354,8 @@ class ProbeReducer {
     Actions probe_set;
     probe_set.push_back(first_probe_set);
 
-    // auto calc_trace = [vector](const Action* a) { return a->CalcPrimeCause(*vector->word()); };
-    // auto calc_trace = [vector](const Action* a) {
-    //   return (vector->word()->size() < 15) ? std::unique_ptr<Word>(new Word()) : a->CalcPrimeCause(*vector->word());
-    // };
-
     std::unordered_map<const Action*, WordPtr> prime_table;
     CalcProbeSetConditionAB(vector, enable_actions, first_probe_set, &prime_table, &probe_set);
-    // 2.10a
-//     bool updated = false;
-//     do {
-//       updated = false;
-//       for (const Action* b : enable_actions) {
-//         if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
-//           if (std::any_of(probe_set.begin(), probe_set.end(), [b](const Action* a) { return b->Disables(a) || a->Disables(b); })) {
-//             updated = true;
-//             probe_set.push_back(b);
-//           }
-//         }
-//       }
-//
-// #ifndef SKIP_210B
-//       // 2.10b
-//       for (const Action* b : enable_actions) {
-//         if (std::find(probe_set.begin(), probe_set.end(), b) == probe_set.end()) {
-//           if (std::any_of(probe_set.begin(), probe_set.end(), [vector, b, calc_trace](const Action* a) { return !calc_trace(a)->IsWeakPrefixOf(*(b->CalcPrimeCause(*vector->word()))); })) {
-//             updated = true;
-//             probe_set.push_back(b);
-//           }
-//         }
-//       }
-// #endif
-//     } while (updated);
-
 
     // 2.10c
     for (const Action* p : probe_set) {
@@ -490,33 +453,6 @@ class ProbeReducer {
     action_table_->GetActionsVector(&actions);
     vector->After()->CalcEnableActions(actions, &enable_actions);
     assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
-
-    // probe_sets->clear();
-
-    // Actions actions, enable_actions;
-    // action_table_->GetActionsVector(&actions);
-    // vector->After()->CalcEnableActions(actions, &enable_actions);
-    // if (enable_actions.empty()) return;
-
-    // const Action* independent_action = CalcIndependentAction(enable_actions);
-
-    // const Actions& trace_actions = vector->word()->actions();
-
-    // if (independent_action && std::find(trace_actions.begin(), trace_actions.end(), independent_action) == trace_actions.end()) {
-    //   probe_sets->insert(std::make_pair(independent_action, std::unique_ptr<Word>(new Word())));
-    // } else {
-    //   for (const Action* action : enable_actions) {
-    //     std::unique_ptr<Word> word_ptr = std::unique_ptr<Word>(action->CalcPrimeCause(*vector->word()));
-    //     if (std::find(word_ptr->actions().begin(), word_ptr->actions().end(), action) == word_ptr->actions().end()) {
-    //       probe_sets->insert(std::make_pair(action, word_ptr->Append(action)));
-    //     } else {
-    //       probe_sets->insert(std::make_pair(action, std::move(word_ptr)));
-    //     }
-    //   }
-    // }
-
-    // //std::cout << probe_sets->size() << "/" << enable_actions.size() << std::endl;
-    // assert(IsValidProbeSet(vector, *probe_sets, enable_actions));
   }
 
 
